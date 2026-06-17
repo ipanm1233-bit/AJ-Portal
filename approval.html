@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Approval</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans flex items-center justify-center p-4">
+
+    <div class="bg-white max-w-md w-full rounded-xl shadow-xl overflow-hidden border-t-8 border-red-600 text-center p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Halaman Persetujuan</h2>
+        <p id="roleTitle" class="text-red-600 font-semibold mb-6">Memuat data otoritas...</p>
+        
+        <textarea id="catatan" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none mb-4" placeholder="Tulis catatan (opsional)..."></textarea>
+        
+        <div class="flex space-x-3">
+            <button onclick="prosesApproval('Approved')" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition">Setujui (OK)</button>
+            <button onclick="prosesApproval('Rejected')" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition">Tolak</button>
+        </div>
+        <p id="statusMsg" class="mt-4 text-sm font-semibold text-gray-600"></p>
+    </div>
+
+    <script>
+        const GAS_URL = "URL_WEB_APP_ANDA_DISINI"; // PASTE URL WEB APP APPS SCRIPT DI SINI
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const reqId = urlParams.get('id');
+        const role = urlParams.get('role'); // "GM" atau "HRD"
+        
+        document.getElementById('roleTitle').innerText = "Otoritas: " + (role ? role : "Tidak Dikenal");
+
+        async function prosesApproval(status) {
+            if(!reqId || !role) { alert("Link tidak valid."); return; }
+            
+            const catatan = document.getElementById('catatan').value;
+            document.getElementById('statusMsg').innerText = "Memproses...";
+
+            const payload = {
+                action: "approve_pengajuan",
+                idTransaksi: reqId,
+                role: role,
+                status: status,
+                catatan: catatan
+            };
+
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                document.getElementById('statusMsg').innerText = result.message;
+                document.getElementById('statusMsg').classList.add(status === 'Approved' ? 'text-green-600' : 'text-red-600');
+            } catch (err) {
+                document.getElementById('statusMsg').innerText = "Gagal memproses.";
+            }
+        }
+    </script>
+</body>
+</html>
