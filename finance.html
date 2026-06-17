@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Finance - Portal HR & Operasional</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  .fade-in { animation: fadeIn 0.4s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-overlay { backdrop-filter: blur(2px); }
+  .tab-active { border-bottom: 3px solid #C8102E; color: #C8102E; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-red-600 shadow-lg sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-white font-bold text-base sm:text-lg leading-tight">Dashboard Finance</h1>
+          <p class="text-red-100 text-xs" id="userInfoText">Memuat...</p>
+        </div>
+      </div>
+      <button id="logoutBtn" class="text-white bg-red-700 hover:bg-red-800 px-3 py-2 rounded-lg text-sm font-medium transition duration-200">
+        Keluar
+      </button>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- TAB NAVIGATION -->
+    <div class="flex border-b border-gray-200 mb-6 gap-6">
+      <button id="tabPending" class="tab-active pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Pending Validasi Budget
+      </button>
+      <button id="tabApproved" class="text-gray-500 hover:text-gray-700 pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Pengumuman Approved Final
+      </button>
+    </div>
+
+    <!-- ============ TAB 1: PENDING VALIDASI BUDGET ============ -->
+    <div id="panelPending">
+      <div id="pendingLoadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat data...</p>
+      </div>
+
+      <div id="pendingEmptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Tidak ada pengajuan yang menunggu validasi</p>
+      </div>
+
+      <div id="pendingList" class="hidden space-y-4"></div>
+    </div>
+
+    <!-- ============ TAB 2: PENGUMUMAN APPROVED FINAL ============ -->
+    <div id="panelApproved" class="hidden">
+      <div id="approvedLoadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat data...</p>
+      </div>
+
+      <div id="approvedEmptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Belum ada pengajuan yang disetujui final</p>
+      </div>
+
+      <div id="approvedList" class="hidden space-y-4"></div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: VALIDASI BUDGET -->
+  <!-- ============================================================ -->
+  <div id="validasiModal" class="hidden fixed inset-0 bg-black/50 modal-overlay z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-gray-800">Validasi Budget</h3>
+        <button id="closeValidasiBtn" class="text-gray-400 hover:text-gray-600 transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="validasiForm" class="px-6 py-5 space-y-5">
+        <input type="hidden" id="validasiIdTransaksi">
+
+        <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm">
+          <p class="text-gray-500">Toko</p>
+          <p class="font-bold text-gray-800" id="validasiNamaToko">-</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Omset Toko (Rp)</label>
+          <input type="number" id="validasiOmset" required min="0"
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800"
+            placeholder="Contoh: 50000000">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Plafon Budget Disetujui (Rp)</label>
+          <input type="number" id="validasiPlafon" required min="0"
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800"
+            placeholder="Contoh: 5000000">
+        </div>
+
+        <div id="validasiErrorAlert" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium"></div>
+
+        <button type="submit" id="submitValidasiBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3.5 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center justify-center gap-2">
+          <span id="submitValidasiBtnText">Simpan Validasi</span>
+          <div id="submitValidasiSpinner" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 left-6 sm:left-auto bg-gray-900 text-white px-5 py-3.5 rounded-xl shadow-xl z-50 fade-in text-sm font-medium"></div>
+
+<script>
+  // ============================================================
+  // KONFIGURASI
+  // ============================================================
+  const API_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID_ANDA/exec';
+
+  let currentUser = null;
+
+  async function callApi(payload) {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      throw new Error('Gagal terhubung ke server (HTTP ' + response.status + ')');
+    }
+    return await response.json();
+  }
+
+  function checkSession() {
+    const savedUser = localStorage.getItem('hr_portal_user');
+    if (!savedUser) {
+      window.location.href = 'index.html';
+      return null;
+    }
+    try {
+      const userObj = JSON.parse(savedUser);
+      if (!userObj || userObj.role !== 'Finance') {
+        window.location.href = 'index.html';
+        return null;
+      }
+      return userObj;
+    } catch (err) {
+      localStorage.removeItem('hr_portal_user');
+      window.location.href = 'index.html';
+      return null;
+    }
+  }
+
+  function showToast(message, isError) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'fixed bottom-6 right-6 left-6 sm:left-auto px-5 py-3.5 rounded-xl shadow-xl z-50 fade-in text-sm font-medium ' +
+      (isError ? 'bg-red-600 text-white' : 'bg-gray-900 text-white');
+    toast.classList.remove('hidden');
+    setTimeout(function () { toast.classList.add('hidden'); }, 3500);
+  }
+
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+  document.getElementById('tabPending').addEventListener('click', function () {
+    document.getElementById('tabPending').classList.add('tab-active');
+    document.getElementById('tabPending').classList.remove('text-gray-500');
+    document.getElementById('tabApproved').classList.remove('tab-active');
+    document.getElementById('tabApproved').classList.add('text-gray-500');
+    document.getElementById('panelPending').classList.remove('hidden');
+    document.getElementById('panelApproved').classList.add('hidden');
+  });
+
+  document.getElementById('tabApproved').addEventListener('click', function () {
+    document.getElementById('tabApproved').classList.add('tab-active');
+    document.getElementById('tabApproved').classList.remove('text-gray-500');
+    document.getElementById('tabPending').classList.remove('tab-active');
+    document.getElementById('tabPending').classList.add('text-gray-500');
+    document.getElementById('panelApproved').classList.remove('hidden');
+    document.getElementById('panelPending').classList.add('hidden');
+    loadApprovedFinal(); // refresh data setiap kali tab dibuka
+  });
+
+  // ============================================================
+  // RENDER CARD - PENDING VALIDASI
+  // ============================================================
+  function renderPendingCard(item) {
+    return `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition duration-200">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 font-mono">${item.idTransaksi}</p>
+            <h3 class="font-bold text-gray-800 mt-0.5">${item.detail.namaToko || '-'}</h3>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full font-semibold bg-amber-100 text-amber-700">${item.statusFinance}</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-1">Pemohon: <span class="font-medium text-gray-800">${item.namaPemohon}</span> (${item.posisi})</p>
+        <p class="text-gray-600 text-sm mb-3">Bentuk Support: <span class="font-medium text-gray-800">${item.detail.bentukSupport || '-'}</span></p>
+        <button
+          class="validasiBtn w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md transition duration-200 text-sm"
+          data-id="${item.idTransaksi}"
+          data-toko="${item.detail.namaToko || '-'}"
+        >
+          Validasi Budget
+        </button>
+        <p class="text-xs text-gray-400 mt-3">${item.tanggal}</p>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // LOAD: PENDING VALIDASI BUDGET (Support Toko)
+  // ============================================================
+  async function loadPendingFinance() {
+    const loadingState = document.getElementById('pendingLoadingState');
+    const emptyState = document.getElementById('pendingEmptyState');
+    const list = document.getElementById('pendingList');
+
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    list.classList.add('hidden');
+
+    try {
+      const result = await callApi({ action: 'get_data', mode: 'pending_finance' });
+      loadingState.classList.add('hidden');
+
+      if (result.success && result.data && result.data.length > 0) {
+        list.innerHTML = result.data.map(renderPendingCard).join('');
+        list.classList.remove('hidden');
+        attachValidasiButtonListeners();
+      } else {
+        emptyState.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingState.classList.add('hidden');
+      showToast('Gagal memuat data: ' + err.message, true);
+      emptyState.classList.remove('hidden');
+    }
+  }
+
+  function attachValidasiButtonListeners() {
+    document.querySelectorAll('.validasiBtn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-id');
+        const toko = btn.getAttribute('data-toko');
+        openValidasiModal(id, toko);
+      });
+    });
+  }
+
+  // ============================================================
+  // MODAL VALIDASI BUDGET
+  // ============================================================
+  function openValidasiModal(idTransaksi, namaToko) {
+    document.getElementById('validasiIdTransaksi').value = idTransaksi;
+    document.getElementById('validasiNamaToko').textContent = namaToko;
+    document.getElementById('validasiOmset').value = '';
+    document.getElementById('validasiPlafon').value = '';
+    document.getElementById('validasiErrorAlert').classList.add('hidden');
+    document.getElementById('validasiModal').classList.remove('hidden');
+  }
+
+  function closeValidasiModal() {
+    document.getElementById('validasiModal').classList.add('hidden');
+  }
+
+  document.getElementById('closeValidasiBtn').addEventListener('click', closeValidasiModal);
+  document.getElementById('validasiModal').addEventListener('click', function (e) {
+    if (e.target === e.currentTarget) closeValidasiModal();
+  });
+
+  document.getElementById('validasiForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const idTransaksi = document.getElementById('validasiIdTransaksi').value;
+    const omsetToko = document.getElementById('validasiOmset').value;
+    const plafonBudget = document.getElementById('validasiPlafon').value;
+    const errorAlert = document.getElementById('validasiErrorAlert');
+    errorAlert.classList.add('hidden');
+
+    const submitBtn = document.getElementById('submitValidasiBtn');
+    const submitBtnText = document.getElementById('submitValidasiBtnText');
+    const submitSpinner = document.getElementById('submitValidasiSpinner');
+
+    submitBtn.disabled = true;
+    submitBtnText.textContent = 'Menyimpan...';
+    submitSpinner.classList.remove('hidden');
+
+    try {
+      const result = await callApi({
+        action: 'finance_update',
+        idTransaksi: idTransaksi,
+        omsetToko: Number(omsetToko),
+        plafonBudget: Number(plafonBudget)
+      });
+
+      if (result.success) {
+        showToast('Validasi budget berhasil disimpan!', false);
+        closeValidasiModal();
+        loadPendingFinance();
+      } else {
+        errorAlert.textContent = result.message || 'Gagal menyimpan validasi.';
+        errorAlert.classList.remove('hidden');
+      }
+    } catch (err) {
+      errorAlert.textContent = 'Terjadi kesalahan: ' + err.message;
+      errorAlert.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtnText.textContent = 'Simpan Validasi';
+      submitSpinner.classList.add('hidden');
+    }
+  });
+
+  // ============================================================
+  // RENDER CARD - APPROVED FINAL (Pengumuman)
+  // ============================================================
+  function renderApprovedCard(item) {
+    let detailHtml = '';
+    if (item.jenisPengajuan === 'Pergeseran Libur') {
+      detailHtml = `<p class="text-gray-600 text-sm">Area Cover: <span class="font-medium text-gray-800">${item.detail.areaCover || '-'}</span></p>`;
+    } else if (item.jenisPengajuan === 'Peminjaman Kendaraan Kantor') {
+      detailHtml = `<p class="text-gray-600 text-sm">Lama Pinjam: <span class="font-medium text-gray-800">${item.detail.berapaHariPinjam || '-'} hari</span></p>`;
+    } else if (item.jenisPengajuan === 'Support Toko') {
+      detailHtml = `
+        <p class="text-gray-600 text-sm">Toko: <span class="font-medium text-gray-800">${item.detail.namaToko || '-'}</span></p>
+        ${item.detail.plafonBudget ? '<p class="text-gray-600 text-sm">Plafon: <span class="font-medium text-gray-800">Rp ' + Number(item.detail.plafonBudget).toLocaleString('id-ID') + '</span></p>' : ''}
+      `;
+    }
+
+    return `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 font-mono">${item.idTransaksi}</p>
+            <h3 class="font-bold text-gray-800 mt-0.5">${item.jenisPengajuan}</h3>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700">Approved Final</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-1">Pemohon: <span class="font-medium text-gray-800">${item.namaPemohon}</span> (${item.posisi})</p>
+        ${detailHtml}
+        <p class="text-xs text-gray-400 mt-3">${item.tanggal}</p>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // LOAD: APPROVED FINAL (Pengumuman)
+  // ============================================================
+  async function loadApprovedFinal() {
+    const loadingState = document.getElementById('approvedLoadingState');
+    const emptyState = document.getElementById('approvedEmptyState');
+    const list = document.getElementById('approvedList');
+
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    list.classList.add('hidden');
+
+    try {
+      const result = await callApi({ action: 'get_data', mode: 'approved_final' });
+      loadingState.classList.add('hidden');
+
+      if (result.success && result.data && result.data.length > 0) {
+        list.innerHTML = result.data.map(renderApprovedCard).join('');
+        list.classList.remove('hidden');
+      } else {
+        emptyState.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingState.classList.add('hidden');
+      showToast('Gagal memuat data: ' + err.message, true);
+      emptyState.classList.remove('hidden');
+    }
+  }
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+  document.getElementById('logoutBtn').addEventListener('click', function () {
+    localStorage.removeItem('hr_portal_user');
+    window.location.href = 'index.html';
+  });
+
+  // ============================================================
+  // INISIALISASI HALAMAN
+  // ============================================================
+  (function init() {
+    currentUser = checkSession();
+    if (!currentUser) return;
+
+    document.getElementById('userInfoText').textContent =
+      (currentUser.namaLengkap || currentUser.username) + ' - ' + (currentUser.posisi || currentUser.role);
+
+    loadPendingFinance();
+  })();
+</script>
+
+</body>
+</html>

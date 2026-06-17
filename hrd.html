@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard HRD - Portal HR & Operasional</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  .fade-in { animation: fadeIn 0.4s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-overlay { backdrop-filter: blur(2px); }
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-red-600 shadow-lg sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-white font-bold text-base sm:text-lg leading-tight">Dashboard HRD</h1>
+          <p class="text-red-100 text-xs" id="userInfoText">Memuat...</p>
+        </div>
+      </div>
+      <button id="logoutBtn" class="text-white bg-red-700 hover:bg-red-800 px-3 py-2 rounded-lg text-sm font-medium transition duration-200">
+        Keluar
+      </button>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Pengajuan Menunggu Approval</h2>
+      <button id="refreshBtn" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="text-center py-16">
+      <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+      <p class="text-gray-500 mt-3 text-sm">Memuat data pengajuan...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-gray-500 font-medium">Tidak ada pengajuan yang menunggu approval Anda</p>
+    </div>
+
+    <!-- List Pending Approval -->
+    <div id="pendingList" class="hidden space-y-4"></div>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: KONFIRMASI APPROVE / REJECT -->
+  <!-- ============================================================ -->
+  <div id="approvalModal" class="hidden fixed inset-0 bg-black/50 modal-overlay z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-gray-800" id="approvalModalTitle">Konfirmasi Keputusan</h3>
+        <button id="closeApprovalBtn" class="text-gray-400 hover:text-gray-600 transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="approvalForm" class="px-6 py-5 space-y-5">
+        <input type="hidden" id="approvalIdTransaksi">
+        <input type="hidden" id="approvalDecision">
+
+        <p class="text-gray-600 text-sm" id="approvalConfirmText">Apakah Anda yakin?</p>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Catatan (opsional)</label>
+          <textarea id="approvalCatatan" rows="3"
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800 resize-none"
+            placeholder="Tambahkan catatan jika diperlukan"></textarea>
+        </div>
+
+        <div id="approvalErrorAlert" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium"></div>
+
+        <button type="submit" id="submitApprovalBtn" class="w-full font-semibold py-3.5 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center justify-center gap-2 text-white" id="submitApprovalBtnContainer">
+          <span id="submitApprovalBtnText">Konfirmasi</span>
+          <div id="submitApprovalSpinner" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 left-6 sm:left-auto bg-gray-900 text-white px-5 py-3.5 rounded-xl shadow-xl z-50 fade-in text-sm font-medium"></div>
+
+<script>
+  // ============================================================
+  // KONFIGURASI
+  // ============================================================
+  const API_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID_ANDA/exec';
+  const APPROVER_ROLE = 'HRD'; // <-- Perbedaan utama dengan gm.html
+
+  let currentUser = null;
+
+  async function callApi(payload) {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      throw new Error('Gagal terhubung ke server (HTTP ' + response.status + ')');
+    }
+    return await response.json();
+  }
+
+  function checkSession() {
+    const savedUser = localStorage.getItem('hr_portal_user');
+    if (!savedUser) {
+      window.location.href = 'index.html';
+      return null;
+    }
+    try {
+      const userObj = JSON.parse(savedUser);
+      if (!userObj || userObj.role !== APPROVER_ROLE) {
+        window.location.href = 'index.html';
+        return null;
+      }
+      return userObj;
+    } catch (err) {
+      localStorage.removeItem('hr_portal_user');
+      window.location.href = 'index.html';
+      return null;
+    }
+  }
+
+  function showToast(message, isError) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'fixed bottom-6 right-6 left-6 sm:left-auto px-5 py-3.5 rounded-xl shadow-xl z-50 fade-in text-sm font-medium ' +
+      (isError ? 'bg-red-600 text-white' : 'bg-gray-900 text-white');
+    toast.classList.remove('hidden');
+    setTimeout(function () { toast.classList.add('hidden'); }, 3500);
+  }
+
+  // ============================================================
+  // RENDER DETAIL sesuai jenis pengajuan
+  // ============================================================
+  function renderDetailHtml(item) {
+    if (item.jenisPengajuan === 'Pergeseran Libur') {
+      return `
+        <p class="text-gray-600 text-sm">Hari Libur Asli: <span class="font-medium text-gray-800">${item.detail.hariLiburAsli || '-'}</span></p>
+        <p class="text-gray-600 text-sm">Area Cover: <span class="font-medium text-gray-800">${item.detail.areaCover || '-'}</span></p>
+        <p class="text-gray-600 text-sm">Alasan: <span class="font-medium text-gray-800">${item.detail.alasan || '-'}</span></p>
+      `;
+    } else if (item.jenisPengajuan === 'Peminjaman Kendaraan Kantor') {
+      return `
+        <p class="text-gray-600 text-sm">Lama Pinjam: <span class="font-medium text-gray-800">${item.detail.berapaHariPinjam || '-'} hari</span></p>
+        <p class="text-gray-600 text-sm">Tanggal Kembali: <span class="font-medium text-gray-800">${item.detail.tanggalKembali || '-'}</span></p>
+        ${item.detail.untukSalesSiapa ? '<p class="text-gray-600 text-sm">Untuk Sales: <span class="font-medium text-gray-800">' + item.detail.untukSalesSiapa + '</span></p>' : ''}
+      `;
+    } else if (item.jenisPengajuan === 'Support Toko') {
+      // Tampilkan data omset & budget dari Finance jika sudah tersedia
+      const omsetHtml = item.detail.omsetToko
+        ? '<p class="text-gray-600 text-sm">Omset Toko: <span class="font-medium text-gray-800">Rp ' + Number(item.detail.omsetToko).toLocaleString('id-ID') + '</span></p>'
+        : '<p class="text-gray-400 text-sm italic">Data omset belum divalidasi Finance</p>';
+      const plafonHtml = item.detail.plafonBudget
+        ? '<p class="text-gray-600 text-sm">Plafon Budget: <span class="font-medium text-gray-800">Rp ' + Number(item.detail.plafonBudget).toLocaleString('id-ID') + '</span></p>'
+        : '';
+      return `
+        <p class="text-gray-600 text-sm">Nama Toko: <span class="font-medium text-gray-800">${item.detail.namaToko || '-'}</span></p>
+        <p class="text-gray-600 text-sm">Bentuk Support: <span class="font-medium text-gray-800">${item.detail.bentukSupport || '-'}</span></p>
+        ${omsetHtml}
+        ${plafonHtml}
+      `;
+    }
+    return '';
+  }
+
+  // ============================================================
+  // RENDER 1 CARD PENDING APPROVAL
+  // ============================================================
+  function renderPendingCard(item) {
+    return `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition duration-200">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 font-mono">${item.idTransaksi}</p>
+            <h3 class="font-bold text-gray-800 mt-0.5">${item.jenisPengajuan}</h3>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full font-semibold bg-amber-100 text-amber-700">${item.statusHRD}</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-2">Pemohon: <span class="font-medium text-gray-800">${item.namaPemohon}</span> (${item.posisi})</p>
+        <div class="space-y-1 mb-4 bg-gray-50 rounded-xl px-4 py-3">${renderDetailHtml(item)}</div>
+
+        <div class="flex gap-3">
+          <button
+            class="approveBtn flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md transition duration-200 text-sm flex items-center justify-center gap-1.5"
+            data-id="${item.idTransaksi}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            Approve
+          </button>
+          <button
+            class="rejectBtn flex-1 bg-white border-2 border-red-600 text-red-600 hover:bg-red-50 font-semibold py-2.5 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-1.5"
+            data-id="${item.idTransaksi}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Reject
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">${item.tanggal}</p>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // LOAD: PENDING APPROVAL UNTUK HRD
+  // ============================================================
+  async function loadPendingApproval() {
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const list = document.getElementById('pendingList');
+
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    list.classList.add('hidden');
+
+    try {
+      const result = await callApi({ action: 'get_data', mode: 'pending_hrd' });
+      loadingState.classList.add('hidden');
+
+      if (result.success && result.data && result.data.length > 0) {
+        list.innerHTML = result.data.map(renderPendingCard).join('');
+        list.classList.remove('hidden');
+        attachActionButtonListeners();
+      } else {
+        emptyState.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingState.classList.add('hidden');
+      showToast('Gagal memuat data: ' + err.message, true);
+      emptyState.classList.remove('hidden');
+    }
+  }
+
+  function attachActionButtonListeners() {
+    document.querySelectorAll('.approveBtn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openApprovalModal(btn.getAttribute('data-id'), 'Approved');
+      });
+    });
+    document.querySelectorAll('.rejectBtn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openApprovalModal(btn.getAttribute('data-id'), 'Rejected');
+      });
+    });
+  }
+
+  // ============================================================
+  // MODAL KONFIRMASI APPROVE/REJECT
+  // ============================================================
+  function openApprovalModal(idTransaksi, decision) {
+    document.getElementById('approvalIdTransaksi').value = idTransaksi;
+    document.getElementById('approvalDecision').value = decision;
+    document.getElementById('approvalCatatan').value = '';
+    document.getElementById('approvalErrorAlert').classList.add('hidden');
+
+    const isApprove = decision === 'Approved';
+    document.getElementById('approvalModalTitle').textContent = isApprove ? 'Konfirmasi Approve' : 'Konfirmasi Reject';
+    document.getElementById('approvalConfirmText').textContent =
+      isApprove
+        ? 'Anda akan menyetujui pengajuan ini sebagai ' + APPROVER_ROLE + '.'
+        : 'Anda akan menolak pengajuan ini sebagai ' + APPROVER_ROLE + '.';
+
+    const submitBtnContainer = document.getElementById('submitApprovalBtnContainer');
+    submitBtnContainer.className = 'w-full font-semibold py-3.5 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center justify-center gap-2 text-white ' +
+      (isApprove ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700');
+    document.getElementById('submitApprovalBtnText').textContent = isApprove ? 'Ya, Approve' : 'Ya, Reject';
+
+    document.getElementById('approvalModal').classList.remove('hidden');
+  }
+
+  function closeApprovalModal() {
+    document.getElementById('approvalModal').classList.add('hidden');
+  }
+
+  document.getElementById('closeApprovalBtn').addEventListener('click', closeApprovalModal);
+  document.getElementById('approvalModal').addEventListener('click', function (e) {
+    if (e.target === e.currentTarget) closeApprovalModal();
+  });
+
+  // ============================================================
+  // SUBMIT APPROVAL ACTION
+  // ============================================================
+  document.getElementById('approvalForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const idTransaksi = document.getElementById('approvalIdTransaksi').value;
+    const decision = document.getElementById('approvalDecision').value;
+    const catatan = document.getElementById('approvalCatatan').value.trim();
+    const errorAlert = document.getElementById('approvalErrorAlert');
+    errorAlert.classList.add('hidden');
+
+    const submitBtn = document.querySelector('#approvalForm button[type="submit"]');
+    const submitBtnText = document.getElementById('submitApprovalBtnText');
+    const submitSpinner = document.getElementById('submitApprovalSpinner');
+
+    submitBtn.disabled = true;
+    submitBtnText.textContent = 'Memproses...';
+    submitSpinner.classList.remove('hidden');
+
+    try {
+      const result = await callApi({
+        action: 'approval_action',
+        idTransaksi: idTransaksi,
+        approverRole: APPROVER_ROLE,
+        decision: decision,
+        catatan: catatan
+      });
+
+      if (result.success) {
+        showToast('Keputusan berhasil disimpan: ' + decision, false);
+        closeApprovalModal();
+        loadPendingApproval();
+      } else {
+        errorAlert.textContent = result.message || 'Gagal menyimpan keputusan.';
+        errorAlert.classList.remove('hidden');
+      }
+    } catch (err) {
+      errorAlert.textContent = 'Terjadi kesalahan: ' + err.message;
+      errorAlert.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtnText.textContent = decision === 'Approved' ? 'Ya, Approve' : 'Ya, Reject';
+      submitSpinner.classList.add('hidden');
+    }
+  });
+
+  // ============================================================
+  // REFRESH MANUAL
+  // ============================================================
+  document.getElementById('refreshBtn').addEventListener('click', loadPendingApproval);
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+  document.getElementById('logoutBtn').addEventListener('click', function () {
+    localStorage.removeItem('hr_portal_user');
+    window.location.href = 'index.html';
+  });
+
+  // ============================================================
+  // INISIALISASI HALAMAN
+  // ============================================================
+  (function init() {
+    currentUser = checkSession();
+    if (!currentUser) return;
+
+    document.getElementById('userInfoText').textContent =
+      (currentUser.namaLengkap || currentUser.username) + ' - ' + (currentUser.posisi || currentUser.role);
+
+    loadPendingApproval();
+  })();
+</script>
+
+</body>
+</html>
