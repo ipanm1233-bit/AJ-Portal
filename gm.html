@@ -10,6 +10,7 @@
   .fade-in { animation: fadeIn 0.4s ease-in-out; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .modal-overlay { backdrop-filter: blur(2px); }
+  .tab-active { border-bottom: 3px solid #C8102E; color: #C8102E; }
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -36,32 +37,61 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Pengajuan Menunggu Approval</h2>
-      <button id="refreshBtn" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1.5">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
-        Refresh
+    <!-- TAB NAVIGATION -->
+    <div class="flex border-b border-gray-200 mb-6 gap-6">
+      <button id="tabPending" class="tab-active pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Menunggu Approval
+      </button>
+      <button id="tabApproved" class="text-gray-500 hover:text-gray-700 pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Riwayat Approved Final
       </button>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingState" class="text-center py-16">
-      <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
-      <p class="text-gray-500 mt-3 text-sm">Memuat data pengajuan...</p>
+    <!-- ============ PANEL 1: PENDING APPROVAL ============ -->
+    <div id="panelPending">
+      <div class="flex items-center justify-end mb-6">
+        <button id="refreshBtn" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat data pengajuan...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Tidak ada pengajuan yang menunggu approval Anda</p>
+      </div>
+
+      <!-- List Pending Approval -->
+      <div id="pendingList" class="hidden space-y-4"></div>
     </div>
 
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <p class="text-gray-500 font-medium">Tidak ada pengajuan yang menunggu approval Anda</p>
-    </div>
+    <!-- ============ PANEL 2: RIWAYAT APPROVED FINAL ============ -->
+    <div id="panelApproved" class="hidden">
+      <div id="approvedLoadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat data...</p>
+      </div>
 
-    <!-- List Pending Approval -->
-    <div id="pendingList" class="hidden space-y-4"></div>
+      <div id="approvedEmptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Belum ada pengajuan yang disetujui final</p>
+      </div>
+
+      <div id="approvedList" class="hidden space-y-4"></div>
+    </div>
 
   </main>
 
@@ -105,11 +135,28 @@
   <!-- Toast Notification -->
   <div id="toast" class="hidden fixed bottom-6 right-6 left-6 sm:left-auto bg-gray-900 text-white px-5 py-3.5 rounded-xl shadow-xl z-50 fade-in text-sm font-medium"></div>
 
+  <!-- ============================================================ -->
+  <!-- MODAL: DETAIL RIWAYAT APPROVED -->
+  <!-- ============================================================ -->
+  <div id="detailModal" class="hidden fixed inset-0 bg-black/50 modal-overlay z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto fade-in">
+      <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between rounded-t-2xl">
+        <h3 class="text-lg font-bold text-gray-800">Detail Pengajuan</h3>
+        <button id="closeDetailBtn" class="text-gray-400 hover:text-gray-600 transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="detailModalContent" class="px-6 py-5 space-y-4"></div>
+    </div>
+  </div>
+
 <script>
   // ============================================================
   // KONFIGURASI
   // ============================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbymDONqkEeJ4w6wKSkUPn-3CpKJBvnp5mSZxZUADPnU2rBzSCBc28yRfu4wpVIcklVPsA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbz9NcMkamfXwbKBUDZ0RptFumy0vkawRcxaJ1kPWFCD2y-6FyX-3OmB1wXdn3nmVcJt6w/exec';
   const APPROVER_ROLE = 'GM'; // <-- Perbedaan utama dengan hrd.html
 
   let currentUser = null;
@@ -184,6 +231,15 @@
         <p class="text-gray-600 text-sm">Bentuk Support: <span class="font-medium text-gray-800">${item.detail.bentukSupport || '-'}</span></p>
         ${omsetHtml}
         ${plafonHtml}
+      `;
+    } else if (item.jenisPengajuan === 'Dinas Luar Kota') {
+      const daftarTokoStr = Array.isArray(item.detail.planKunjunganToko)
+        ? item.detail.planKunjunganToko.join(', ')
+        : (item.detail.planKunjunganToko || '-');
+      return `
+        <p class="text-gray-600 text-sm">Tujuan Dinas: <span class="font-medium text-gray-800">${item.detail.tujuanDinas || '-'}</span></p>
+        <p class="text-gray-600 text-sm">Kunjungan Toko: <span class="font-medium text-gray-800">${daftarTokoStr}</span></p>
+        <p class="text-gray-600 text-sm">Plan Menginap: <span class="font-medium text-gray-800">${item.detail.planMenginap || '-'}</span></p>
       `;
     }
     return '';
@@ -352,6 +408,144 @@
       submitSpinner.classList.add('hidden');
     }
   });
+
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+  document.getElementById('tabPending').addEventListener('click', function () {
+    document.getElementById('tabPending').classList.add('tab-active');
+    document.getElementById('tabPending').classList.remove('text-gray-500');
+    document.getElementById('tabApproved').classList.remove('tab-active');
+    document.getElementById('tabApproved').classList.add('text-gray-500');
+    document.getElementById('panelPending').classList.remove('hidden');
+    document.getElementById('panelApproved').classList.add('hidden');
+  });
+
+  document.getElementById('tabApproved').addEventListener('click', function () {
+    document.getElementById('tabApproved').classList.add('tab-active');
+    document.getElementById('tabApproved').classList.remove('text-gray-500');
+    document.getElementById('tabPending').classList.remove('tab-active');
+    document.getElementById('tabPending').classList.add('text-gray-500');
+    document.getElementById('panelApproved').classList.remove('hidden');
+    document.getElementById('panelPending').classList.add('hidden');
+    loadApprovedFinal(); // refresh data setiap kali tab dibuka
+  });
+
+  // ============================================================
+  // RENDER CARD - RIWAYAT APPROVED FINAL (dengan klik untuk detail)
+  // Data lengkap disimpan di approvedFinalDataCache, card hanya
+  // menyimpan data-index agar aman dari karakter kutip di detail.
+  // ============================================================
+  let approvedFinalDataCache = [];
+
+  function renderApprovedCard(item, index) {
+    return `
+      <div class="detailCard bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-red-200 transition duration-200 cursor-pointer" data-index="${index}">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 font-mono">${item.idTransaksi}</p>
+            <h3 class="font-bold text-gray-800 mt-0.5">${item.jenisPengajuan}</h3>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700">Approved Final</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-1">Pemohon: <span class="font-medium text-gray-800">${item.namaPemohon}</span> (${item.posisi})</p>
+        <div class="space-y-1">${renderDetailHtml(item)}</div>
+        <p class="text-xs text-gray-400 mt-3">${item.tanggal}</p>
+        <p class="text-xs text-red-600 font-semibold mt-2">Klik untuk lihat detail lengkap →</p>
+      </div>
+    `;
+  }
+
+  function formatFieldLabel(key) {
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, function (c) { return c.toUpperCase(); });
+  }
+
+  function openDetailModal(item) {
+    const content = document.getElementById('detailModalContent');
+
+    let fieldsHtml = '';
+    for (const key in item.detail) {
+      const value = item.detail[key];
+      const displayValue = Array.isArray(value) ? value.join(', ') : (value || '-');
+      fieldsHtml += `
+        <div class="bg-gray-50 rounded-xl px-4 py-3">
+          <p class="text-xs text-gray-500">${formatFieldLabel(key)}</p>
+          <p class="font-medium text-gray-800 mt-0.5">${displayValue}</p>
+        </div>
+      `;
+    }
+
+    content.innerHTML = `
+      <div class="bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-2">
+        <p class="text-xs text-gray-500 font-mono">${item.idTransaksi}</p>
+        <p class="font-bold text-gray-800 text-lg mt-0.5">${item.jenisPengajuan}</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl px-4 py-3">
+        <p class="text-xs text-gray-500">Pemohon</p>
+        <p class="font-medium text-gray-800 mt-0.5">${item.namaPemohon} (${item.posisi})</p>
+      </div>
+      ${fieldsHtml}
+      <div class="bg-gray-50 rounded-xl px-4 py-3">
+        <p class="text-xs text-gray-500">Status</p>
+        <p class="font-medium text-gray-800 mt-0.5">Finance: ${item.statusFinance} • GM: ${item.statusGM} • HRD: ${item.statusHRD}</p>
+      </div>
+      ${item.catatan ? '<div class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3"><p class="text-xs text-amber-600">Catatan</p><p class="font-medium text-amber-800 mt-0.5">' + item.catatan + '</p></div>' : ''}
+      <p class="text-xs text-gray-400">${item.tanggal}</p>
+    `;
+
+    document.getElementById('detailModal').classList.remove('hidden');
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detailModal').classList.add('hidden');
+  }
+
+  document.getElementById('closeDetailBtn').addEventListener('click', closeDetailModal);
+  document.getElementById('detailModal').addEventListener('click', function (e) {
+    if (e.target === e.currentTarget) closeDetailModal();
+  });
+
+  function attachDetailCardListeners() {
+    document.querySelectorAll('.detailCard').forEach(function (card) {
+      card.addEventListener('click', function () {
+        const index = parseInt(card.getAttribute('data-index'), 10);
+        const item = approvedFinalDataCache[index];
+        if (item) openDetailModal(item);
+      });
+    });
+  }
+
+  // ============================================================
+  // LOAD: RIWAYAT APPROVED FINAL
+  // ============================================================
+  async function loadApprovedFinal() {
+    const loadingState = document.getElementById('approvedLoadingState');
+    const emptyState = document.getElementById('approvedEmptyState');
+    const list = document.getElementById('approvedList');
+
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    list.classList.add('hidden');
+
+    try {
+      const result = await callApi({ action: 'get_data', mode: 'approved_final' });
+      loadingState.classList.add('hidden');
+
+      if (result.success && result.data && result.data.length > 0) {
+        approvedFinalDataCache = result.data;
+        list.innerHTML = result.data.map(function (item, index) { return renderApprovedCard(item, index); }).join('');
+        list.classList.remove('hidden');
+        attachDetailCardListeners();
+      } else {
+        approvedFinalDataCache = [];
+        emptyState.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingState.classList.add('hidden');
+      showToast('Gagal memuat data: ' + err.message, true);
+      emptyState.classList.remove('hidden');
+    }
+  }
 
   // ============================================================
   // REFRESH MANUAL
