@@ -12,6 +12,7 @@
   .modal-overlay { backdrop-filter: blur(2px); }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  .tab-active { border-bottom: 3px solid #C8102E; color: #C8102E; }
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -40,35 +41,66 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-    <!-- Tombol Buat Pengajuan Baru -->
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Riwayat Pengajuan Saya</h2>
-      <button id="openFormBtn" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 sm:px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center gap-2 text-sm sm:text-base">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-        </svg>
-        <span class="hidden sm:inline">Buat Pengajuan Baru</span>
-        <span class="sm:hidden">Baru</span>
+    <!-- TAB NAVIGATION -->
+    <div class="flex border-b border-gray-200 mb-6 gap-6">
+      <button id="tabRiwayat" class="tab-active pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Riwayat Pengajuan Saya
+      </button>
+      <button id="tabPengumuman" class="text-gray-500 hover:text-gray-700 pb-3 font-semibold text-sm sm:text-base transition duration-200">
+        Pengumuman Approved Final
       </button>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingState" class="text-center py-16">
-      <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
-      <p class="text-gray-500 mt-3 text-sm">Memuat riwayat pengajuan...</p>
+    <!-- ============ PANEL 1: RIWAYAT PENGAJUAN SAYA ============ -->
+    <div id="panelRiwayat">
+
+      <!-- Tombol Buat Pengajuan Baru -->
+      <div class="flex items-center justify-end mb-6">
+        <button id="openFormBtn" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 sm:px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition duration-200 flex items-center gap-2 text-sm sm:text-base">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span class="hidden sm:inline">Buat Pengajuan Baru</span>
+          <span class="sm:hidden">Baru</span>
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat riwayat pengajuan...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Belum ada pengajuan</p>
+        <p class="text-gray-400 text-sm mt-1">Klik "Buat Pengajuan Baru" untuk mulai mengajukan.</p>
+      </div>
+
+      <!-- List Riwayat (diisi via JS) -->
+      <div id="riwayatList" class="hidden space-y-4"></div>
+
     </div>
 
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-      </svg>
-      <p class="text-gray-500 font-medium">Belum ada pengajuan</p>
-      <p class="text-gray-400 text-sm mt-1">Klik "Buat Pengajuan Baru" untuk mulai mengajukan.</p>
-    </div>
+    <!-- ============ PANEL 2: PENGUMUMAN APPROVED FINAL ============ -->
+    <div id="panelPengumuman" class="hidden">
+      <div id="pengumumanLoadingState" class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+        <p class="text-gray-500 mt-3 text-sm">Memuat data...</p>
+      </div>
 
-    <!-- List Riwayat (diisi via JS) -->
-    <div id="riwayatList" class="hidden space-y-4"></div>
+      <div id="pengumumanEmptyState" class="hidden text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        </svg>
+        <p class="text-gray-500 font-medium">Belum ada pengajuan yang disetujui final</p>
+      </div>
+
+      <div id="pengumumanList" class="hidden space-y-4"></div>
+    </div>
 
   </main>
 
@@ -97,6 +129,7 @@
             <option value="Pergeseran Libur">Pergeseran Libur</option>
             <option value="Peminjaman Kendaraan Kantor">Peminjaman Kendaraan Kantor</option>
             <option value="Support Toko">Support Toko</option>
+            <option value="Dinas Luar Kota" id="optDinasLuarKota">Dinas Luar Kota</option>
           </select>
         </div>
 
@@ -122,7 +155,7 @@
   // ============================================================
   // KONFIGURASI
   // ============================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbymDONqkEeJ4w6wKSkUPn-3CpKJBvnp5mSZxZUADPnU2rBzSCBc28yRfu4wpVIcklVPsA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbz9NcMkamfXwbKBUDZ0RptFumy0vkawRcxaJ1kPWFCD2y-6FyX-3OmB1wXdn3nmVcJt6w/exec';
   const AREA_COVER_OPTIONS = ['Kuningan', 'Majalengka', 'Indramayu', 'Tegal'];
 
   let currentUser = null;
@@ -244,7 +277,72 @@
           Pengajuan ini akan diteruskan ke Finance untuk validasi budget sebelum disetujui GM & HRD.
         </div>
       `;
+    } else if (jenis === 'Dinas Luar Kota') {
+      container.innerHTML = `
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Tujuan Dinas</label>
+          <input type="text" id="field_tujuanDinas" required
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800"
+            placeholder="Contoh: Survey toko baru wilayah Tegal">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Plan Kunjungan ke Toko Mana Saja</label>
+          <div id="tokoDinasContainer" class="space-y-2"></div>
+          <button type="button" id="addTokoDinasBtn" class="mt-2 text-red-600 hover:text-red-700 text-sm font-semibold flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Toko
+          </button>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Plan Menginap</label>
+          <textarea id="field_planMenginap" required rows="2"
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800 resize-none"
+            placeholder="Contoh: 2 malam di Hotel Grand Tegal, 17-18 Juni 2026"></textarea>
+        </div>
+      `;
+      // Render baris toko pertama secara default, lalu pasang listener tombol tambah
+      addTokoDinasRow();
+      document.getElementById('addTokoDinasBtn').addEventListener('click', addTokoDinasRow);
     }
+  }
+
+  // ============================================================
+  // DINAS LUAR KOTA - Helper tambah/hapus baris input toko dinamis
+  // Setiap baris diberi data-index unik supaya bisa dihapus tanpa
+  // mengacaukan urutan baris lain (tidak bergantung pada posisi DOM).
+  // ============================================================
+  let tokoDinasRowCounter = 0;
+
+  function addTokoDinasRow() {
+    const container = document.getElementById('tokoDinasContainer');
+    if (!container) return;
+
+    const rowIndex = tokoDinasRowCounter++;
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'flex gap-2';
+    rowDiv.setAttribute('data-toko-row', rowIndex);
+    rowDiv.innerHTML = `
+      <input type="text" class="tokoDinasInput flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-red-600 focus:ring-2 focus:ring-red-100 outline-none transition duration-200 text-gray-800"
+        placeholder="Nama toko ke-${rowIndex + 1}" required>
+      <button type="button" class="removeTokoDinasBtn px-3 rounded-xl border border-gray-300 text-gray-400 hover:text-red-600 hover:border-red-300 transition duration-200" data-row-index="${rowIndex}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+    `;
+    container.appendChild(rowDiv);
+
+    rowDiv.querySelector('.removeTokoDinasBtn').addEventListener('click', function () {
+      // Minimal harus ada 1 baris toko - cegah container menjadi kosong total
+      const totalRows = container.querySelectorAll('[data-toko-row]').length;
+      if (totalRows <= 1) {
+        showToast('Minimal harus ada 1 toko yang diisi.', true);
+        return;
+      }
+      rowDiv.remove();
+    });
   }
 
   document.getElementById('jenisPengajuan').addEventListener('change', function (e) {
@@ -275,6 +373,17 @@
       return {
         namaToko: document.getElementById('field_namaToko').value,
         bentukSupport: document.getElementById('field_bentukSupport').value
+      };
+    } else if (jenis === 'Dinas Luar Kota') {
+      const tokoInputs = document.querySelectorAll('.tokoDinasInput');
+      const daftarToko = Array.from(tokoInputs)
+        .map(function (input) { return input.value.trim(); })
+        .filter(function (val) { return val.length > 0; });
+
+      return {
+        tujuanDinas: document.getElementById('field_tujuanDinas').value,
+        planKunjunganToko: daftarToko,
+        planMenginap: document.getElementById('field_planMenginap').value
       };
     }
     return {};
@@ -391,6 +500,15 @@
         ${item.detail.omsetToko ? '<p class="text-gray-600 text-sm">Omset: <span class="font-medium text-gray-800">Rp ' + Number(item.detail.omsetToko).toLocaleString('id-ID') + '</span></p>' : ''}
         ${item.detail.plafonBudget ? '<p class="text-gray-600 text-sm">Plafon Budget: <span class="font-medium text-gray-800">Rp ' + Number(item.detail.plafonBudget).toLocaleString('id-ID') + '</span></p>' : ''}
       `;
+    } else if (item.jenisPengajuan === 'Dinas Luar Kota') {
+      const daftarTokoStr = Array.isArray(item.detail.planKunjunganToko)
+        ? item.detail.planKunjunganToko.join(', ')
+        : (item.detail.planKunjunganToko || '-');
+      detailHtml = `
+        <p class="text-gray-600 text-sm">Tujuan Dinas: <span class="font-medium text-gray-800">${item.detail.tujuanDinas || '-'}</span></p>
+        <p class="text-gray-600 text-sm">Kunjungan Toko: <span class="font-medium text-gray-800">${daftarTokoStr}</span></p>
+        <p class="text-gray-600 text-sm">Plan Menginap: <span class="font-medium text-gray-800">${item.detail.planMenginap || '-'}</span></p>
+      `;
     }
 
     return `
@@ -444,6 +562,91 @@
     } catch (err) {
       loadingState.classList.add('hidden');
       showToast('Gagal memuat riwayat: ' + err.message, true);
+      emptyState.classList.remove('hidden');
+    }
+  }
+
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+  document.getElementById('tabRiwayat').addEventListener('click', function () {
+    document.getElementById('tabRiwayat').classList.add('tab-active');
+    document.getElementById('tabRiwayat').classList.remove('text-gray-500');
+    document.getElementById('tabPengumuman').classList.remove('tab-active');
+    document.getElementById('tabPengumuman').classList.add('text-gray-500');
+    document.getElementById('panelRiwayat').classList.remove('hidden');
+    document.getElementById('panelPengumuman').classList.add('hidden');
+  });
+
+  document.getElementById('tabPengumuman').addEventListener('click', function () {
+    document.getElementById('tabPengumuman').classList.add('tab-active');
+    document.getElementById('tabPengumuman').classList.remove('text-gray-500');
+    document.getElementById('tabRiwayat').classList.remove('tab-active');
+    document.getElementById('tabRiwayat').classList.add('text-gray-500');
+    document.getElementById('panelPengumuman').classList.remove('hidden');
+    document.getElementById('panelRiwayat').classList.add('hidden');
+    loadPengumumanApprovedFinal(); // refresh data setiap kali tab dibuka
+  });
+
+  // ============================================================
+  // RENDER CARD - PENGUMUMAN APPROVED FINAL
+  // ============================================================
+  function renderPengumumanCard(item) {
+    let detailHtml = '';
+    if (item.jenisPengajuan === 'Pergeseran Libur') {
+      detailHtml = `<p class="text-gray-600 text-sm">Area Cover: <span class="font-medium text-gray-800">${item.detail.areaCover || '-'}</span></p>`;
+    } else if (item.jenisPengajuan === 'Peminjaman Kendaraan Kantor') {
+      detailHtml = `<p class="text-gray-600 text-sm">Lama Pinjam: <span class="font-medium text-gray-800">${item.detail.berapaHariPinjam || '-'} hari</span></p>`;
+    } else if (item.jenisPengajuan === 'Support Toko') {
+      detailHtml = `<p class="text-gray-600 text-sm">Toko: <span class="font-medium text-gray-800">${item.detail.namaToko || '-'}</span></p>`;
+    } else if (item.jenisPengajuan === 'Dinas Luar Kota') {
+      const daftarTokoStr = Array.isArray(item.detail.planKunjunganToko)
+        ? item.detail.planKunjunganToko.join(', ')
+        : (item.detail.planKunjunganToko || '-');
+      detailHtml = `<p class="text-gray-600 text-sm">Kunjungan Toko: <span class="font-medium text-gray-800">${daftarTokoStr}</span></p>`;
+    }
+
+    return `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 font-mono">${item.idTransaksi}</p>
+            <h3 class="font-bold text-gray-800 mt-0.5">${item.jenisPengajuan}</h3>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full font-semibold bg-green-100 text-green-700">Approved Final</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-1">Pemohon: <span class="font-medium text-gray-800">${item.namaPemohon}</span> (${item.posisi})</p>
+        ${detailHtml}
+        <p class="text-xs text-gray-400 mt-3">${item.tanggal}</p>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // LOAD: PENGUMUMAN APPROVED FINAL
+  // ============================================================
+  async function loadPengumumanApprovedFinal() {
+    const loadingState = document.getElementById('pengumumanLoadingState');
+    const emptyState = document.getElementById('pengumumanEmptyState');
+    const list = document.getElementById('pengumumanList');
+
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    list.classList.add('hidden');
+
+    try {
+      const result = await callApi({ action: 'get_data', mode: 'approved_final' });
+      loadingState.classList.add('hidden');
+
+      if (result.success && result.data && result.data.length > 0) {
+        list.innerHTML = result.data.map(renderPengumumanCard).join('');
+        list.classList.remove('hidden');
+      } else {
+        emptyState.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingState.classList.add('hidden');
+      showToast('Gagal memuat data: ' + err.message, true);
       emptyState.classList.remove('hidden');
     }
   }
