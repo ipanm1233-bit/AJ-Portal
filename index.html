@@ -1,1412 +1,1152 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal HRIS & ERP - CV Andela Jaya</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal HRIS & ERP - CV Andela Jaya</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          corporate: '#C8102E',
+          'corporate-dark': '#A00D24',
+          'corporate-light': '#FEE2E2'
+        },
+        fontFamily: { sans: ['Inter', 'sans-serif'] }
+      }
+    }
+  }
+</script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+  .hidden-view { display: none !important; }
+  .fade-in { animation: fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        corporate: '#C8102E',
-                        'corporate-dark': '#A00D24',
-                        'corporate-light': '#FEE2E2'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-        .hidden-view { display: none !important; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Loader Animation */
-        .loader { border-top-color: #C8102E; animation: spinner 1s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f1f1f1; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  .loader { border-top-color: #C8102E; animation: spinner 1s linear infinite; }
+  @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  /* ===== SIDEBAR: drawer di mobile, statis di desktop ===== */
+  #sidebar {
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(-100%);
+  }
+  #sidebar.sidebar-open { transform: translateX(0); }
+  @media (min-width: 1024px) {
+    #sidebar { position: relative; transform: translateX(0) !important; }
+  }
+  #sidebarOverlay { transition: opacity 0.25s ease-in-out; }
+
+  /* ===== NESTED ACCORDION MENU ===== */
+  .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .accordion-chevron { transition: transform 0.3s ease; }
+  .accordion-chevron.rotated { transform: rotate(180deg); }
+
+  .nav-btn.active { background-color: #FEE2E2; color: #C8102E; }
+
+  /* ===== ALERT KONTRAK BANNER ===== */
+  @keyframes pulseBorder {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  }
+  .alert-pulse { animation: pulseBorder 2.2s infinite; }
+</style>
 </head>
 <body class="text-gray-800 antialiased h-screen flex overflow-hidden">
 
-    <div id="loaderOverlay" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex-col items-center justify-center backdrop-blur-sm">
-        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-14 w-14 mb-4 shadow-lg"></div>
-        <h2 class="text-white text-lg font-bold tracking-wide">Sistem Memproses...</h2>
-        <p class="text-gray-300 text-sm mt-1" id="loaderText">Mohon tunggu sebentar</p>
-    </div>
+  <div id="loaderOverlay" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex-col items-center justify-center backdrop-blur-sm">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-14 w-14 mb-4 shadow-lg"></div>
+    <h2 class="text-white text-lg font-bold tracking-wide">Sistem Memproses...</h2>
+    <p class="text-gray-300 text-sm mt-1" id="loaderText">Mohon tunggu sebentar</p>
+  </div>
 
-    <div id="toastContainer" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toastContainer" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none max-w-[90vw]"></div>
 
-    <div id="viewLogin" class="fixed inset-0 bg-gray-50 z-50 flex items-center justify-center fade-in">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-corporate">
-            
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-corporate-light mb-4 shadow-inner">
-                    <i class="fa-solid fa-building-user text-corporate text-2xl"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold text-corporate tracking-tight">Andela Jaya</h1>
-                <p class="text-gray-500 mt-2 text-sm font-medium">Portal HRIS & Operasional</p>
-                
-                <div id="tokenAuthMessage" class="hidden text-sm mt-4 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
-                    <i class="fa-solid fa-link fa-spin mr-1"></i> Mengotentikasi link aman...
-                </div>
-            </div>
-
-            <form id="formLogin" class="space-y-5">
-                <div>
-                    <label class="block text-gray-700 font-bold mb-1.5 text-sm">Username / NIK</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-user text-gray-400"></i>
-                        </div>
-                        <input type="text" id="loginUsername" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="Masukkan Username / NIK">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-bold mb-1.5 text-sm">Password</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-lock text-gray-400"></i>
-                        </div>
-                        <input type="password" id="loginPassword" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="••••••••">
-                    </div>
-                </div>
-                <div class="pt-2">
-                    <button type="submit" id="btnLoginSubmit" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition duration-200 shadow-md flex justify-center items-center">
-                        Masuk ke Portal
-                    </button>
-                </div>
-            </form>
-            
-            <div class="mt-8 text-center text-xs text-gray-400">
-                &copy; 2026 CV Andela Jaya - Internal System
-            </div>
-
+  <!-- ============================== VIEW: LOGIN ============================== -->
+  <div id="viewLogin" class="fixed inset-0 bg-gray-50 z-50 flex items-center justify-center fade-in p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-corporate">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-corporate-light mb-4 shadow-inner">
+          <i class="fa-solid fa-building-user text-corporate text-2xl"></i>
         </div>
+        <h1 class="text-3xl font-extrabold text-corporate tracking-tight">Andela Jaya</h1>
+        <p class="text-gray-500 mt-2 text-sm font-medium">Portal HRIS &amp; ERP Operasional</p>
+
+        <div id="tokenAuthMessage" class="hidden text-sm mt-4 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+          <i class="fa-solid fa-link fa-spin mr-1"></i> Mengotentikasi tautan aman...
+        </div>
+      </div>
+
+      <form id="formLogin" class="space-y-5">
+        <div>
+          <label class="block text-gray-700 font-bold mb-1.5 text-sm">Username / NIK</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i class="fa-solid fa-user text-gray-400"></i>
+            </div>
+            <input type="text" id="loginUsername" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="Masukkan Username / NIK">
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-bold mb-1.5 text-sm">Password</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i class="fa-solid fa-lock text-gray-400"></i>
+            </div>
+            <input type="password" id="loginPassword" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="••••••••">
+          </div>
+        </div>
+        <div class="pt-2">
+          <button type="submit" id="btnLoginSubmit" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition duration-200 shadow-md flex justify-center items-center">
+            Masuk ke Portal
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 text-center text-xs text-gray-400">&copy; 2026 CV Andela Jaya - Internal System</div>
     </div>
-    <div id="mainApp" class="w-full h-full flex hidden-view fade-in bg-gray-50">
-        
-        <aside class="w-72 bg-white shadow-2xl flex flex-col h-full z-20 flex-shrink-0 border-r border-gray-100 transition-all duration-300">
-            <div class="h-[72px] flex items-center px-6 bg-corporate text-white shadow-md relative overflow-hidden">
-                <i class="fa-solid fa-layer-group mr-3 text-2xl relative z-10"></i>
-                <div class="relative z-10">
-                    <span class="font-extrabold text-lg tracking-wide block">Portal HRIS</span>
-                    <span class="text-[10px] text-corporate-light uppercase tracking-widest font-bold">CV Andela Jaya</span>
-                </div>
-                <i class="fa-solid fa-building-user absolute -right-4 -bottom-4 text-white opacity-10 text-6xl"></i>
-            </div>
-            
-            <div class="p-5 border-b border-gray-100 bg-gray-50 flex items-center">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-corporate to-corporate-dark text-white flex items-center justify-center font-bold text-xl shadow-md border-2 border-white" id="userAvatar">U</div>
-                <div class="ml-4 overflow-hidden flex-1">
-                    <p class="text-sm font-extrabold text-gray-900 truncate" id="sideUserName">Nama User</p>
-                    <p class="text-xs text-corporate font-bold truncate mt-0.5" id="sideUserRole">Role</p>
-                    <p class="text-[10px] text-gray-500 font-medium truncate uppercase tracking-wide mt-0.5"><i class="fa-solid fa-building mr-1"></i><span id="sideUserDivisi">Divisi</span></p>
-                </div>
-            </div>
+  </div>
 
-            <div class="flex-1 overflow-y-auto py-5 px-4 space-y-7 custom-scrollbar" id="sidebarMenu">
-                
-                <div>
-                    <h3 class="px-3 text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i class="fa-solid fa-user-shield mr-2"></i> Area Pribadi
-                    </h3>
-                    <ul class="space-y-1.5">
-                        <li><button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-chart-pie w-7 text-lg"></i> Dashboard</button></li>
-                        <li><button onclick="navigate('pengajuan')" id="nav-pengajuan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-file-signature w-7 text-lg"></i> Buat Pengajuan</button></li>
-                        <li><button onclick="navigate('riwayat')" id="nav-riwayat" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-clock-rotate-left w-7 text-lg"></i> Rekam Jejak</button></li>
-                    </ul>
-                </div>
+  <!-- ============================== MAIN APP ============================== -->
+  <div id="mainApp" class="w-full h-full flex hidden-view fade-in bg-gray-50 relative">
 
-                <div id="menuManajemen" class="hidden-view">
-                    <h3 class="px-3 text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i class="fa-solid fa-users-gear mr-2"></i> Area Manajemen
-                    </h3>
-                    <ul class="space-y-1.5">
-                        <li>
-                            <button onclick="navigate('approval')" id="nav-approval" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200">
-                                <i class="fa-solid fa-check-double w-7 text-lg"></i> Persetujuan
-                                <span id="badgeApproval" class="ml-auto bg-red-500 text-white py-0.5 px-2.5 rounded-full text-xs font-black hidden-view shadow-sm animate-pulse">0</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+    <!-- Overlay khusus mobile, klik untuk menutup sidebar -->
+    <div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
-                <div id="menuHRD" class="hidden-view">
-                    <h3 class="px-3 text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i class="fa-solid fa-id-card-clip mr-2"></i> Area HRD
-                    </h3>
-                    <ul class="space-y-1.5">
-                        <li><button onclick="navigate('hrd-form')" id="nav-hrd-form" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-sliders w-7 text-lg"></i> Form Builder</button></li>
-                        <li><button onclick="navigate('hrd-broadcast')" id="nav-hrd-broadcast" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-bullhorn w-7 text-lg"></i> Broadcast Info</button></li>
-                        
-                        <div class="pt-3 pb-1"><hr class="border-gray-200 border-dashed"></div>
-                        <h4 class="px-3 text-[10px] font-bold text-gray-400 mb-2">DOWNLOAD DATABASE</h4>
-                        
-                        <li><button onclick="executeExport('PENGAJUAN')" class="w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all duration-200"><i class="fa-solid fa-file-csv w-7 text-lg text-green-600"></i> Export Pengajuan</button></li>
-                        <li><button onclick="executeExport('CUTI')" class="w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-green-50 hover:text-green-700 transition-all duration-200"><i class="fa-solid fa-file-excel w-7 text-lg text-green-600"></i> Export Data Cuti</button></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="p-4 border-t border-gray-100 bg-white">
-                <button onclick="doLogout()" class="w-full px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition duration-200 text-sm flex items-center justify-center border border-red-100">
-                    <i class="fa-solid fa-power-off mr-2"></i> Keluar Sistem
+    <!-- ===== SIDEBAR (Drawer mobile / Statis desktop) ===== -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col h-full z-40 flex-shrink-0 border-r border-gray-100">
+      <div class="h-[72px] flex items-center justify-between px-5 bg-corporate text-white shadow-md relative overflow-hidden flex-shrink-0">
+        <div class="flex items-center relative z-10">
+          <i class="fa-solid fa-layer-group mr-3 text-2xl"></i>
+          <div>
+            <span class="font-extrabold text-lg tracking-wide block leading-none">Portal ERP</span>
+            <span class="text-[10px] text-corporate-light uppercase tracking-widest font-bold">CV Andela Jaya</span>
+          </div>
+        </div>
+        <button onclick="closeSidebar()" class="lg:hidden relative z-10 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:bg-opacity-10">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <i class="fa-solid fa-building-user absolute -right-4 -bottom-4 text-white opacity-10 text-6xl"></i>
+      </div>
+
+      <div class="p-5 border-b border-gray-100 bg-gray-50 flex items-center flex-shrink-0">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-corporate to-corporate-dark text-white flex items-center justify-center font-bold text-xl shadow-md border-2 border-white" id="userAvatar">U</div>
+        <div class="ml-4 overflow-hidden flex-1">
+          <p class="text-sm font-extrabold text-gray-900 truncate" id="sideUserName">Nama User</p>
+          <p class="text-xs text-corporate font-bold truncate mt-0.5" id="sideUserRole">Role</p>
+          <p class="text-[10px] text-gray-500 font-medium truncate uppercase tracking-wide mt-0.5"><i class="fa-solid fa-building mr-1"></i><span id="sideUserDivisi">Divisi</span></p>
+        </div>
+      </div>
+
+      <!-- ===== NESTED ACCORDION MENU ===== -->
+      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 custom-scrollbar" id="sidebarMenu">
+
+        <!-- GROUP 1: AREA PRIBADI -->
+        <div class="rounded-xl overflow-hidden" data-group="pribadi">
+          <button onclick="toggleAccordion('pribadi')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
+            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+              <i class="fa-solid fa-user-shield mr-2 text-corporate"></i> Area Pribadi
+            </span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron rotated" id="chevron-pribadi"></i>
+          </button>
+          <div class="accordion-content" id="acc-pribadi" style="max-height:600px;">
+            <ul class="space-y-1 pt-1 pb-2 pl-1">
+              <li><button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-chart-pie w-7 text-base"></i> Dashboard</button></li>
+              <li><button onclick="navigate('pengajuan')" id="nav-pengajuan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-file-signature w-7 text-base"></i> Pengajuan ISO</button></li>
+              <li><button onclick="navigate('klaim-bensin')" id="nav-klaim-bensin" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-gas-pump w-7 text-base"></i> Klaim Bensin</button></li>
+              <li><button onclick="navigate('riwayat')" id="nav-riwayat" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-clock-rotate-left w-7 text-base"></i> Rekam Jejak</button></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- GROUP 2: AREA MANAJEMEN (RBAC) -->
+        <div class="rounded-xl overflow-hidden hidden-view" data-group="manajemen" id="groupManajemen">
+          <button onclick="toggleAccordion('manajemen')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
+            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+              <i class="fa-solid fa-users-gear mr-2 text-corporate"></i> Area Manajemen
+            </span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-manajemen"></i>
+          </button>
+          <div class="accordion-content" id="acc-manajemen">
+            <ul class="space-y-1 pt-1 pb-2 pl-1">
+              <li>
+                <button onclick="navigate('approval')" id="nav-approval" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200">
+                  <i class="fa-solid fa-check-double w-7 text-base"></i> Antrean Approval
+                  <span id="badgeApproval" class="ml-auto bg-red-500 text-white py-0.5 px-2.5 rounded-full text-xs font-black hidden-view shadow-sm animate-pulse">0</span>
                 </button>
-            </div>
-        </aside>
-
-        <div class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden relative">
-            
-            <header class="h-[72px] bg-white shadow-sm flex items-center justify-between px-8 z-10 border-b border-gray-100">
-                <div class="flex items-center">
-                    <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="headerTitle">Dashboard Utama</h2>
-                </div>
-                <div class="flex items-center space-x-6">
-                    <div class="text-right hidden md:block">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Hari Ini</p>
-                        <p class="text-sm text-gray-700 font-bold" id="currentDate">Senin, 1 Jan 2026</p>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 overflow-y-auto p-8 custom-scrollbar" id="mainViewport">
-                
-                <div id="view-dashboard" class="app-view fade-in max-w-7xl mx-auto">
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <div class="col-span-1 lg:col-span-2 bg-gradient-to-br from-corporate to-corporate-dark rounded-2xl shadow-lg p-8 text-white flex flex-col justify-center relative overflow-hidden">
-                            <i class="fa-solid fa-briefcase text-white opacity-5 absolute -right-8 -bottom-12" style="font-size: 200px;"></i>
-                            <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                            
-                            <h2 class="text-3xl font-extrabold mb-3 relative z-10 drop-shadow-md">Halo, <span id="dashName">User</span>! 👋</h2>
-                            <p class="text-corporate-light text-sm mb-8 relative z-10 w-full md:w-3/4 font-medium leading-relaxed">Selamat datang di Portal HRIS & Operasional CV Andela Jaya. Kelola seluruh persetujuan, ajukan formulir ISO, dan pantau informasi penting perusahaan Anda di satu pintu terpusat.</p>
-                            
-                            <div class="flex flex-wrap items-center gap-3 text-sm relative z-10 mt-auto">
-                                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-id-badge mr-2 opacity-70"></i> NIK: <span id="dashNIK" class="text-white">-</span></span>
-                                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-calendar-check mr-2 opacity-70"></i> Bergabung: <span id="dashJoin" class="text-white">-</span></span>
-                                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-map-location-dot mr-2 opacity-70"></i> Cabang: <span id="dashCabang" class="text-white">-</span></span>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-2xl shadow-md p-8 border-t-[6px] border-blue-500 flex flex-col justify-center items-center text-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
-                            <div class="absolute top-0 left-0 w-full h-full bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
-                            <i class="fa-solid fa-umbrella-beach absolute text-blue-100 opacity-30 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition duration-500 group-hover:scale-125" style="font-size: 140px; z-index: 0;"></i>
-                            
-                            <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4 relative z-10 shadow-sm border border-blue-200">Tahunan</div>
-                            <h3 class="text-gray-500 font-extrabold text-xs mb-1 uppercase tracking-widest relative z-10">Sisa Kuota Cuti</h3>
-                            <div class="text-7xl font-black text-gray-800 mb-2 relative z-10 drop-shadow-sm" id="dashCutiQuota">-</div>
-                            <div class="flex items-center gap-2 mt-2 relative z-10">
-                                <span class="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">Jatah: <span id="dashJatahCuti" class="text-gray-700">-</span></span>
-                            </div>
-                            <p class="text-[10px] text-gray-400 relative z-10 font-bold mt-4 uppercase tracking-wider"><i class="fa-solid fa-database mr-1"></i> Sync: Master Karyawan</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
-                            <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
-                                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-bullhorn text-corporate mr-3 bg-corporate-light p-2 rounded-lg"></i> Pengumuman Terbaru</h3>
-                            </div>
-                            <div class="p-0 overflow-y-auto flex-1 divide-y divide-gray-50 custom-scrollbar" id="listBroadcast">
-                                <div class="p-6 text-center text-gray-400 text-sm flex flex-col items-center justify-center h-full">
-                                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
-                                        <i class="fa-solid fa-envelope-open-text text-2xl text-gray-300"></i>
-                                    </div>
-                                    <span class="font-bold">Memuat pengumuman...</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
-                            <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
-                                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-3 bg-blue-50 p-2 rounded-lg"></i> Pengajuan Terakhir</h3>
-                                <button onclick="navigate('riwayat')" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg transition">Lihat Semua</button>
-                            </div>
-                            <div class="p-0 overflow-y-auto flex-1 custom-scrollbar">
-                                <table class="w-full text-left text-sm whitespace-nowrap">
-                                    <tbody id="dashRiwayatList" class="divide-y divide-gray-50">
-                                        <tr><td class="p-6 text-center text-gray-400 text-sm font-bold">Memuat data riwayat...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- ========================================== -->
-                <!-- VIEW: BUAT PENGAJUAN (FORM DINAMIS)        -->
-                <!-- ========================================== -->
-                <div id="view-pengajuan" class="app-view hidden-view fade-in max-w-5xl mx-auto">
-                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                        
-                        <div class="px-8 py-6 border-b border-gray-100 bg-white flex justify-between items-center relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-corporate opacity-5 rounded-full blur-2xl transform translate-x-1/3 -translate-y-1/3"></div>
-                            <div class="relative z-10">
-                                <h3 class="font-extrabold text-gray-800 text-xl flex items-center"><i class="fa-solid fa-file-signature text-corporate mr-3 bg-corporate-light p-2.5 rounded-xl"></i> Formulir Pengajuan Terpadu</h3>
-                                <p class="text-sm text-gray-500 mt-2 font-medium">Sistem Formulir ISO Digital. Pilih jenis pengajuan yang sesuai dengan kebutuhan Anda.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="p-8">
-                            <!-- Pemilihan Jenis Form -->
-                            <div class="mb-8 bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-sm relative overflow-hidden">
-                                <i class="fa-solid fa-clipboard-list absolute -right-4 -bottom-4 text-blue-500 opacity-10 text-6xl"></i>
-                                <label class="block text-blue-900 font-extrabold mb-2.5 text-sm uppercase tracking-wide relative z-10"><i class="fa-solid fa-list mr-1.5"></i> Jenis Formulir Pengajuan</label>
-                                <select id="selectJenisForm" class="w-full md:w-2/3 px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-bold text-gray-700 transition shadow-sm relative z-10" onchange="renderDynamicForm()">
-                                    <option value="">-- Memuat Daftar Form... --</option>
-                                    <!-- Diisi oleh JavaScript berdasarkan Form_Configs & Otorisasi Role -->
-                                </select>
-                            </div>
-
-                            <!-- Peringatan Masa Kerja (Khusus Form Kasbon) -->
-                            <div id="kasbonWarning" class="hidden-view mb-8 bg-red-50 border border-red-200 p-5 rounded-xl shadow-sm relative overflow-hidden">
-                                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
-                                <div class="flex items-start">
-                                    <div class="bg-red-100 rounded-full w-10 h-10 flex items-center justify-center mr-4 mt-0.5 flex-shrink-0"><i class="fa-solid fa-triangle-exclamation text-red-600 text-lg"></i></div>
-                                    <div>
-                                        <h4 class="text-base font-extrabold text-red-800">Akses Ditolak: Syarat Pengajuan Tidak Terpenuhi</h4>
-                                        <p class="text-sm text-red-700 mt-1.5 font-medium leading-relaxed">Berdasarkan kebijakan perusahaan, pengajuan <span class="font-bold">Cash Advance (Kasbon)</span> hanya diizinkan untuk karyawan dengan masa kerja <span class="font-bold underline">minimal 1 Tahun</span>. Berdasarkan data Master Karyawan, masa kerja Anda saat ini belum mencukupi.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Area Render Form Dinamis -->
-                            <form id="dynamicFormContainer" class="space-y-8 hidden-view">
-                                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-inner">
-                                    <h4 class="font-extrabold text-gray-700 text-sm mb-5 border-b border-gray-200 pb-3 uppercase tracking-wider flex items-center"><i class="fa-solid fa-pen-to-square mr-2 text-gray-400"></i> Lengkapi Detail Isian Berikut</h4>
-                                    
-                                    <!-- Fields akan diinjeksi ke sini via JS -->
-                                    <div id="formFieldsArea" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                                    
-                                </div>
-                                
-                                <div class="pt-4 flex justify-end gap-3 border-t border-gray-100">
-                                    <button type="button" onclick="navigate('dashboard')" class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-extrabold rounded-xl hover:bg-gray-50 transition shadow-sm">Batal</button>
-                                    <button type="submit" id="btnSubmitPengajuan" class="px-8 py-3 bg-corporate text-white font-extrabold rounded-xl hover:bg-corporate-dark transition shadow-md flex items-center transform hover:-translate-y-0.5">
-                                        <i class="fa-solid fa-paper-plane mr-2.5"></i> Kirim Pengajuan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- VIEW: RIWAYAT PRIBADI                      -->
-                <!-- ========================================== -->
-                <div id="view-riwayat" class="app-view hidden-view fade-in">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[600px]">
-                        
-                        <div class="px-8 py-6 border-b border-gray-100 bg-white flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <div>
-                                <h3 class="font-extrabold text-gray-800 text-xl flex items-center"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-3 bg-blue-50 p-2.5 rounded-xl"></i> Riwayat Pengajuan</h3>
-                                <p class="text-sm text-gray-500 mt-2 font-medium">Pantau status perjalanan seluruh formulir yang pernah Anda ajukan.</p>
-                            </div>
-                            <button onclick="fetchRiwayat()" class="px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition flex items-center justify-center border border-blue-100 shadow-sm">
-                                <i class="fa-solid fa-rotate-right mr-2"></i> Refresh Data
-                            </button>
-                        </div>
-
-                        <div class="overflow-x-auto flex-1 custom-scrollbar p-2">
-                            <table class="w-full text-left border-collapse whitespace-nowrap">
-                                <thead>
-                                    <tr class="bg-gray-50 text-gray-500 text-xs font-extrabold uppercase tracking-widest border-b border-gray-200">
-                                        <th class="px-6 py-4 rounded-tl-lg">Info Formulir</th>
-                                        <th class="px-6 py-4">Tanggal Diajukan</th>
-                                        <th class="px-6 py-4">Status Berjalan</th>
-                                        <th class="px-6 py-4">Keputusan Final</th>
-                                        <th class="px-6 py-4 text-center rounded-tr-lg">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableRiwayatBody" class="divide-y divide-gray-100 text-sm text-gray-700 bg-white">
-                                    <tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-bold"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block text-corporate"></i> Memuat data riwayat...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- VIEW: ANTREAN PERSETUJUAN (MANAJEMEN)      -->
-                <!-- ========================================== -->
-                <div id="view-approval" class="app-view hidden-view fade-in">
-                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col min-h-[600px] border-t-[6px] border-t-corporate">
-                        
-                        <div class="px-8 py-6 border-b border-gray-100 bg-white flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <div>
-                                <h3 class="font-extrabold text-gray-800 text-xl flex items-center"><i class="fa-solid fa-list-check text-corporate mr-3 bg-corporate-light p-2.5 rounded-xl"></i> Antrean Persetujuan</h3>
-                                <p class="text-sm text-gray-500 mt-2 font-medium">Daftar pengajuan karyawan yang memerlukan peninjauan dan keputusan Anda.</p>
-                            </div>
-                            <button onclick="fetchApprovalList()" class="px-4 py-2.5 bg-gray-50 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition flex items-center justify-center border border-gray-200 shadow-sm">
-                                <i class="fa-solid fa-rotate-right mr-2 text-corporate"></i> Segarkan Antrean
-                            </button>
-                        </div>
-
-                        <div class="overflow-x-auto flex-1 custom-scrollbar p-2">
-                            <table class="w-full text-left border-collapse whitespace-nowrap">
-                                <thead>
-                                    <tr class="bg-gray-50 text-gray-500 text-xs font-extrabold uppercase tracking-widest border-b border-gray-200">
-                                        <th class="px-6 py-4 rounded-tl-lg">Pemohon</th>
-                                        <th class="px-6 py-4">Tgl Submit</th>
-                                        <th class="px-6 py-4">Jenis Formulir</th>
-                                        <th class="px-6 py-4">Giliran Approval</th>
-                                        <th class="px-6 py-4 text-center rounded-tr-lg">Aksi Keputusan</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableApprovalBody" class="divide-y divide-gray-100 text-sm text-gray-700 bg-white">
-                                    <tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-bold"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block text-corporate"></i> Memuat antrean persetujuan...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <!-- ========================================== -->
-                <!-- VIEW: HRD FORM BUILDER                     -->
-                <!-- ========================================== -->
-                <div id="view-hrd-form" class="app-view hidden-view fade-in">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        
-                        <div class="px-8 py-6 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <div>
-                                <h3 class="font-extrabold text-gray-800 text-xl flex items-center"><i class="fa-solid fa-sliders text-corporate mr-3 bg-corporate-light p-2.5 rounded-xl"></i> Master Konfigurasi Form ISO</h3>
-                                <p class="text-sm text-gray-500 mt-2 font-medium">Atur Alur Persetujuan (Approval Flow), Otorisasi Jabatan, dan Field Input Dinamis.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="p-8 flex flex-col lg:flex-row gap-8 bg-gray-50 bg-opacity-50">
-                            <!-- Panel Kiri: Daftar Form -->
-                            <div class="w-full lg:w-1/3 flex flex-col h-[600px]">
-                                <h4 class="font-extrabold text-gray-700 mb-4 text-xs uppercase tracking-widest flex items-center"><i class="fa-solid fa-folder-open mr-2 text-gray-400"></i> Direktori Formulir</h4>
-                                <div class="overflow-y-auto pr-2 bg-white border border-gray-200 rounded-2xl flex-1 shadow-sm custom-scrollbar">
-                                    <ul class="divide-y divide-gray-100" id="hrdFormList">
-                                        <li class="p-6 text-center text-sm text-gray-400 font-bold"><i class="fa-solid fa-spinner fa-spin text-corporate text-2xl mb-3 block"></i>Memuat master form...</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <!-- Panel Kanan: Editor Konfigurasi -->
-                            <div class="w-full lg:w-2/3 flex flex-col">
-                                <h4 class="font-extrabold text-gray-700 mb-4 text-xs uppercase tracking-widest border-b border-gray-200 pb-3" id="hrdFormEditTitle">Editor Konfigurasi</h4>
-                                
-                                <!-- State Kosong (Belum pilih form) -->
-                                <div id="hrdEmptyState" class="flex-1 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl bg-white shadow-sm min-h-[500px]">
-                                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                        <i class="fa-solid fa-hand-pointer text-4xl text-gray-300"></i>
-                                    </div>
-                                    <p class="text-base font-bold text-gray-500">Pilih Formulir</p>
-                                    <p class="text-sm mt-1">Pilih form dari panel sebelah kiri untuk mulai mengedit konfigurasi.</p>
-                                </div>
-
-                                <!-- Form Editor -->
-                                <form id="formHRDConfig" class="space-y-6 hidden-view bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex-1">
-                                    <input type="hidden" id="cfgFormId">
-                                    
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-inner">
-                                            <label class="block text-[11px] font-extrabold text-blue-800 uppercase tracking-widest mb-3"><i class="fa-solid fa-route mr-1.5"></i> Approval Flow (Urutan)</label>
-                                            <input type="text" id="cfgFlow" class="w-full px-4 py-2.5 border border-blue-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" placeholder='["SPV", "HRD", "GM"]'>
-                                            <p class="text-xs text-blue-600 mt-2 font-medium leading-relaxed">JSON Array murni. Gunakan <code class="bg-white px-1.5 py-0.5 rounded text-corporate font-bold">ATASAN</code> untuk routing otomatis ke atasan pemohon.</p>
-                                        </div>
-
-                                        <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-inner">
-                                            <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-1.5"></i> Otorisasi Akses (Role)</label>
-                                            <input type="text" id="cfgAllowedRoles" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-corporate bg-white shadow-sm" placeholder="ALL atau SALES, SPV">
-                                            <p class="text-xs text-gray-500 mt-2 font-medium leading-relaxed">Ketik <code class="bg-white px-1.5 py-0.5 rounded text-corporate font-bold border border-gray-200">ALL</code> untuk semua, atau pisahkan dengan koma (Contoh: SALES, SPV).</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-inner">
-                                        <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-3 flex justify-between items-center">
-                                            <span><i class="fa-solid fa-code mr-1.5"></i> Skema Input Fields (JSON Array)</span>
-                                            <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded font-bold">Advanced</span>
-                                        </label>
-                                        <textarea id="cfgFields" rows="12" class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-corporate bg-white shadow-sm custom-scrollbar" placeholder='[{"name":"tujuan","label":"Tujuan Dinas","type":"text"}]'></textarea>
-                                    </div>
-                                    
-                                    <div class="pt-4 flex justify-end border-t border-gray-100">
-                                        <button type="button" onclick="saveFormConfig()" class="bg-corporate hover:bg-corporate-dark text-white px-8 py-3 rounded-xl font-extrabold shadow-md transition flex items-center transform hover:-translate-y-0.5">
-                                            <i class="fa-solid fa-floppy-disk mr-2.5"></i> Simpan Konfigurasi Sistem
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- VIEW: HRD BROADCAST                        -->
-                <!-- ========================================== -->
-                <div id="view-hrd-broadcast" class="app-view hidden-view fade-in">
-                    <div class="max-w-4xl mx-auto space-y-6">
-                        
-                        <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-                            <div class="px-8 py-6 border-b border-gray-100 bg-white flex items-center relative overflow-hidden">
-                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 opacity-5 rounded-full blur-2xl transform translate-x-1/3 -translate-y-1/3"></div>
-                                <i class="fa-solid fa-bullhorn text-blue-600 text-xl mr-4 bg-blue-50 p-3 rounded-xl relative z-10"></i>
-                                <div class="relative z-10">
-                                    <h3 class="font-extrabold text-gray-800 text-xl">Sistem Broadcast Pengumuman</h3>
-                                    <p class="text-sm text-gray-500 mt-1 font-medium">Kirim notifikasi informasi atau memo massal langsung ke email karyawan.</p>
-                                </div>
-                            </div>
-                            
-                            <form id="formBroadcast" class="p-8 space-y-6 bg-gray-50 bg-opacity-50">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
-                                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                                        <label class="block font-extrabold text-gray-700 text-xs uppercase tracking-widest mb-3">Tipe Target Penerima</label>
-                                        <select id="bcTargetType" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-bold text-gray-700 transition" onchange="toggleBcTarget()">
-                                            <option value="GENERAL">General (Seluruh Karyawan)</option>
-                                            <option value="DIVISI">Spesifik per Divisi</option>
-                                            <option value="NIK">Spesifik Karyawan (Berdasarkan NIK)</option>
-                                        </select>
-                                    </div>
-                                    <div id="bcTargetInputWrapper" class="hidden-view bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                                        <label class="block font-extrabold text-gray-700 text-xs uppercase tracking-widest mb-3" id="bcTargetLabel">Nilai Target</label>
-                                        <input type="text" id="bcTargetValue" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-medium transition" placeholder="Contoh: SALES / 1062503910">
-                                    </div>
-                                </div>
-                                
-                                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-5">
-                                    <div>
-                                        <label class="block font-extrabold text-gray-700 text-xs uppercase tracking-widest mb-3">Judul Pengumuman</label>
-                                        <input type="text" id="bcJudul" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-bold transition" required placeholder="Masukkan judul subjek email yang singkat & jelas">
-                                    </div>
-                                    <div>
-                                        <label class="block font-extrabold text-gray-700 text-xs uppercase tracking-widest mb-3">Isi Pesan / Konten</label>
-                                        <textarea id="bcIsi" rows="6" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition custom-scrollbar" required placeholder="Ketikkan detail pengumuman resmi di sini..."></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-inner">
-                                    <label class="block font-extrabold text-blue-900 text-xs uppercase tracking-widest mb-3"><i class="fa-solid fa-paperclip mr-1.5"></i> Lampiran File (Opsional)</label>
-                                    <input type="file" id="bcFile" class="w-full border border-blue-200 px-4 py-2.5 rounded-lg bg-white text-sm cursor-pointer focus:outline-none">
-                                    <p class="text-xs text-blue-700 mt-2.5 font-medium"><i class="fa-solid fa-circle-info mr-1"></i> File akan di-upload ke sistem Cloud dan ditautkan sebagai tombol unduh di dalam isi email karyawan. Maks: 2MB.</p>
-                                </div>
-                                
-                                <div class="pt-4 flex justify-end">
-                                    <button type="submit" id="btnSubmitBroadcast" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl shadow-md font-extrabold transition flex items-center transform hover:-translate-y-0.5 text-sm uppercase tracking-wider">
-                                        <i class="fa-solid fa-paper-plane mr-2.5 text-lg"></i> Kirim Broadcast Sekarang
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-hrd-karyawan" class="app-view hidden-view fade-in">
-                    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div>
-                            <h2 class="text-xl font-extrabold text-gray-800">Manajemen Database Karyawan</h2>
-                            <p class="text-sm text-gray-500 font-medium mt-1">Total Karyawan Aktif: <span id="totalKaryawan" class="text-corporate font-bold">0</span></p>
-                        </div>
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <input type="text" id="searchKaryawan" placeholder="Cari NIK atau Nama..." 
-                                   class="flex-1 md:w-64 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none text-sm">
-                            <button onclick="exportKaryawanData()" class="bg-green-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 transition">
-                                <i class="fa-solid fa-file-excel mr-2"></i> Export
-                            </button>
-                        </div>
-                    </div>
-                
-                    <div id="gridKaryawan" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        </div>
-                </div>
-                
-                <script>
-                async function renderKaryawanCards() {
-                    const res = await fetchAPI({ action: 'get_master_karyawan' }); // Pastikan action ini ada di Backend
-                    if (res.success) {
-                        const grid = getEl('gridKaryawan');
-                        grid.innerHTML = res.data.map(k => `
-                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all group">
-                                <div class="flex items-center gap-4 mb-4">
-                                    <div class="w-14 h-14 rounded-full bg-corporate text-white flex items-center justify-center font-black text-xl shadow-md">
-                                        ${k.Nama_Karyawan.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <h3 class="font-extrabold text-gray-900 leading-tight">${k.Nama_Karyawan}</h3>
-                                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${k.JABATAN}</p>
-                                    </div>
-                                </div>
-                                <div class="space-y-2 text-sm text-gray-600">
-                                    <p><i class="fa-solid fa-id-badge w-5 text-gray-400"></i> ${k.NIK_Karyawan}</p>
-                                    <p><i class="fa-solid fa-building w-5 text-gray-400"></i> ${k.DIVISI}</p>
-                                    <p><i class="fa-solid fa-location-dot w-5 text-gray-400"></i> ${k.CABANG}</p>
-                                </div>
-                                <button onclick="openDetailKaryawan('${k.NIK_Karyawan}')" 
-                                        class="w-full mt-5 py-2.5 bg-gray-50 hover:bg-corporate hover:text-white rounded-lg text-xs font-bold transition">
-                                    VIEW PROFILE LENGKAP
-                                </button>
-                            </div>
-                        `).join('');
-                        getEl('totalKaryawan').textContent = res.data.length;
-                    }
-                }
-                </script>
-
-            </main>
-            <!-- END SCROLLABLE CONTENT VIEWPORT -->
+              </li>
+              <li><button onclick="navigate('kpi')" id="nav-kpi" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-star-half-stroke w-7 text-base"></i> Penilaian KPI</button></li>
+            </ul>
+          </div>
         </div>
-        <!-- END MAIN CONTENT AREA -->
-    </div>
-    <!-- END MAIN APPLICATION LAYOUT -->
 
-    <!-- ========================================== -->
-    <!-- GLOBAL MODALS (POP-UPS)                    -->
-    <!-- ========================================== -->
-
-    <!-- MODAL: DETAIL PENGAJUAN -->
-    <div id="modalDetail" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] transform scale-100 transition-transform">
-            
-            <div class="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl relative overflow-hidden">
-                <div class="relative z-10 flex items-center">
-                    <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mr-4">
-                        <i class="fa-solid fa-file-invoice text-blue-600 text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-xl text-gray-800 tracking-tight">Detail Pengajuan</h3>
-                        <p class="text-xs font-mono font-medium text-gray-500 mt-0.5" id="mdlTxId">#TRX-000000</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modalDetail')" class="relative z-10 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-full w-10 h-10 flex items-center justify-center transition border border-gray-200 hover:border-red-200"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            
-            <div class="p-8 overflow-y-auto flex-1 custom-scrollbar bg-gray-50">
-                <!-- Info Dasar -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                    <div class="col-span-2 md:col-span-1"><p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Pemohon</p><p class="font-bold text-gray-900 text-sm mt-1.5" id="mdlNama">-</p></div>
-                    <div class="col-span-2 md:col-span-1"><p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Jenis Form</p><p class="font-bold text-corporate text-sm mt-1.5" id="mdlJenis">-</p></div>
-                    <div class="col-span-2 md:col-span-1"><p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Tanggal</p><p class="font-medium text-gray-900 text-sm mt-1.5" id="mdlTgl">-</p></div>
-                    <div class="col-span-2 md:col-span-1"><p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1.5">Status Final</p><div id="mdlStatus">-</div></div>
-                </div>
-
-                <!-- Info Catatan Penolakan -->
-                <div id="mdlCatatanArea" class="hidden mb-8 bg-red-50 border border-red-200 p-5 rounded-xl shadow-sm relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
-                    <h4 class="text-xs font-extrabold text-red-800 uppercase tracking-widest mb-2 flex items-center"><i class="fa-solid fa-comment-dots mr-2 text-lg"></i> Catatan Penolakan</h4>
-                    <p class="text-sm text-red-700 font-medium leading-relaxed bg-white p-3 rounded-lg border border-red-100" id="mdlCatatan">-</p>
-                </div>
-                
-                <!-- Data Dinamis Form -->
-                <div class="mb-8">
-                    <h4 class="font-extrabold text-xs text-gray-500 mb-4 uppercase tracking-widest flex items-center"><i class="fa-solid fa-table-list mr-2 text-gray-400"></i> Detail Isian Formulir</h4>
-                    <div id="mdlDynamicData" class="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm"></div>
-                </div>
-                
-                <!-- Histori Flow Approval -->
-                <div class="pt-2">
-                    <h4 class="font-extrabold text-xs text-gray-500 mb-4 uppercase tracking-widest flex items-center"><i class="fa-solid fa-route mr-2 text-gray-400"></i> Jejak Persetujuan (Approval Route)</h4>
-                    <div id="mdlFlowSteps" class="flex flex-col gap-3"></div>
-                </div>
-            </div>
-            
-            <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-2xl flex justify-end">
-                <button onclick="closeModal('modalDetail')" class="px-8 py-2.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition shadow-sm">Tutup Jendela</button>
-            </div>
+        <!-- GROUP 3: AREA HRGA (RBAC) -->
+        <div class="rounded-xl overflow-hidden hidden-view" data-group="hrga" id="groupHRGA">
+          <button onclick="toggleAccordion('hrga')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
+            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+              <i class="fa-solid fa-id-card-clip mr-2 text-corporate"></i> Area HRGA
+            </span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-hrga"></i>
+          </button>
+          <div class="accordion-content" id="acc-hrga">
+            <ul class="space-y-1 pt-1 pb-2 pl-1">
+              <li><button onclick="navigate('karyawan')" id="nav-karyawan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-address-card w-7 text-base"></i> Data Karyawan</button></li>
+              <li><button onclick="navigate('kontrak')" id="nav-kontrak" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-file-contract w-7 text-base"></i> Kontrak &amp; Rekrutmen</button></li>
+              <li><button onclick="navigate('pemanggilan')" id="nav-pemanggilan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-bullhorn w-7 text-base"></i> Pemanggilan &amp; Teguran</button></li>
+              <li><button onclick="navigate('kendaraan')" id="nav-kendaraan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-car-side w-7 text-base"></i> Kendaraan</button></li>
+            </ul>
+          </div>
         </div>
-    </div>
 
-    <!-- MODAL: REJECT ALASAN -->
-    <div id="modalReject" class="fixed inset-0 bg-black bg-opacity-60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-100 transition-transform">
-            <div class="px-6 py-5 bg-red-600 flex items-center">
-                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
-                    <i class="fa-solid fa-triangle-exclamation text-white text-lg"></i>
-                </div>
-                <h3 class="font-extrabold text-xl text-white tracking-tight">Konfirmasi Penolakan</h3>
-            </div>
-            <div class="p-8 bg-gray-50">
-                <input type="hidden" id="rjctId">
-                <p class="text-sm text-gray-600 mb-6 font-medium leading-relaxed">Anda akan menolak pengajuan ini. Siklus persetujuan akan dihentikan dan status berubah menjadi <span class="font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">REJECTED</span>.</p>
-                <label class="block font-extrabold text-gray-700 text-xs uppercase tracking-widest mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
-                <textarea id="rjctAlasan" rows="4" class="w-full border border-gray-300 rounded-xl p-4 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-inner bg-white transition" required placeholder="Jelaskan alasan secara spesifik agar pemohon dapat memahami..."></textarea>
-            </div>
-            <div class="px-8 py-5 border-t border-gray-200 flex justify-end gap-3 bg-white">
-                <button onclick="closeModal('modalReject')" class="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm">Batal</button>
-                <button onclick="submitReject()" class="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-md transition flex items-center">
-                    <i class="fa-solid fa-xmark mr-2 text-lg"></i> Eksekusi Tolak
-                </button>
-            </div>
+        <!-- GROUP 4: AREA GUDANG (RBAC) -->
+        <div class="rounded-xl overflow-hidden hidden-view" data-group="gudang" id="groupGudang">
+          <button onclick="toggleAccordion('gudang')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
+            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+              <i class="fa-solid fa-warehouse mr-2 text-corporate"></i> Area Gudang
+            </span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-gudang"></i>
+          </button>
+          <div class="accordion-content" id="acc-gudang">
+            <ul class="space-y-1 pt-1 pb-2 pl-1">
+              <li><button onclick="navigate('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-boxes-stacked w-7 text-base"></i> Inventory &amp; Gimmick</button></li>
+            </ul>
+          </div>
         </div>
+
+      </div>
+
+      <div class="p-4 border-t border-gray-100 bg-white flex-shrink-0">
+        <button onclick="doLogout()" class="w-full px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition duration-200 text-sm flex items-center justify-center border border-red-100">
+          <i class="fa-solid fa-power-off mr-2"></i> Keluar Sistem
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== KONTEN UTAMA ===== -->
+    <div class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden relative w-full">
+
+      <header class="h-[72px] bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-10 border-b border-gray-100 flex-shrink-0">
+        <div class="flex items-center gap-4">
+          <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-corporate-light text-gray-600 hover:text-corporate transition border border-gray-100">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <h2 class="text-lg md:text-2xl font-extrabold text-gray-800 tracking-tight" id="headerTitle">Dashboard Utama</h2>
+        </div>
+        <div class="flex items-center space-x-6">
+          <div class="text-right hidden md:block">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Hari Ini</p>
+            <p class="text-sm text-gray-700 font-bold" id="currentDate">Senin, 1 Januari 2026</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar" id="mainViewport">
+
+        <!-- ========================================== -->
+        <!-- VIEW: DASHBOARD                             -->
+        <!-- ========================================== -->
+        <div id="view-dashboard" class="app-view fade-in max-w-7xl mx-auto">
+
+          <!-- BANNER ALERT KONTRAK -->
+          <div id="contractAlertBanner" class="hidden-view alert-pulse mb-6 bg-amber-50 border border-amber-300 text-amber-800 rounded-2xl px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
+            <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>
+            </div>
+            <div class="flex-1">
+              <p class="font-extrabold text-sm" id="contractAlertTitle">Peringatan Masa Kerja</p>
+              <p class="text-sm" id="contractAlertText">Sisa masa kontrak Anda kurang dari 30 hari.</p>
+            </div>
+            <span class="text-[10px] font-extrabold uppercase tracking-widest bg-amber-600 text-white px-3 py-1.5 rounded-lg whitespace-nowrap" id="contractAlertBadge">30 HARI</span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="col-span-1 lg:col-span-2 bg-gradient-to-br from-corporate to-corporate-dark rounded-2xl shadow-lg p-6 md:p-8 text-white flex flex-col justify-center relative overflow-hidden">
+              <i class="fa-solid fa-briefcase text-white opacity-5 absolute -right-8 -bottom-12" style="font-size: 200px;"></i>
+              <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+
+              <h2 class="text-2xl md:text-3xl font-extrabold mb-3 relative z-10 drop-shadow-md">Halo, <span id="dashName">User</span>! 👋</h2>
+              <p class="text-corporate-light text-sm mb-8 relative z-10 w-full md:w-3/4 font-medium leading-relaxed">Selamat datang di Portal HRIS &amp; ERP CV Andela Jaya. Kelola seluruh persetujuan, formulir ISO, klaim, dan data operasional perusahaan dalam satu pintu terpusat.</p>
+
+              <div class="flex flex-wrap items-center gap-3 text-sm relative z-10 mt-auto">
+                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-id-badge mr-2 opacity-70"></i> NIK: <span id="dashNIK" class="text-white">-</span></span>
+                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-calendar-check mr-2 opacity-70"></i> Bergabung: <span id="dashJoin" class="text-white">-</span></span>
+                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-map-location-dot mr-2 opacity-70"></i> Cabang: <span id="dashCabang" class="text-white">-</span></span>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-md p-6 md:p-8 border-t-[6px] border-blue-500 flex flex-col justify-center items-center text-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+              <div class="absolute top-0 left-0 w-full h-full bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+              <i class="fa-solid fa-umbrella-beach absolute text-blue-100 opacity-30 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition duration-500 group-hover:scale-125" style="font-size: 140px; z-index: 0;"></i>
+
+              <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4 relative z-10 shadow-sm border border-blue-200">Tahunan</div>
+              <h3 class="text-gray-500 font-extrabold text-xs mb-1 uppercase tracking-widest relative z-10">Sisa Kuota Cuti</h3>
+              <div class="text-6xl md:text-7xl font-black text-gray-800 mb-2 relative z-10 drop-shadow-sm" id="dashCutiQuota">-</div>
+              <div class="flex items-center gap-2 mt-2 relative z-10">
+                <span class="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">Jatah: <span id="dashJatahCuti" class="text-gray-700">-</span></span>
+              </div>
+              <p class="text-[10px] text-gray-400 relative z-10 font-bold mt-4 uppercase tracking-wider"><i class="fa-solid fa-database mr-1"></i> Sync: Master Karyawan</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
+              <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
+                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-bullhorn text-corporate mr-3 bg-corporate-light p-2 rounded-lg"></i> Pengumuman Terbaru</h3>
+              </div>
+              <div class="p-0 overflow-y-auto flex-1 divide-y divide-gray-50 custom-scrollbar" id="listBroadcast">
+                <div class="p-6 text-center text-gray-400 text-sm flex flex-col items-center justify-center h-full">
+                  <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-envelope-open-text text-2xl text-gray-300"></i>
+                  </div>
+                  <span class="font-bold">Memuat pengumuman...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
+              <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
+                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-3 bg-blue-50 p-2 rounded-lg"></i> Pengajuan Terakhir</h3>
+                <button onclick="navigate('riwayat')" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg transition">Lihat Semua</button>
+              </div>
+              <div class="p-0 overflow-y-auto flex-1 custom-scrollbar">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                  <tbody id="dashRiwayatList" class="divide-y divide-gray-50">
+                    <tr><td class="p-6 text-center text-gray-400 text-sm font-bold">Memuat data riwayat...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: PENGAJUAN ISO (FORM DINAMIS + BASE64) -->
+        <!-- ========================================== -->
+        <div id="view-pengajuan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex items-center">
+              <i class="fa-solid fa-file-signature text-corporate mr-3 bg-corporate-light p-2.5 rounded-lg text-lg"></i>
+              <div>
+                <h3 class="font-extrabold text-gray-800 text-lg">Buat Pengajuan Baru</h3>
+                <p class="text-xs text-gray-400 font-medium">Formulir dinamis - field menyesuaikan jenis pengajuan terpilih</p>
+              </div>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-5">
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Jenis Pengajuan</label>
+                <select id="selectJenisForm" onchange="renderDynamicForm()" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                  <option value="">-- Memuat daftar formulir... --</option>
+                </select>
+              </div>
+
+              <div id="kasbonWarning" class="hidden-view bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-semibold flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i> Pengajuan Kasbon ditolak: masa kerja Anda kurang dari 1 tahun.
+              </div>
+
+              <div id="dynamicFormFields" class="space-y-4"></div>
+
+              <button onclick="submitDynamicForm()" id="btnSubmitPengajuan" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition shadow-md">
+                <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pengajuan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: KLAIM BENSIN (PLACEHOLDER FONDASI)    -->
+        <!-- ========================================== -->
+        <div id="view-klaim-bensin" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
+            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-gas-pump text-corporate text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Klaim Bensin</h3>
+            <p class="text-sm text-gray-500 max-w-md mx-auto">Modul ini akan dikembangkan pada tahap berikutnya menggunakan engine Pengajuan ISO &amp; upload bukti Base64 yang sama persis seperti pada menu <b>Pengajuan ISO</b>.</p>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: RIWAYAT / REKAM JEJAK                 -->
+        <!-- ========================================== -->
+        <div id="view-riwayat" class="app-view hidden-view fade-in max-w-5xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100">
+              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-clock-rotate-left text-corporate mr-2"></i> Rekam Jejak Pengajuan Saya</h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-extrabold tracking-widest">
+                  <tr>
+                    <th class="px-6 py-3">ID / Tanggal</th>
+                    <th class="px-6 py-3">Jenis Form</th>
+                    <th class="px-6 py-3">Posisi Alur</th>
+                    <th class="px-6 py-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="listRiwayat" class="divide-y divide-gray-50">
+                  <tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Memuat riwayat...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: ANTREAN APPROVAL                      -->
+        <!-- ========================================== -->
+        <div id="view-approval" class="app-view hidden-view fade-in max-w-5xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-check-double text-corporate mr-2"></i> Antrean Persetujuan</h3>
+              <button onclick="fetchApprovalList()" class="text-xs font-bold text-gray-500 hover:text-corporate bg-gray-50 hover:bg-corporate-light px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+            </div>
+            <div id="listApproval" class="divide-y divide-gray-50">
+              <div class="p-8 text-center text-gray-400 font-bold">Memuat antrean approval...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: PENILAIAN KPI (PLACEHOLDER)            -->
+        <!-- ========================================== -->
+        <div id="view-kpi" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
+            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-star-half-stroke text-corporate text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Penilaian KPI</h3>
+            <p class="text-sm text-gray-500 max-w-md mx-auto">Modul Penilaian SPV &amp; KPI (terhubung ke sheet <code>Penilaian_SPV</code>, <code>Target_Bulanan</code>, <code>Realisasi_Bulanan</code>) akan dibangun pada tahap berikutnya di atas fondasi router ini.</p>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: DATA KARYAWAN (PENCARIAN RINGAN)      -->
+        <!-- ========================================== -->
+        <div id="view-karyawan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100">
+              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-address-card text-corporate mr-2"></i> Pencarian Cepat Data Karyawan</h3>
+              <p class="text-xs text-gray-400 font-medium mt-1">Contoh fetching ringan: hanya membuka sheet Master Karyawan, tanpa load seluruh database.</p>
+            </div>
+            <div class="p-6 md:p-8">
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="inputSearchKaryawan" oninput="debouncedSearchKaryawan()" placeholder="Ketik minimal 2 huruf nama karyawan..." class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+              </div>
+              <div id="resultSearchKaryawan" class="mt-4 space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: KONTRAK & REKRUTMEN                    -->
+        <!-- ========================================== -->
+        <div id="view-kontrak" class="app-view hidden-view fade-in max-w-5xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden mb-6">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-file-contract text-corporate mr-2"></i> Monitoring Kontrak Akan Habis</h3>
+              <button onclick="fetchKontrakAlertList()" class="text-xs font-bold text-gray-500 hover:text-corporate bg-gray-50 hover:bg-corporate-light px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-extrabold tracking-widest">
+                  <tr>
+                    <th class="px-6 py-3">Karyawan</th>
+                    <th class="px-6 py-3">Divisi / Jabatan</th>
+                    <th class="px-6 py-3">Tanggal Habis</th>
+                    <th class="px-6 py-3 text-right">Sisa Hari</th>
+                  </tr>
+                </thead>
+                <tbody id="listKontrak" class="divide-y divide-gray-50">
+                  <tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Memuat data kontrak...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-8 text-center">
+            <i class="fa-solid fa-user-plus text-corporate text-2xl mb-3"></i>
+            <h3 class="font-extrabold text-gray-800 text-base mb-1">Modul Rekrutmen</h3>
+            <p class="text-sm text-gray-500">Terhubung ke sheet <code>DATABASE REKRUTMEN</code> &amp; <code>MASTER SOAL INTERVIEW</code> - dikembangkan pada tahap berikutnya.</p>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: PEMANGGILAN & TEGURAN (FITUR INTI)    -->
+        <!-- ========================================== -->
+        <div id="view-pemanggilan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex items-center">
+              <i class="fa-solid fa-bullhorn text-corporate mr-3 bg-corporate-light p-2.5 rounded-lg text-lg"></i>
+              <div>
+                <h3 class="font-extrabold text-gray-800 text-lg">Form Pemanggilan / Teguran Karyawan</h3>
+                <p class="text-xs text-gray-400 font-medium">Submit akan otomatis mengirim email resmi (kop merah) ke karyawan terkait</p>
+              </div>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-4">
+              <div class="relative">
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Nama Karyawan</label>
+                <input type="text" id="pmgNamaKaryawan" oninput="debouncedSearchPemanggilan()" placeholder="Ketik nama karyawan..." class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                <input type="hidden" id="pmgNIKKaryawan">
+                <div id="pmgSuggestList" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 hidden-view max-h-52 overflow-y-auto custom-scrollbar"></div>
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Jenis Kasus</label>
+                <select id="pmgJenisKasus" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                  <option value="Keterlambatan">Keterlambatan</option>
+                  <option value="Pelanggaran SOP">Pelanggaran SOP</option>
+                  <option value="Kedisiplinan">Kedisiplinan</option>
+                  <option value="Kinerja">Evaluasi Kinerja</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-gray-700 font-bold mb-1.5 text-sm">Tanggal Panggilan</label>
+                  <input type="date" id="pmgTanggal" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-gray-700 font-bold mb-1.5 text-sm">Waktu</label>
+                  <input type="time" id="pmgWaktu" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Tempat</label>
+                <input type="text" id="pmgTempat" placeholder="Cth: Ruang HRD - Kantor Pusat" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Perihal</label>
+                <input type="text" id="pmgPerihal" placeholder="Cth: Panggilan Klarifikasi Keterlambatan" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Isi Teguran / Keterangan</label>
+                <textarea id="pmgIsiTeguran" rows="4" placeholder="Jelaskan detail pelanggaran/keterangan secara rinci..." class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Lampiran Bukti (Opsional)</label>
+                <input type="file" id="pmgLampiran" class="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-corporate file:text-white file:font-bold file:text-xs">
+              </div>
+
+              <button onclick="submitPemanggilan()" id="btnSubmitPemanggilan" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition shadow-md">
+                <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Surat Pemanggilan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: KENDARAAN (PLACEHOLDER)                -->
+        <!-- ========================================== -->
+        <div id="view-kendaraan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
+            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-car-side text-corporate text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Kendaraan</h3>
+            <p class="text-sm text-gray-500 max-w-md mx-auto">Terhubung ke sheet <code>MASTER KENDARAAN</code> &amp; <code>OPERASIONAL KENDARAAN</code> - dikembangkan pada tahap berikutnya.</p>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: INVENTORY & GIMMICK (PLACEHOLDER)      -->
+        <!-- ========================================== -->
+        <div id="view-inventory" class="app-view hidden-view fade-in max-w-3xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
+            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-boxes-stacked text-corporate text-2xl"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Inventory &amp; Gimmick</h3>
+            <p class="text-sm text-gray-500 max-w-md mx-auto">Terhubung ke sheet <code>MASTER INVENTORY</code>, <code>LOG INVENTORY</code>, <code>MASTER GIMMICK</code> - dikembangkan pada tahap berikutnya.</p>
+          </div>
+        </div>
+
+      </main>
     </div>
-    <!-- ========================================== -->
-    <!-- APPLICATION SCRIPT (LOGIC & STATE)         -->
-    <!-- ========================================== -->
-    <script>
-        /**
-         * ============================================================
-         * GLOBAL CONFIGURATION
-         * ============================================================
-         */
-        // WAJIB DIGANTI: Masukkan URL hasil Deploy Web App Google Apps Script Anda di sini.
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyI0D-MsbJ5oMYU-Nq0Z8PkDu4EiNJXcIrk5140bps0ZVIGP8fsN8FOpyeqU8BZ6e8ezQ/exec'; 
-
-        // State Management Global
-        let currentUser = null;
-        let masterForms = []; 
-        let currentTransactionContext = []; 
-
-        // ============================================
-        // 1. UTILITIES & UI HELPERS
-        // ============================================
-        const getEl = (id) => document.getElementById(id);
-        
-        const showLoader = (text = 'Mohon tunggu sebentar...') => {
-            const overlay = getEl('loaderOverlay');
-            getEl('loaderText').textContent = text;
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
-        };
-        
-        const hideLoader = () => {
-            const overlay = getEl('loaderOverlay');
-            overlay.classList.add('hidden');
-            overlay.classList.remove('flex');
-        };
-        
-        const showToast = (message, isError = false) => {
-            const container = getEl('toastContainer');
-            const toast = document.createElement('div');
-            const bgColor = isError ? 'bg-red-600' : 'bg-green-600';
-            const icon = isError ? 'fa-triangle-exclamation' : 'fa-circle-check';
-            
-            toast.className = `${bgColor} text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 fade-in transform transition-all duration-300 ease-in-out translate-x-0 mb-3 pointer-events-auto border border-white border-opacity-20 backdrop-blur-md`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span class="text-sm font-bold tracking-wide">${message}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        };
-
-        const isApiSuccess = (res) => res && res.success === true;
-
-        const fileToBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                if(!file) resolve(null);
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        };
-
-        const closeModal = (modalId) => getEl(modalId).classList.add('hidden');
-
-        // ============================================
-        // 2. CORE FETCH API (CORS SAFE WRAPPER)
-        // ============================================
-        async function fetchAPI(payload) {
-            try {
-                showLoader();
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
-            } catch (err) {
-                console.error("API Error:", err);
-                return { success: false, message: "Terjadi kesalahan jaringan atau CORS Preflight." };
-            } finally {
-                hideLoader();
-            }
-        }
-
-        // ============================================
-        // 3. INIT & AUTHENTICATION (LOGIN & TOKEN)
-        // ============================================
-        window.onload = async () => {
-            const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            getEl('currentDate').textContent = new Date().toLocaleDateString('id-ID', dateOpts);
-            
-            // Otentikasi Link Email (Token)
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            
-            if (token) {
-                getEl('formLogin').style.display = 'none';
-                getEl('tokenAuthMessage').classList.remove('hidden');
-                
-                const res = await fetchAPI({ action: 'login_token', token: token });
-                if (isApiSuccess(res) && res.user) {
-                    currentUser = res.user;
-                    localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    showToast(`Otentikasi berhasil. Halo, ${currentUser.Nama}`);
-                    setupWorkspace();
-                } else {
-                    showToast(res.message || "Token tidak valid atau kadaluarsa", true);
-                    getEl('formLogin').style.display = 'block';
-                    getEl('tokenAuthMessage').classList.add('hidden');
-                }
-            } else {
-                checkSession();
-            }
-        };
-
-        function checkSession() {
-            const savedUser = localStorage.getItem('erp_user_data');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                setupWorkspace();
-            } else {
-                getEl('viewLogin').classList.remove('hidden-view');
-                getEl('mainApp').classList.add('hidden-view');
-            }
-        }
-
-        getEl('formLogin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const u = getEl('loginUsername').value.trim();
-            const p = getEl('loginPassword').value;
-            
-            const btn = getEl('btnLoginSubmit');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Memverifikasi...';
-            btn.disabled = true;
-
-            const res = await fetchAPI({ action: 'login', username: u, password: p });
-            
-            if (isApiSuccess(res) && res.user) {
-                currentUser = res.user;
-                localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
-                getEl('loginUsername').value = ''; getEl('loginPassword').value = '';
-                showToast(`Login berhasil. Selamat datang, ${currentUser.Nama}`);
-                setupWorkspace();
-            } else {
-                showToast(res.message || "Username atau Password salah", true);
-            }
-            
-            btn.innerHTML = 'Masuk ke Portal';
-            btn.disabled = false;
-        });
-
-        function doLogout() {
-            localStorage.removeItem('erp_user_data');
-            currentUser = null;
-            getEl('mainApp').classList.add('hidden-view');
-            getEl('viewLogin').classList.remove('hidden-view');
-            showToast("Berhasil keluar dari sistem.");
-        }
-
-        // ============================================
-        // 4. WORKSPACE & NAVIGATION (RBAC)
-        // ============================================
-        function setupWorkspace() {
-            getEl('viewLogin').classList.add('hidden-view');
-            getEl('mainApp').classList.remove('hidden-view');
-            
-            // Sidebar Profile
-            getEl('sideUserName').textContent = currentUser.Nama || currentUser.username;
-            getEl('sideUserRole').textContent = currentUser.Role || '-';
-            getEl('sideUserDivisi').textContent = currentUser.Divisi || '-';
-            getEl('userAvatar').textContent = (currentUser.Nama || currentUser.username).charAt(0).toUpperCase();
-            
-            // Dashboard Profile
-            getEl('dashName').textContent = currentUser.Nama || currentUser.username;
-            getEl('dashNIK').textContent = currentUser.NIK || '-';
-            getEl('dashCabang').textContent = currentUser.Cabang || '-';
-            getEl('dashJoin').textContent = currentUser.TanggalJoin ? new Date(currentUser.TanggalJoin).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric'}) : '-';
-            
-            getEl('dashCutiQuota').textContent = currentUser.SisaCuti !== undefined ? currentUser.SisaCuti : '0';
-            getEl('dashJatahCuti').textContent = currentUser.JatahTahunan !== undefined ? currentUser.JatahTahunan : '0';
-
-            // Role Based Access Control (RBAC)
-            const role = (currentUser.Role || '').toUpperCase();
-            const posisi = (currentUser.posisi || '').toUpperCase();
-            
-            // Tampilkan menu manajemen jika jabatan memiliki wewenang approval
-            const isManagement = ['SPV', 'GM', 'FINANCE', 'HRD', 'MANAGER', 'DIREKTUR'].some(r => role.includes(r) || posisi.includes(r));
-            if (isManagement) {
-                getEl('menuManajemen').classList.remove('hidden-view');
-            } else {
-                getEl('menuManajemen').classList.add('hidden-view');
-            }
-
-            // Area khusus HRD
-            if (role === 'HRD' || role.includes('HR')) {
-                getEl('menuHRD').classList.remove('hidden-view');
-            } else {
-                getEl('menuHRD').classList.add('hidden-view');
-            }
-
-            if (typeof fetchMasterForms === 'function') fetchMasterForms(); 
-            navigate('dashboard');
-        }
-
-        function navigate(viewId) {
-            document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden-view'));
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('bg-corporate-light', 'text-corporate');
-                el.classList.add('text-gray-600');
-            });
-            
-            const targetView = getEl(`view-${viewId}`);
-            if (targetView) targetView.classList.remove('hidden-view');
-            
-            const targetNav = getEl(`nav-${viewId}`);
-            if (targetNav) {
-                targetNav.classList.remove('text-gray-600');
-                targetNav.classList.add('bg-corporate-light', 'text-corporate');
-            }
-
-            const titles = {
-                'dashboard': 'Dashboard Utama', 
-                'pengajuan': 'Formulir Pengajuan (ISO)', 
-                'riwayat': 'Rekam Jejak & Riwayat', 
-                'approval': 'Pusat Persetujuan (Approval)',
-                'hrd-form': 'Konfigurasi Formulir ISO (HRD)', 
-                'hrd-broadcast': 'Sistem Broadcast (HRD)'
-            };
-            getEl('headerTitle').textContent = titles[viewId] || 'Portal Internal';
-
-            // Eksekusi fungsi halaman terkait
-            if(viewId === 'dashboard') fetchDashboardData();
-            if(viewId === 'riwayat') fetchRiwayat();
-            if(viewId === 'approval') fetchApprovalList();
-            if(viewId === 'hrd-form') populateFormBuilderList();
-        }
-
-        // ============================================
-        // 5. DATA LOADER & FORMATTER
-        // ============================================
-        async function fetchDashboardData() {
-            const res = await fetchAPI({ action: 'get_dashboard', user: currentUser });
-            if (isApiSuccess(res)) {
-                
-                // Broadcast
-                const bcList = getEl('listBroadcast');
-                if (res.broadcasts && res.broadcasts.length > 0) {
-                    bcList.innerHTML = res.broadcasts.map(b => `
-                        <div class="px-6 py-5 hover:bg-gray-50 transition group">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-extrabold text-sm text-gray-800 group-hover:text-corporate transition">${b.Judul}</h4>
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap ml-3 bg-gray-100 px-2 py-1 rounded">${new Date(b.Tanggal).toLocaleDateString('id-ID')}</span>
-                            </div>
-                            <p class="text-sm text-gray-600 leading-relaxed">${b.Isi}</p>
-                            ${b.FileUrl ? `<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center mt-3 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Unduh Lampiran Berkas</a>` : ''}
-                        </div>
-                    `).join('');
-                } else {
-                    bcList.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm h-full flex flex-col items-center justify-center"><i class="fa-regular fa-bell-slash text-4xl mb-3 text-gray-200"></i><span class="font-medium">Tidak ada pengumuman baru.</span></div>`;
-                }
-
-                // Riwayat Singkat
-                const riwBody = getEl('dashRiwayatList');
-                if (res.riwayat_singkat && res.riwayat_singkat.length > 0) {
-                    riwBody.innerHTML = res.riwayat_singkat.map(r => `
-                        <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-blue-500">
-                            <td class="p-5">
-                                <span class="font-extrabold text-gray-800 text-sm">${r.JenisForm}</span>
-                                <br><span class="text-[10px] font-mono font-bold text-gray-400 mt-1 uppercase tracking-widest block">${r.ID}</span>
-                            </td>
-                            <td class="p-5 text-right">${getBadgeHTML(r.StatusFinal)}</td>
-                        </tr>
-                    `).join('');
-                } else {
-                    riwBody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-gray-400 text-sm h-full"><i class="fa-solid fa-file-circle-question text-3xl mb-3 block text-gray-200"></i><span class="font-medium">Belum ada pengajuan.</span></td></tr>`;
-                }
-            }
-        }
-
-        function getBadgeHTML(status) {
-            const s = (status || '').toUpperCase();
-            if (s === 'APPROVED FINAL') return `<span class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-green-200 shadow-sm"><i class="fa-solid fa-check mr-1"></i> APPROVED</span>`;
-            if (s === 'REJECTED') return `<span class="bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-red-200 shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> REJECTED</span>`;
-            return `<span class="bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-yellow-200 shadow-sm"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i> PROSES</span>`;
-        }
-
-        // ============================================
-        // 6. FORM RENDERER (DINAMIS DARI HRD CONFIG)
-        // ============================================
-        async function fetchMasterForms() {
-            const res = await fetchAPI({ action: 'get_form_configs' });
-            if (isApiSuccess(res) && res.forms) {
-                masterForms = res.forms;
-                const sel = getEl('selectJenisForm');
-                sel.innerHTML = '<option value="">-- Silakan Pilih Form ISO --</option>';
-                
-                const myRole = (currentUser.Role || '').toUpperCase();
-                const myPosisi = (currentUser.posisi || '').toUpperCase();
-
-                masterForms.forEach(f => {
-                    // Cek Otorisasi (Apakah user berhak melihat form ini)
-                    const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
-                    let isAllowed = false;
-                    if (allowed === 'ALL' || allowed.includes(myRole) || allowed.includes(myPosisi)) {
-                        isAllowed = true;
-                    }
-
-                    if (isAllowed) {
-                        sel.innerHTML += `<option value="${f.FormID}">${f.NamaForm}</option>`;
-                    }
-                });
-            }
-        }
-
-        function renderDynamicForm() {
-            const formId = getEl('selectJenisForm').value;
-            const container = getEl('dynamicFormContainer');
-            const fieldsArea = getEl('formFieldsArea');
-            const warnKasbon = getEl('kasbonWarning');
-            
-            container.classList.add('hidden-view');
-            warnKasbon.classList.add('hidden-view');
-            fieldsArea.innerHTML = '';
-
-            if (!formId) return;
-
-            const config = masterForms.find(f => f.FormID === formId);
-            if (!config) return;
-
-            // Validasi Khusus Kasbon (Sesuai BRD > 1 Tahun)
-            if (config.NamaForm.toLowerCase().includes('kasbon') || config.NamaForm.toLowerCase().includes('cash advance')) {
-                if (!currentUser.TanggalJoin) {
-                    warnKasbon.classList.remove('hidden-view'); return;
-                }
-                const joinDate = new Date(currentUser.TanggalJoin);
-                const diffYears = Math.abs(new Date() - joinDate) / (1000 * 60 * 60 * 24 * 365);
-                
-                if (diffYears < 1) {
-                    warnKasbon.classList.remove('hidden-view');
-                    return; 
-                }
-            }
-
-            let fields = [];
-            try { fields = JSON.parse(config.FieldsJSON || '[]'); } 
-            catch(e) { return showToast("Struktur JSON Form cacat. Hubungi HRD.", true); }
-
-            if (fields.length === 0) {
-                fieldsArea.innerHTML = '<div class="col-span-full text-center text-sm font-bold text-red-500 bg-red-50 p-4 rounded-lg">Form ini belum memiliki field input. Harap lapor ke HRD.</div>';
-            }
-
-            // Generate Input HTML berdasarkan tipe
-            fields.forEach(fld => {
-                let inputHtml = '';
-                const req = fld.required ? 'required' : '';
-                const reqStar = fld.required ? '<span class="text-red-500 ml-1 text-lg leading-none">*</span>' : '';
-                const baseClass = "w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition shadow-sm bg-white font-medium text-gray-800";
-                
-                if (fld.type === 'textarea') {
-                    inputHtml = `<textarea id="dyn_${fld.name}" class="${baseClass} custom-scrollbar" rows="4" placeholder="Masukkan ${fld.label.toLowerCase()}..." ${req}></textarea>`;
-                } else if (fld.type === 'select') {
-                    const opts = (fld.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
-                    inputHtml = `<select id="dyn_${fld.name}" class="${baseClass}" ${req}><option value="">-- Silakan Pilih --</option>${opts}</select>`;
-                } else if (fld.type === 'file') {
-                    inputHtml = `<input type="file" id="dyn_${fld.name}" class="${baseClass} cursor-pointer p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" ${req}>`;
-                } else {
-                    inputHtml = `<input type="${fld.type}" id="dyn_${fld.name}" class="${baseClass}" placeholder="Masukkan ${fld.label.toLowerCase()}..." ${req}>`;
-                }
-
-                const colSpan = (fld.type === 'textarea' || fld.fullWidth) ? 'md:col-span-2' : 'col-span-1';
-                fieldsArea.insertAdjacentHTML('beforeend', `
-                    <div class="${colSpan}">
-                        <label class="block text-xs font-extrabold text-gray-700 mb-2 uppercase tracking-wide flex items-center">${fld.label} ${reqStar}</label>
-                        ${inputHtml}
-                    </div>
-                `);
-            });
-
-            container.classList.remove('hidden-view');
-        }
-
-        getEl('dynamicFormContainer').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formId = getEl('selectJenisForm').value;
-            const config = masterForms.find(f => f.FormID === formId);
-            let fields = [];
-            try { fields = JSON.parse(config.FieldsJSON || '[]'); } catch(err) {}
-
-            let detailPayload = {};
-            let filePromises = [];
-
-            // Grab Data & Base64 Konversi
-            for (let fld of fields) {
-                const el = getEl(`dyn_${fld.name}`);
-                if (!el) continue;
-
-                if (fld.type === 'file') {
-                    if (el.files.length > 0) {
-                        const file = el.files[0];
-                        if (file.size > 2 * 1024 * 1024) return showToast(`Ukuran file maksimal 2MB.`, true);
-                        filePromises.push(
-                            fileToBase64(file).then(b64 => detailPayload[fld.name] = { name: file.name, data: b64 })
-                        );
-                    }
-                } else {
-                    detailPayload[fld.name] = el.value;
-                }
-            }
-
-            if (filePromises.length > 0) {
-                showLoader('Mengunggah berkas terenkripsi...');
-                await Promise.all(filePromises);
-            }
-
-            const payload = {
-                action: 'submit_pengajuan',
-                user: currentUser,
-                formId: formId,
-                namaForm: config.NamaForm,
-                detail: detailPayload
-            };
-
-            const btn = getEl('btnSubmitPengajuan');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengirim Data...'; btn.disabled = true;
-
-            const res = await fetchAPI(payload);
-            if (isApiSuccess(res)) {
-                showToast("Pengajuan ISO berhasil disubmit! Menunggu persetujuan terkait.");
-                getEl('dynamicFormContainer').reset();
-                getEl('selectJenisForm').value = '';
-                renderDynamicForm();
-                navigate('riwayat');
-            } else {
-                showToast(res.message || "Gagal mengirim formulir", true);
-            }
-
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2.5"></i> Kirim Pengajuan'; btn.disabled = false;
-        });
-
-        // ============================================
-        // 7. MODULE: RIWAYAT & APPROVAL (MANAJEMEN)
-        // ============================================
-        async function fetchRiwayat() {
-            const tbody = getEl('tableRiwayatBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-bold"><i class="fa-solid fa-spinner fa-spin text-3xl text-corporate mb-4 block"></i> Sedang memuat riwayat pengajuan...</td></tr>`;
-            
-            const res = await fetchAPI({ action: 'get_riwayat', user: currentUser });
-            if (isApiSuccess(res)) {
-                currentTransactionContext = res.data || [];
-                if (currentTransactionContext.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-medium"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-folder-open text-2xl text-gray-300"></i></div>Belum ada riwayat pengajuan yang tercatat.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = currentTransactionContext.map(tx => `
-                    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corporate">
-                        <td class="px-6 py-5">
-                            <span class="font-extrabold text-gray-800 text-sm">${tx.NamaForm}</span>
-                            <br><span class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest mt-1 block">${tx.ID}</span>
-                        </td>
-                        <td class="px-6 py-5 font-bold text-gray-600 text-sm">${new Date(tx.Tanggal).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</td>
-                        <td class="px-6 py-5"><span class="text-xs bg-gray-100 text-gray-700 font-bold px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm"><i class="fa-solid fa-location-dot mr-1.5 text-gray-400"></i> ${tx.PosisiFlow}</span></td>
-                        <td class="px-6 py-5">${getBadgeHTML(tx.StatusFinal)}</td>
-                        <td class="px-6 py-5 text-center">
-                            <button onclick="openDetailModal('${tx.ID}')" class="text-blue-600 font-bold text-xs bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg px-4 py-2 transition shadow-sm border border-blue-100 hover:border-blue-600">Detail Form</button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        async function fetchApprovalList() {
-            const tbody = getEl('tableApprovalBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-bold"><i class="fa-solid fa-spinner fa-spin text-3xl text-corporate mb-4 block"></i> Sinkronisasi antrean...</td></tr>`;
-            
-            const res = await fetchAPI({ action: 'get_approval_list', user: currentUser });
-            if (isApiSuccess(res)) {
-                currentTransactionContext = res.data || [];
-                
-                const badge = getEl('badgeApproval');
-                if(currentTransactionContext.length > 0) {
-                    badge.textContent = currentTransactionContext.length;
-                    badge.classList.remove('hidden-view');
-                } else {
-                    badge.classList.add('hidden-view');
-                }
-
-                if (currentTransactionContext.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-medium"><div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-clipboard-check text-4xl text-green-500"></i></div>Antrean persetujuan Anda kosong. Pekerjaan Anda selesai!</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = currentTransactionContext.map(tx => `
-                    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corporate">
-                        <td class="px-6 py-5"><div class="font-extrabold text-gray-900 text-sm">${tx.NamaPemohon}</div><div class="text-[10px] text-gray-500 font-mono font-bold mt-1 uppercase tracking-widest"><i class="fa-solid fa-id-badge mr-1"></i>${tx.NIKPemohon}</div></td>
-                        <td class="px-6 py-5 whitespace-nowrap text-xs text-gray-500 font-bold">${new Date(tx.Tanggal).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</td>
-                        <td class="px-6 py-5 font-extrabold text-corporate text-sm">${tx.NamaForm}</td>
-                        <td class="px-6 py-5 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg px-3 py-1 inline-block mt-3 border border-gray-200"><i class="fa-solid fa-arrow-progress mr-1 text-corporate"></i> ${tx.PosisiFlow}</td>
-                        <td class="px-6 py-5 text-center">
-                            <div class="flex justify-center gap-2">
-                                <button onclick="openDetailModal('${tx.ID}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 w-9 h-9 rounded-lg shadow-sm text-sm font-bold transition flex justify-center items-center" title="Review Berkas"><i class="fa-solid fa-eye"></i></button>
-                                <button onclick="quickApprove('${tx.ID}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md text-xs font-extrabold transition flex items-center"><i class="fa-solid fa-check mr-1.5"></i> Setujui</button>
-                                <button onclick="openRejectModal('${tx.ID}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-md text-xs font-extrabold transition flex items-center"><i class="fa-solid fa-xmark mr-1.5"></i> Tolak</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        // ============================================
-        // 8. MODAL HANDLER & APPROVAL ACTIONS
-        // ============================================
-        function openDetailModal(txId) {
-            const tx = currentTransactionContext.find(t => t.ID === txId);
-            if(!tx) return;
-
-            getEl('mdlTxId').textContent = `${tx.ID}`;
-            getEl('mdlNama').textContent = `${tx.NamaPemohon} (${tx.NIKPemohon})`;
-            getEl('mdlJenis').textContent = tx.NamaForm;
-            getEl('mdlTgl').textContent = new Date(tx.Tanggal).toLocaleString('id-ID');
-            getEl('mdlStatus').innerHTML = getBadgeHTML(tx.StatusFinal);
-
-            const catatanArea = getEl('mdlCatatanArea');
-            if (tx.StatusFinal === 'REJECTED' && tx.Catatan) {
-                getEl('mdlCatatan').textContent = tx.Catatan;
-                catatanArea.classList.remove('hidden');
-            } else {
-                catatanArea.classList.add('hidden');
-            }
-
-            // Render Dynamic Detail
-            let dynHtml = '';
-            try {
-                const det = JSON.parse(tx.DetailJSON || '{}');
-                for (let key in det) {
-                    const labelFixed = key.replace(/_/g, ' ').toUpperCase();
-                    if(typeof det[key] === 'object' && det[key].data) {
-                        dynHtml += `
-                            <div class="p-4 border rounded-xl border-gray-200 col-span-1 md:col-span-2 flex justify-between items-center bg-white shadow-sm">
-                                <span class="font-extrabold text-xs text-gray-500 tracking-widest"><i class="fa-solid fa-paperclip mr-1"></i> ${labelFixed}</span>
-                                <a href="${det[key].data}" target="_blank" class="text-xs bg-blue-50 text-blue-700 border border-blue-200 font-bold px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm flex items-center"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Buka Lampiran</a>
-                            </div>`;
-                    } else {
-                        dynHtml += `
-                            <div class="p-4 border rounded-xl border-gray-200 bg-white shadow-sm">
-                                <span class="block text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1.5">${labelFixed}</span>
-                                <span class="font-bold text-gray-800 text-sm whitespace-pre-wrap leading-relaxed">${det[key]}</span>
-                            </div>`;
-                    }
-                }
-            } catch(e) { dynHtml = '<div class="col-span-full italic text-red-500 font-bold">Gagal parsing detail form.</div>'; }
-            getEl('mdlDynamicData').innerHTML = dynHtml || '<div class="col-span-full italic text-gray-500 font-bold">Tidak ada isian formulir.</div>';
-
-            // Render Flow Steps
-            let stepsHtml = '';
-            try {
-                const flows = JSON.parse(tx.ApprovalFlowJson || '[]');
-                const states = JSON.parse(tx.ApprovalStepsJSON || '[]');
-                
-                flows.forEach((role, idx) => {
-                    const st = states[idx] || 'WAITING';
-                    let col = st === 'APPROVED' ? 'bg-green-50 text-green-700 border-green-200' : 
-                             (st === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' : 
-                             'bg-gray-50 text-gray-600 border-gray-200');
-                    let icn = st === 'APPROVED' ? 'fa-check text-green-500' : 
-                             (st === 'REJECTED' ? 'fa-xmark text-red-500' : 
-                             'fa-clock text-gray-400');
-                             
-                    stepsHtml += `
-                        <div class="p-3 border rounded-xl ${col} flex items-center justify-between shadow-sm">
-                            <span class="font-extrabold text-sm flex items-center"><i class="fa-solid ${icn} mr-2.5 text-lg"></i> ${role}</span>
-                            <span class="text-[10px] font-black uppercase tracking-widest bg-white px-2 py-1 rounded shadow-sm opacity-80">${st}</span>
-                        </div>`;
-                });
-            } catch(e) { stepsHtml = '<div class="italic text-gray-500 font-bold">Data flow tidak tersedia.</div>'; }
-            getEl('mdlFlowSteps').innerHTML = stepsHtml;
-
-            getEl('modalDetail').classList.remove('hidden');
-        }
-
-        async function quickApprove(txId) {
-            if(!confirm("Anda yakin menyetujui pengajuan ini? Aksi ini akan meneruskan dokumen ke proses selanjutnya.")) return;
-            const res = await fetchAPI({ action: 'process_approval', user: currentUser, txId: txId, decision: 'APPROVE', alasan: '' });
-            if(isApiSuccess(res)) { 
-                showToast("Pengajuan berhasil disetujui."); 
-                fetchApprovalList(); 
-            } else {
-                showToast(res.message || "Gagal memproses persetujuan", true);
-            }
-        }
-
-        function openRejectModal(txId) {
-            getEl('rjctId').value = txId;
-            getEl('rjctAlasan').value = '';
-            getEl('modalReject').classList.remove('hidden');
-        }
-
-        async function submitReject() {
-            const txId = getEl('rjctId').value;
-            const alasan = getEl('rjctAlasan').value.trim();
-            if(!alasan) {
-                return showToast("Alasan penolakan wajib dijelaskan!", true);
-            }
-
-            const res = await fetchAPI({ action: 'process_approval', user: currentUser, txId: txId, decision: 'REJECT', alasan: alasan });
-            if(isApiSuccess(res)) { 
-                showToast("Pengajuan telah dibatalkan / ditolak."); 
-                closeModal('modalReject'); 
-                fetchApprovalList(); 
-            } else {
-                showToast(res.message || "Gagal menolak dokumen", true);
-            }
-        }
-
-        // ============================================
-        // 9. MODULE: HRD TOOLS (FORM BUILDER & BROADCAST)
-        // ============================================
-        function populateFormBuilderList() {
-            const ul = getEl('hrdFormList');
-            if(masterForms.length === 0) { ul.innerHTML = '<li class="p-6 text-center text-sm text-gray-400 font-bold">Belum ada Master Konfigurasi Form.</li>'; return; }
-            
-            ul.innerHTML = masterForms.map(f => `
-                <li>
-                    <button type="button" onclick="loadFormConfigIntoEditor('${f.FormID}', '${f.NamaForm}')" class="w-full text-left px-5 py-4 text-sm hover:bg-corporate hover:text-white transition font-bold group flex justify-between items-center text-gray-700">
-                        <span class="truncate"><span class="font-mono text-gray-400 group-hover:text-corporate-light mr-2 text-[10px] tracking-widest">${f.FormID}</span> ${f.NamaForm}</span>
-                        <i class="fa-solid fa-chevron-right text-xs opacity-40"></i>
-                    </button>
-                </li>
-            `).join('');
-        }
-
-        function loadFormConfigIntoEditor(id, nama) {
-            getEl('hrdFormEditTitle').innerHTML = `Mengedit Master Form: <span class="text-corporate">${nama}</span>`;
-            const conf = masterForms.find(f => f.FormID === id);
-            
-            getEl('cfgFormId').value = id;
-            getEl('cfgFlow').value = conf.ApprovalFlowJson ? JSON.parse(conf.ApprovalFlowJson).join(', ') : '';
-            getEl('cfgAllowedRoles').value = conf.AllowedRoles || 'ALL';
-            getEl('cfgFields').value = conf.FieldsJSON ? JSON.stringify(JSON.parse(conf.FieldsJSON), null, 4) : '[]';
-            
-            getEl('hrdEmptyState').classList.add('hidden-view');
-            getEl('formHRDConfig').classList.remove('hidden-view');
-        }
-
-        async function saveFormConfig() {
-            const id = getEl('cfgFormId').value;
-            const flowStr = getEl('cfgFlow').value;
-            const allowedStr = getEl('cfgAllowedRoles').value;
-            let fieldsJson = getEl('cfgFields').value;
-
-            let flowArr = flowStr.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
-            try { JSON.parse(fieldsJson); } catch(e) { return showToast("Struktur JSON Fields error. Cek kembali tanda kutip & koma.", true); }
-
-            const payload = {
-                action: 'save_form_config',
-                user: currentUser,
-                formId: id,
-                flowJson: JSON.stringify(flowArr),
-                allowedRoles: allowedStr,
-                fieldsJson: fieldsJson,
-                needFinance: "FALSE"
-            };
-
-            const res = await fetchAPI(payload);
-            if(isApiSuccess(res)) {
-                showToast("Master Konfigurasi ISO Form berhasil diperbarui!");
-                fetchMasterForms(); 
-            } else {
-                showToast(res.message || "Gagal menyimpan pengaturan", true);
-            }
-        }
-
-        // Broadcast Handler
-        function toggleBcTarget() {
-            const t = getEl('bcTargetType').value;
-            const wrap = getEl('bcTargetInputWrapper');
-            const lbl = getEl('bcTargetLabel');
-            
-            if(t === 'GENERAL') {
-                wrap.classList.add('hidden-view');
-                getEl('bcTargetValue').removeAttribute('required');
-            } else {
-                wrap.classList.remove('hidden-view');
-                getEl('bcTargetValue').setAttribute('required', 'true');
-                lbl.innerHTML = t === 'DIVISI' ? '<i class="fa-solid fa-building mr-1.5"></i> Nama Divisi (Contoh: SALES)' : '<i class="fa-solid fa-id-badge mr-1.5"></i> Nomor Induk (NIK)';
-            }
-        }
-
-        getEl('formBroadcast').addEventListener('submit', async(e) => {
-            e.preventDefault();
-            const type = getEl('bcTargetType').value;
-            const targetVal = getEl('bcTargetValue').value;
-            const fileInput = getEl('bcFile');
-            
-            let fileB64 = null;
-            let fileName = null;
-            if(fileInput.files.length > 0) {
-                const f = fileInput.files[0];
-                if(f.size > 2 * 1024 * 1024) return showToast("Upload ditolak: Ukuran lampiran maksimal 2MB.", true);
-                showLoader('Mengkonversi dokumen...');
-                fileB64 = await fileToBase64(f);
-                fileName = f.name;
-            }
-
-            const payload = {
-                action: 'send_broadcast',
-                user: currentUser,
-                targetType: type,
-                targetValue: type === 'GENERAL' ? 'ALL' : targetVal,
-                judul: getEl('bcJudul').value.trim(),
-                isi: getEl('bcIsi').value.trim(),
-                file: fileB64,
-                fileName: fileName
-            };
-
-            const btn = getEl('btnSubmitBroadcast');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Mengirim Data...'; btn.disabled = true;
-
-            const res = await fetchAPI(payload);
-            if(isApiSuccess(res)) {
-                showToast(res.message || "Pesan Broadcast sukses didistribusikan ke email karyawan!");
-                getEl('formBroadcast').reset();
-                toggleBcTarget();
-            } else {
-                showToast(res.message || "Gagal memproses Broadcast.", true);
-            }
-            
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2.5 text-lg"></i> Kirim Broadcast Sekarang'; btn.disabled = false;
-        });
-
-        // ============================================
-        // 10. MODULE: DATA EXPORT (HRD TOOL)
-        // ============================================
-        async function executeExport(type = 'PENGAJUAN') {
-            showToast(`Menginisialisasi kompilasi data ${type}. Mohon jangan tutup jendela ini...`);
-
-            try {
-                const res = await fetchAPI({ action: 'export_data', exportType: type });
-                if (isApiSuccess(res) && res.csvData) {
-                    const blob = new Blob([res.csvData], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = res.filename || `Export_${type}_.csv`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    showToast(`Selesai! Database ${type} berhasil diunduh format CSV.`);
-                } else {
-                    showToast(res.message || 'Gagal mengekstrak data dari server Google Sheets.', true);
-                }
-            } catch (err) {
-                showToast('Koneksi terputus saat proses Data Export berlangsung.', true);
-            }
-        }
-    </script>
+  </div>
+
+<script>
+  // ============================================
+  // 0. KONFIGURASI & STATE GLOBAL
+  // ============================================
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbHMEt4fdgUc61uxtuVbMVfpjgsHXMvrdnnHAo6OvIw_cFrtfo7PMPyzqLeLGndOeKog/exec'; // TODO: isi URL Web App Apps Script Anda
+  let currentUser = null;
+
+  const getEl = (id) => document.getElementById(id);
+
+  function showLoader(text) {
+    getEl('loaderText').textContent = text || 'Mohon tunggu sebentar';
+    getEl('loaderOverlay').classList.remove('hidden');
+    getEl('loaderOverlay').classList.add('flex');
+  }
+  function hideLoader() {
+    getEl('loaderOverlay').classList.add('hidden');
+    getEl('loaderOverlay').classList.remove('flex');
+  }
+
+  function showToast(message, isError) {
+    const div = document.createElement('div');
+    div.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-sm font-bold text-white fade-in flex items-center ${isError ? 'bg-red-600' : 'bg-corporate'}`;
+    div.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'} mr-2"></i>${message}`;
+    getEl('toastContainer').appendChild(div);
+    setTimeout(() => div.remove(), 3500);
+  }
+
+  const isApiSuccess = (res) => res && res.success === true;
+
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    if (!file) { resolve(null); return; }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+  });
+
+  // ============================================
+  // 1. CORE FETCH API (ANTI-CORS PREFLIGHT: text/plain)
+  // ============================================
+  async function fetchAPI(payload) {
+    try {
+      showLoader();
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    } catch (err) {
+      console.error('API Error:', err);
+      return { success: false, message: 'Terjadi kesalahan jaringan. Pastikan SCRIPT_URL sudah benar.' };
+    } finally {
+      hideLoader();
+    }
+  }
+
+  // ============================================
+  // 2. AUTENTIKASI & AUTO-LOGIN TOKEN
+  // ============================================
+  window.onload = async () => {
+    getEl('currentDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      getEl('formLogin').style.display = 'none';
+      getEl('tokenAuthMessage').classList.remove('hidden');
+
+      const res = await fetchAPI({ action: 'login_token', token: token });
+      window.history.replaceState({}, document.title, window.location.pathname); // bersihkan ?token= dari URL
+
+      if (isApiSuccess(res) && res.user) {
+        currentUser = res.user;
+        localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
+        showToast(`Otentikasi berhasil. Halo, ${currentUser.Nama}`);
+        setupWorkspace();
+      } else {
+        showToast(res.message || 'Tautan tidak valid atau kadaluarsa', true);
+        getEl('formLogin').style.display = 'block';
+        getEl('tokenAuthMessage').classList.add('hidden');
+      }
+    } else {
+      checkSession();
+    }
+  };
+
+  function checkSession() {
+    const savedUser = localStorage.getItem('erp_user_data');
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      setupWorkspace();
+    } else {
+      getEl('viewLogin').classList.remove('hidden-view');
+      getEl('mainApp').classList.add('hidden-view');
+    }
+  }
+
+  getEl('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = getEl('loginUsername').value.trim();
+    const p = getEl('loginPassword').value;
+
+    const btn = getEl('btnLoginSubmit');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Memverifikasi...';
+    btn.disabled = true;
+
+    const res = await fetchAPI({ action: 'login', username: u, password: p });
+
+    if (isApiSuccess(res) && res.user) {
+      currentUser = res.user;
+      localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
+      getEl('loginUsername').value = ''; getEl('loginPassword').value = '';
+      showToast(`Login berhasil. Selamat datang, ${currentUser.Nama}`);
+      setupWorkspace();
+    } else {
+      showToast(res.message || 'Username atau Password salah', true);
+    }
+
+    btn.innerHTML = 'Masuk ke Portal';
+    btn.disabled = false;
+  });
+
+  function doLogout() {
+    localStorage.removeItem('erp_user_data');
+    currentUser = null;
+    getEl('mainApp').classList.add('hidden-view');
+    getEl('viewLogin').classList.remove('hidden-view');
+    showToast('Berhasil keluar dari sistem.');
+  }
+
+  // ============================================
+  // 3. WORKSPACE, RBAC SIDEBAR & ACCORDION
+  // ============================================
+  function setupWorkspace() {
+    getEl('viewLogin').classList.add('hidden-view');
+    getEl('mainApp').classList.remove('hidden-view');
+
+    getEl('sideUserName').textContent = currentUser.Nama || currentUser.username;
+    getEl('sideUserRole').textContent = currentUser.Role || '-';
+    getEl('sideUserDivisi').textContent = currentUser.Divisi || '-';
+    getEl('userAvatar').textContent = (currentUser.Nama || currentUser.username).charAt(0).toUpperCase();
+
+    getEl('dashName').textContent = currentUser.Nama || currentUser.username;
+    getEl('dashNIK').textContent = currentUser.NIK || '-';
+    getEl('dashCabang').textContent = currentUser.Cabang || '-';
+    getEl('dashJoin').textContent = currentUser.TanggalJoin ? new Date(currentUser.TanggalJoin).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-';
+    getEl('dashCutiQuota').textContent = currentUser.SisaCuti !== undefined ? currentUser.SisaCuti : '0';
+    getEl('dashJatahCuti').textContent = currentUser.JatahTahunan !== undefined ? currentUser.JatahTahunan : '0';
+
+    applyRBAC();
+    renderContractAlert(currentUser.SisaHariKontrak, currentUser.KontrakHabis);
+
+    fetchMasterForms();
+    navigate('dashboard');
+  }
+
+  // RBAC: tampilkan grup menu sesuai Role/Posisi. Sesuaikan daftar keyword di sini sesuai struktur jabatan Anda.
+  function applyRBAC() {
+    const role = (currentUser.Role || '').toUpperCase();
+    const posisi = (currentUser.posisi || '').toUpperCase();
+    const combined = role + ' ' + posisi;
+
+    const isManagement = ['SPV', 'GM', 'FINANCE', 'HRD', 'MANAGER', 'DIREKTUR'].some(r => combined.includes(r));
+    const isHRGA       = ['HRD', 'HR', 'GA'].some(r => combined.includes(r));
+    const isGudang     = ['GUDANG', 'WAREHOUSE', 'LOGISTIK'].some(r => combined.includes(r));
+
+    toggleGroupVisibility('groupManajemen', isManagement);
+    toggleGroupVisibility('groupHRGA', isHRGA);
+    toggleGroupVisibility('groupGudang', isGudang);
+  }
+
+  function toggleGroupVisibility(groupId, isVisible) {
+    const el = getEl(groupId);
+    if (isVisible) el.classList.remove('hidden-view');
+    else el.classList.add('hidden-view');
+  }
+
+  function toggleAccordion(name) {
+    const content = getEl('acc-' + name);
+    const chevron = getEl('chevron-' + name);
+    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+    if (isOpen) {
+      content.style.maxHeight = '0px';
+      chevron.classList.remove('rotated');
+    } else {
+      content.style.maxHeight = content.scrollHeight + 'px';
+      chevron.classList.add('rotated');
+    }
+  }
+
+  // ============================================
+  // 4. SIDEBAR DRAWER (MOBILE HAMBURGER)
+  // ============================================
+  function toggleSidebar() {
+    const isOpen = getEl('sidebar').classList.contains('sidebar-open');
+    if (isOpen) closeSidebar(); else openSidebar();
+  }
+  function openSidebar() {
+    getEl('sidebar').classList.add('sidebar-open');
+    getEl('sidebarOverlay').classList.remove('hidden');
+  }
+  function closeSidebar() {
+    getEl('sidebar').classList.remove('sidebar-open');
+    getEl('sidebarOverlay').classList.add('hidden');
+  }
+
+  // ============================================
+  // 5. NAVIGASI / ROUTER FRONTEND
+  // ============================================
+  const VIEW_TITLES = {
+    'dashboard': 'Dashboard Utama',
+    'pengajuan': 'Buat Pengajuan ISO',
+    'klaim-bensin': 'Klaim Bensin',
+    'riwayat': 'Rekam Jejak Pengajuan',
+    'approval': 'Antrean Persetujuan',
+    'kpi': 'Penilaian KPI',
+    'karyawan': 'Data Karyawan',
+    'kontrak': 'Kontrak & Rekrutmen',
+    'pemanggilan': 'Pemanggilan & Teguran',
+    'kendaraan': 'Kendaraan',
+    'inventory': 'Inventory & Gimmick'
+  };
+
+  function navigate(viewId) {
+    document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden-view'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+    const targetView = getEl('view-' + viewId);
+    if (targetView) targetView.classList.remove('hidden-view');
+
+    const targetNav = getEl('nav-' + viewId);
+    if (targetNav) targetNav.classList.add('active');
+
+    getEl('headerTitle').textContent = VIEW_TITLES[viewId] || 'Portal Internal';
+    if (window.innerWidth < 1024) closeSidebar();
+
+    if (viewId === 'dashboard')    fetchDashboardData();
+    if (viewId === 'riwayat')      fetchRiwayat();
+    if (viewId === 'approval')     fetchApprovalList();
+    if (viewId === 'kontrak')      fetchKontrakAlertList();
+  }
+
+  // ============================================
+  // 6. DASHBOARD: ALERT KONTRAK, BROADCAST, RIWAYAT
+  // ============================================
+  async function fetchDashboardData() {
+    const res = await fetchAPI({ action: 'get_dashboard', user: currentUser });
+    if (!isApiSuccess(res)) return;
+
+    if (res.kontrak_alert) {
+      renderContractAlert(res.kontrak_alert.sisaHari, res.kontrak_alert.tanggalHabis);
+    } else {
+      getEl('contractAlertBanner').classList.add('hidden-view');
+    }
+
+    const bcList = getEl('listBroadcast');
+    if (res.broadcasts && res.broadcasts.length > 0) {
+      bcList.innerHTML = res.broadcasts.map(b => `
+        <div class="px-6 py-5 hover:bg-gray-50 transition group">
+          <div class="flex justify-between items-start mb-2">
+            <h4 class="font-extrabold text-sm text-gray-800 group-hover:text-corporate transition">${b.Judul}</h4>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap ml-3 bg-gray-100 px-2 py-1 rounded">${new Date(b.Tanggal).toLocaleDateString('id-ID')}</span>
+          </div>
+          <p class="text-sm text-gray-600 leading-relaxed">${b.Isi}</p>
+          ${b.FileUrl ? `<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center mt-3 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Unduh Lampiran</a>` : ''}
+        </div>`).join('');
+    } else {
+      bcList.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm h-full flex flex-col items-center justify-center"><i class="fa-regular fa-bell-slash text-4xl mb-3 text-gray-200"></i><span class="font-medium">Tidak ada pengumuman baru.</span></div>`;
+    }
+
+    const riwBody = getEl('dashRiwayatList');
+    if (res.riwayat_singkat && res.riwayat_singkat.length > 0) {
+      riwBody.innerHTML = res.riwayat_singkat.map(r => `
+        <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-blue-500">
+          <td class="p-5"><span class="font-extrabold text-gray-800 text-sm">${r.JenisForm}</span><br><span class="text-[10px] font-mono font-bold text-gray-400 mt-1 uppercase tracking-widest block">${r.ID}</span></td>
+          <td class="p-5 text-right">${getBadgeHTML(r.StatusFinal)}</td>
+        </tr>`).join('');
+    } else {
+      riwBody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-gray-400 text-sm"><i class="fa-solid fa-file-circle-question text-3xl mb-3 block text-gray-200"></i><span class="font-medium">Belum ada pengajuan.</span></td></tr>`;
+    }
+  }
+
+  function renderContractAlert(sisaHari, tanggalHabis) {
+    const banner = getEl('contractAlertBanner');
+    if (sisaHari === undefined || sisaHari === null) { banner.classList.add('hidden-view'); return; }
+
+    const isExpired = sisaHari < 0;
+    getEl('contractAlertTitle').textContent = isExpired ? 'Kontrak Anda Telah Berakhir' : 'Peringatan Masa Kontrak';
+    getEl('contractAlertText').textContent = isExpired
+      ? `Kontrak kerja Anda berakhir pada ${new Date(tanggalHabis).toLocaleDateString('id-ID')}. Segera hubungi HRD.`
+      : `Sisa masa kontrak Anda ${sisaHari} hari (berakhir ${new Date(tanggalHabis).toLocaleDateString('id-ID')}). Segera koordinasi dengan HRD.`;
+    getEl('contractAlertBadge').textContent = isExpired ? 'EXPIRED' : sisaHari + ' HARI';
+    banner.classList.remove('hidden-view');
+  }
+
+  function getBadgeHTML(status) {
+    const s = (status || '').toUpperCase();
+    if (s === 'APPROVED FINAL') return `<span class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-green-200 shadow-sm"><i class="fa-solid fa-check mr-1"></i> APPROVED</span>`;
+    if (s === 'REJECTED') return `<span class="bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-red-200 shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> REJECTED</span>`;
+    return `<span class="bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-yellow-200 shadow-sm"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i> PROSES</span>`;
+  }
+
+  // ============================================
+  // 7. PENGAJUAN ISO: FORM DINAMIS + UPLOAD BASE64 + VALIDASI KASBON
+  // ============================================
+  let masterForms = [];
+  let dynamicFileFields = {}; // { fieldName: { file: File } } -> dikonversi ke base64 saat submit
+
+  async function fetchMasterForms() {
+    const res = await fetchAPI({ action: 'get_form_configs' });
+    const select = getEl('selectJenisForm');
+    if (isApiSuccess(res) && res.forms && res.forms.length > 0) {
+      masterForms = res.forms;
+      select.innerHTML = '<option value="">-- Pilih Jenis Pengajuan --</option>' +
+        masterForms.map(f => `<option value="${f.FormID}">${f.NamaForm}</option>`).join('');
+    } else {
+      masterForms = [];
+      select.innerHTML = '<option value="">Belum ada formulir terkonfigurasi (hubungi HRD)</option>';
+    }
+  }
+
+  function renderDynamicForm() {
+    const formId = getEl('selectJenisForm').value;
+    const container = getEl('dynamicFormFields');
+    const kasbonWarning = getEl('kasbonWarning');
+    const btnSubmit = getEl('btnSubmitPengajuan');
+    container.innerHTML = '';
+    dynamicFileFields = {};
+
+    const form = masterForms.find(f => f.FormID === formId);
+    if (!form) return;
+
+    // Validasi front-end khusus Kasbon: masa kerja < 1 tahun langsung diblokir.
+    const isKasbon = (form.NamaForm || '').toUpperCase().includes('KASBON');
+    if (isKasbon) {
+      const tahunKerja = currentUser.TanggalJoin ? (new Date() - new Date(currentUser.TanggalJoin)) / (1000 * 60 * 60 * 24 * 365) : 0;
+      if (tahunKerja < 1) {
+        kasbonWarning.classList.remove('hidden-view');
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+    }
+    kasbonWarning.classList.add('hidden-view');
+    btnSubmit.disabled = false;
+    btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+
+    let fields = [];
+    try { fields = JSON.parse(form.FieldsJSON || '[]'); } catch (e) { fields = []; }
+
+    if (fields.length === 0) {
+      container.innerHTML = `<p class="text-sm text-gray-400 italic">Formulir ini belum memiliki konfigurasi field. Hubungi HRD untuk melengkapi Form Builder.</p>`;
+      return;
+    }
+
+    container.innerHTML = fields.map(f => {
+      if (f.type === 'file') {
+        return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
+          <input type="file" data-field="${f.name}" onchange="handleDynamicFileChange(this)" class="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-corporate file:text-white file:font-bold file:text-xs"></div>`;
+      }
+      if (f.type === 'textarea') {
+        return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
+          <textarea data-field="${f.name}" rows="3" class="dyn-input w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></textarea></div>`;
+      }
+      return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
+        <input type="${f.type || 'text'}" data-field="${f.name}" class="dyn-input w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></div>`;
+    }).join('');
+  }
+
+  function handleDynamicFileChange(inputEl) {
+    const fieldName = inputEl.getAttribute('data-field');
+    dynamicFileFields[fieldName] = inputEl.files[0] || null;
+  }
+
+  async function submitDynamicForm() {
+    const formId = getEl('selectJenisForm').value;
+    const form = masterForms.find(f => f.FormID === formId);
+    if (!form) { showToast('Pilih jenis pengajuan terlebih dahulu.', true); return; }
+
+    const detail = {};
+    document.querySelectorAll('#dynamicFormFields .dyn-input').forEach(el => {
+      detail[el.getAttribute('data-field')] = el.value;
+    });
+
+    for (const fieldName in dynamicFileFields) {
+      const file = dynamicFileFields[fieldName];
+      if (file) {
+        const base64 = await fileToBase64(file);
+        detail[fieldName] = { name: file.name, data: base64 };
+      }
+    }
+
+    const res = await fetchAPI({ action: 'submit_pengajuan', user: currentUser, formId: form.FormID, namaForm: form.NamaForm, detail: detail });
+    if (isApiSuccess(res)) {
+      showToast(res.message || 'Pengajuan berhasil dikirim.');
+      getEl('selectJenisForm').value = '';
+      renderDynamicForm();
+    } else {
+      showToast(res.message || 'Pengajuan gagal dikirim.', true);
+    }
+  }
+
+  // ============================================
+  // 8. RIWAYAT & APPROVAL QUEUE
+  // ============================================
+  async function fetchRiwayat() {
+    const res = await fetchAPI({ action: 'get_riwayat', user: currentUser });
+    const body = getEl('listRiwayat');
+    if (isApiSuccess(res) && res.data && res.data.length > 0) {
+      body.innerHTML = res.data.map(r => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4"><span class="font-extrabold text-gray-800 block">${r.ID}</span><span class="text-xs text-gray-400">${new Date(r.Tanggal).toLocaleDateString('id-ID')}</span></td>
+          <td class="px-6 py-4 font-semibold">${r.NamaForm}</td>
+          <td class="px-6 py-4 text-sm text-gray-500">${r.PosisiFlow}</td>
+          <td class="px-6 py-4 text-right">${getBadgeHTML(r.StatusFinal)}</td>
+        </tr>`).join('');
+    } else {
+      body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Belum ada riwayat pengajuan.</td></tr>`;
+    }
+  }
+
+  async function fetchApprovalList() {
+    const res = await fetchAPI({ action: 'get_approval_list', user: currentUser });
+    const container = getEl('listApproval');
+    const badge = getEl('badgeApproval');
+
+    if (isApiSuccess(res) && res.data && res.data.length > 0) {
+      badge.textContent = res.data.length;
+      badge.classList.remove('hidden-view');
+      container.innerHTML = res.data.map(item => `
+        <div class="p-5 flex flex-wrap items-center justify-between gap-3 hover:bg-gray-50">
+          <div>
+            <p class="font-extrabold text-gray-800 text-sm">${item.NamaForm} <span class="text-gray-400 font-medium">- ${item.NamaPemohon}</span></p>
+            <p class="text-xs text-gray-400 mt-1">${item.ID} &middot; ${item.PosisiFlow}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="quickApprove('${item.ID}','REJECT')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition">Tolak</button>
+            <button onclick="quickApprove('${item.ID}','APPROVE')" class="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition">Setujui</button>
+          </div>
+        </div>`).join('');
+    } else {
+      badge.classList.add('hidden-view');
+      container.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold"><i class="fa-solid fa-circle-check text-3xl mb-3 block text-gray-200"></i>Tidak ada antrean approval saat ini.</div>`;
+    }
+  }
+
+  async function quickApprove(txId, decision) {
+    const alasan = decision === 'REJECT' ? prompt('Alasan penolakan:') : null;
+    if (decision === 'REJECT' && !alasan) return;
+
+    const res = await fetchAPI({ action: 'process_approval', user: currentUser, txId: txId, decision: decision, alasan: alasan });
+    if (isApiSuccess(res)) {
+      showToast(res.message || 'Berhasil diproses.');
+      fetchApprovalList();
+    } else {
+      showToast(res.message || 'Gagal memproses persetujuan.', true);
+    }
+  }
+
+  // ============================================
+  // 9. AREA HRGA: KONTRAK, PEMANGGILAN, PENCARIAN KARYAWAN
+  // ============================================
+  async function fetchKontrakAlertList() {
+    const res = await fetchAPI({ action: 'get_kontrak_alert_list', user: currentUser });
+    const body = getEl('listKontrak');
+    if (isApiSuccess(res) && res.data && res.data.length > 0) {
+      body.innerHTML = res.data.map(k => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4"><span class="font-extrabold text-gray-800 block">${k.Nama}</span><span class="text-xs text-gray-400">${k.NIK}</span></td>
+          <td class="px-6 py-4 text-sm text-gray-500">${k.Divisi || '-'} / ${k.Jabatan || '-'}</td>
+          <td class="px-6 py-4 text-sm">${new Date(k.TanggalHabis).toLocaleDateString('id-ID')}</td>
+          <td class="px-6 py-4 text-right">
+            <span class="px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest ${k.Status === 'EXPIRED' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">${k.SisaHari} HARI</span>
+          </td>
+        </tr>`).join('');
+    } else {
+      body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Tidak ada kontrak yang mendekati batas waktu.</td></tr>`;
+    }
+  }
+
+  let searchKaryawanTimer = null;
+  function debouncedSearchKaryawan() {
+    clearTimeout(searchKaryawanTimer);
+    searchKaryawanTimer = setTimeout(async () => {
+      const q = getEl('inputSearchKaryawan').value.trim();
+      const resultBox = getEl('resultSearchKaryawan');
+      if (q.length < 2) { resultBox.innerHTML = ''; return; }
+
+      const res = await fetchAPI({ action: 'search_karyawan', query: q });
+      if (isApiSuccess(res) && res.data.length > 0) {
+        resultBox.innerHTML = res.data.map(k => `
+          <div class="p-4 bg-gray-50 rounded-xl flex justify-between items-center">
+            <div><p class="font-bold text-gray-800 text-sm">${k.Nama}</p><p class="text-xs text-gray-400">${k.NIK} &middot; ${k.Jabatan || '-'} &middot; ${k.Divisi || '-'}</p></div>
+          </div>`).join('');
+      } else {
+        resultBox.innerHTML = `<p class="text-sm text-gray-400 text-center py-4">Tidak ditemukan.</p>`;
+      }
+    }, 400);
+  }
+
+  let searchPemanggilanTimer = null;
+  function debouncedSearchPemanggilan() {
+    clearTimeout(searchPemanggilanTimer);
+    searchPemanggilanTimer = setTimeout(async () => {
+      const q = getEl('pmgNamaKaryawan').value.trim();
+      const box = getEl('pmgSuggestList');
+      if (q.length < 2) { box.classList.add('hidden-view'); return; }
+
+      const res = await fetchAPI({ action: 'search_karyawan', query: q });
+      if (isApiSuccess(res) && res.data.length > 0) {
+        box.innerHTML = res.data.map(k => `
+          <button type="button" onclick="selectPemanggilanKaryawan('${k.Nama.replace(/'/g, "\\'")}','${k.NIK}')" class="w-full text-left px-4 py-2.5 hover:bg-corporate-light text-sm border-b border-gray-50 last:border-0">
+            <span class="font-bold text-gray-800 block">${k.Nama}</span><span class="text-xs text-gray-400">${k.NIK} &middot; ${k.Jabatan || '-'}</span>
+          </button>`).join('');
+        box.classList.remove('hidden-view');
+      } else {
+        box.innerHTML = `<p class="px-4 py-3 text-sm text-gray-400">Tidak ditemukan.</p>`;
+        box.classList.remove('hidden-view');
+      }
+    }, 400);
+  }
+
+  function selectPemanggilanKaryawan(nama, nik) {
+    getEl('pmgNamaKaryawan').value = nama;
+    getEl('pmgNIKKaryawan').value = nik;
+    getEl('pmgSuggestList').classList.add('hidden-view');
+  }
+
+  async function submitPemanggilan() {
+    const namaKaryawan = getEl('pmgNamaKaryawan').value.trim();
+    if (!namaKaryawan) { showToast('Pilih nama karyawan terlebih dahulu.', true); return; }
+
+    const fileInput = getEl('pmgLampiran');
+    let lampiran = null;
+    if (fileInput.files[0]) {
+      const base64 = await fileToBase64(fileInput.files[0]);
+      lampiran = { name: fileInput.files[0].name, data: base64 };
+    }
+
+    const detail = {
+      namaKaryawan: namaKaryawan,
+      nikKaryawan: getEl('pmgNIKKaryawan').value,
+      jenisKasus: getEl('pmgJenisKasus').value,
+      tanggalPanggilan: getEl('pmgTanggal').value,
+      waktuPanggilan: getEl('pmgWaktu').value,
+      tempat: getEl('pmgTempat').value,
+      perihal: getEl('pmgPerihal').value,
+      isiTeguran: getEl('pmgIsiTeguran').value,
+      lampiran: lampiran
+    };
+
+    const res = await fetchAPI({ action: 'submit_pemanggilan', user: currentUser, detail: detail });
+    if (isApiSuccess(res)) {
+      showToast(res.message || 'Surat pemanggilan berhasil dikirim.');
+      ['pmgNamaKaryawan','pmgNIKKaryawan','pmgTanggal','pmgWaktu','pmgTempat','pmgPerihal','pmgIsiTeguran'].forEach(id => getEl(id).value = '');
+      fileInput.value = '';
+    } else {
+      showToast(res.message || 'Gagal mengirim surat pemanggilan.', true);
+    }
+  }
+</script>
 </body>
 </html>
