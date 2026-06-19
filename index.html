@@ -1,1152 +1,1822 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal HRIS & ERP - CV Andela Jaya</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          corporate: '#C8102E',
-          'corporate-dark': '#A00D24',
-          'corporate-light': '#FEE2E2'
-        },
-        fontFamily: { sans: ['Inter', 'sans-serif'] }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal HRIS & ERP – CV Andela Jaya</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            corp: '#C8102E', 'corp-d': '#a00d24', 'corp-l': '#fde8ec',
+            sidebar: '#1a1f2e', 'sidebar-l': '#252b3b'
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
       }
     }
-  }
-</script>
-
-<style>
-  body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-  .hidden-view { display: none !important; }
-  .fade-in { animation: fadeIn 0.3s ease-in-out; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #f1f1f1; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-  .loader { border-top-color: #C8102E; animation: spinner 1s linear infinite; }
-  @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-  /* ===== SIDEBAR: drawer di mobile, statis di desktop ===== */
-  #sidebar {
-    transition: transform 0.3s ease-in-out;
-    transform: translateX(-100%);
-  }
-  #sidebar.sidebar-open { transform: translateX(0); }
-  @media (min-width: 1024px) {
-    #sidebar { position: relative; transform: translateX(0) !important; }
-  }
-  #sidebarOverlay { transition: opacity 0.25s ease-in-out; }
-
-  /* ===== NESTED ACCORDION MENU ===== */
-  .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-  .accordion-chevron { transition: transform 0.3s ease; }
-  .accordion-chevron.rotated { transform: rotate(180deg); }
-
-  .nav-btn.active { background-color: #FEE2E2; color: #C8102E; }
-
-  /* ===== ALERT KONTRAK BANNER ===== */
-  @keyframes pulseBorder {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35); }
-    50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
-  }
-  .alert-pulse { animation: pulseBorder 2.2s infinite; }
-</style>
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .fade { animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .hide { display: none !important; }
+    .spin { animation: spinner 1s linear infinite; }
+    @keyframes spinner { to { transform: rotate(360deg); } }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+    .nav-item { transition: all .15s ease; }
+    .nav-item.active { background: rgba(200,16,46,.15); color: #C8102E; }
+    .nav-item:not(.active):hover { background: rgba(255,255,255,.06); color: #e5e7eb; }
+    .modal-bg { backdrop-filter: blur(4px); }
+    .card-hover { transition: box-shadow .2s, transform .2s; }
+    .card-hover:hover { box-shadow: 0 8px 32px rgba(0,0,0,.12); transform: translateY(-2px); }
+    .badge-approved { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; }
+    .badge-rejected { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+    .badge-proses   { background:#fef9c3; color:#92400e; border:1px solid #fde68a; }
+    input, select, textarea { transition: border-color .15s, box-shadow .15s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #C8102E; box-shadow: 0 0 0 3px rgba(200,16,46,.1); }
+    .btn-corp { background:#C8102E; color:#fff; transition: background .15s, transform .1s; }
+    .btn-corp:hover { background:#a00d24; transform: translateY(-1px); }
+    .btn-corp:active { transform: translateY(0); }
+    #sidebar { transition: width .25s ease, transform .25s ease; }
+    @media (max-width: 768px) {
+      #sidebar { position: fixed; z-index: 50; height: 100vh; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
+      #sidebar-overlay.show { display: block; }
+    }
+  </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex overflow-hidden">
+<body class="bg-gray-100 text-gray-800 h-screen overflow-hidden">
 
-  <div id="loaderOverlay" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex-col items-center justify-center backdrop-blur-sm">
-    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-14 w-14 mb-4 shadow-lg"></div>
-    <h2 class="text-white text-lg font-bold tracking-wide">Sistem Memproses...</h2>
-    <p class="text-gray-300 text-sm mt-1" id="loaderText">Mohon tunggu sebentar</p>
-  </div>
+<!-- ══ LOADER OVERLAY ══ -->
+<div id="loader" class="fixed inset-0 bg-black/60 z-[200] hidden items-center justify-center flex-col modal-bg">
+  <div class="w-14 h-14 rounded-full border-4 border-gray-500 border-t-corp spin mb-4"></div>
+  <p class="text-white font-bold text-sm" id="loaderMsg">Memproses...</p>
+</div>
 
-  <div id="toastContainer" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none max-w-[90vw]"></div>
+<!-- ══ TOAST ══ -->
+<div id="toastBox" class="fixed top-4 right-4 z-[300] flex flex-col gap-2 pointer-events-none max-w-xs"></div>
 
-  <!-- ============================== VIEW: LOGIN ============================== -->
-  <div id="viewLogin" class="fixed inset-0 bg-gray-50 z-50 flex items-center justify-center fade-in p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-corporate">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-corporate-light mb-4 shadow-inner">
-          <i class="fa-solid fa-building-user text-corporate text-2xl"></i>
+<!-- ══ MOBILE SIDEBAR OVERLAY ══ -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════════ -->
+<div id="loginPage" class="fixed inset-0 bg-gradient-to-br from-gray-900 via-sidebar to-gray-900 flex items-center justify-center z-50 fade">
+  <div class="w-full max-w-sm mx-4">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div class="bg-corp px-8 py-7 text-center">
+        <div class="inline-flex w-16 h-16 rounded-2xl bg-white/20 items-center justify-center mb-3">
+          <i class="fa-solid fa-building-user text-white text-2xl"></i>
         </div>
-        <h1 class="text-3xl font-extrabold text-corporate tracking-tight">Andela Jaya</h1>
-        <p class="text-gray-500 mt-2 text-sm font-medium">Portal HRIS &amp; ERP Operasional</p>
-
-        <div id="tokenAuthMessage" class="hidden text-sm mt-4 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
-          <i class="fa-solid fa-link fa-spin mr-1"></i> Mengotentikasi tautan aman...
-        </div>
+        <h1 class="text-2xl font-black text-white tracking-tight">CV Andela Jaya</h1>
+        <p class="text-white/70 text-xs mt-1 font-medium tracking-widest uppercase">Portal HRIS & Operasional</p>
       </div>
-
-      <form id="formLogin" class="space-y-5">
-        <div>
-          <label class="block text-gray-700 font-bold mb-1.5 text-sm">Username / NIK</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <i class="fa-solid fa-user text-gray-400"></i>
-            </div>
-            <input type="text" id="loginUsername" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="Masukkan Username / NIK">
-          </div>
+      <div class="px-8 py-7">
+        <div id="tokenMsg" class="hide mb-5 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 font-semibold text-center">
+          <i class="fa-solid fa-link-simple fa-spin mr-2"></i>Memverifikasi link aman...
         </div>
-        <div>
-          <label class="block text-gray-700 font-bold mb-1.5 text-sm">Password</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <i class="fa-solid fa-lock text-gray-400"></i>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Username / NIK</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"><i class="fa-solid fa-user text-sm"></i></span>
+              <input id="uname" type="text" required placeholder="Masukkan username"
+                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm font-medium bg-gray-50">
             </div>
-            <input type="password" id="loginPassword" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:border-corporate focus:bg-white focus:outline-none transition shadow-sm" required placeholder="••••••••">
           </div>
-        </div>
-        <div class="pt-2">
-          <button type="submit" id="btnLoginSubmit" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition duration-200 shadow-md flex justify-center items-center">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Password</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"><i class="fa-solid fa-lock text-sm"></i></span>
+              <input id="upass" type="password" required placeholder="••••••••"
+                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm font-medium bg-gray-50">
+            </div>
+          </div>
+          <button type="submit" id="btnLogin" class="btn-corp w-full py-3 rounded-xl font-bold text-sm mt-2 shadow-md">
             Masuk ke Portal
           </button>
-        </div>
-      </form>
-
-      <div class="mt-8 text-center text-xs text-gray-400">&copy; 2026 CV Andela Jaya - Internal System</div>
+        </form>
+        <p class="text-center text-xs text-gray-400 mt-6">© 2026 CV Andela Jaya · Internal System</p>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- ============================== MAIN APP ============================== -->
-  <div id="mainApp" class="w-full h-full flex hidden-view fade-in bg-gray-50 relative">
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════ -->
+<div id="mainApp" class="hide w-full h-screen flex overflow-hidden">
 
-    <!-- Overlay khusus mobile, klik untuk menutup sidebar -->
-    <div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+  <!-- ── SIDEBAR ── -->
+  <aside id="sidebar" class="w-64 bg-sidebar flex flex-col flex-shrink-0 shadow-2xl overflow-y-auto">
+    <!-- Logo -->
+    <div class="flex items-center px-5 py-5 border-b border-white/5">
+      <div class="w-9 h-9 rounded-xl bg-corp flex items-center justify-center mr-3 flex-shrink-0">
+        <i class="fa-solid fa-layer-group text-white text-sm"></i>
+      </div>
+      <div>
+        <p class="font-black text-white text-sm leading-tight">Portal HRIS</p>
+        <p class="text-white/40 text-[10px] font-semibold tracking-widest uppercase">CV Andela Jaya</p>
+      </div>
+      <button onclick="toggleSidebar()" class="ml-auto text-white/30 hover:text-white md:hidden p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
 
-    <!-- ===== SIDEBAR (Drawer mobile / Statis desktop) ===== -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col h-full z-40 flex-shrink-0 border-r border-gray-100">
-      <div class="h-[72px] flex items-center justify-between px-5 bg-corporate text-white shadow-md relative overflow-hidden flex-shrink-0">
-        <div class="flex items-center relative z-10">
-          <i class="fa-solid fa-layer-group mr-3 text-2xl"></i>
-          <div>
-            <span class="font-extrabold text-lg tracking-wide block leading-none">Portal ERP</span>
-            <span class="text-[10px] text-corporate-light uppercase tracking-widest font-bold">CV Andela Jaya</span>
-          </div>
+    <!-- User Profile -->
+    <div class="px-4 py-4 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div id="avatar" class="w-10 h-10 rounded-xl bg-corp flex items-center justify-center font-black text-white text-base flex-shrink-0">U</div>
+        <div class="overflow-hidden flex-1">
+          <p id="sideNama" class="text-white text-sm font-bold truncate">User</p>
+          <p id="sideRole" class="text-corp text-xs font-semibold truncate">Role</p>
+          <p id="sideDivisi" class="text-white/35 text-[10px] font-medium truncate uppercase">Divisi</p>
         </div>
-        <button onclick="closeSidebar()" class="lg:hidden relative z-10 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:bg-opacity-10">
-          <i class="fa-solid fa-xmark text-lg"></i>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
+      <!-- AREA PRIBADI -->
+      <p class="px-3 text-[9px] font-black text-white/25 uppercase tracking-widest mb-2 mt-1">Area Pribadi</p>
+      <button onclick="nav('dashboard')" id="nb-dashboard" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+        <i class="fa-solid fa-chart-pie w-4 text-center"></i> Dashboard
+      </button>
+      <button onclick="nav('pengajuan')" id="nb-pengajuan" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+        <i class="fa-solid fa-file-signature w-4 text-center"></i> Buat Pengajuan
+      </button>
+      <button onclick="nav('riwayat')" id="nb-riwayat" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+        <i class="fa-solid fa-clock-rotate-left w-4 text-center"></i> Rekam Jejak
+      </button>
+
+      <!-- MANAJEMEN -->
+      <div id="menuMgmt" class="hide">
+        <p class="px-3 text-[9px] font-black text-white/25 uppercase tracking-widest mb-2 mt-4">Manajemen</p>
+        <button onclick="nav('approval')" id="nb-approval" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-check-double w-4 text-center"></i> Persetujuan
+          <span id="badgeApproval" class="hide ml-auto bg-corp text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">0</span>
         </button>
-        <i class="fa-solid fa-building-user absolute -right-4 -bottom-4 text-white opacity-10 text-6xl"></i>
       </div>
 
-      <div class="p-5 border-b border-gray-100 bg-gray-50 flex items-center flex-shrink-0">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-corporate to-corporate-dark text-white flex items-center justify-center font-bold text-xl shadow-md border-2 border-white" id="userAvatar">U</div>
-        <div class="ml-4 overflow-hidden flex-1">
-          <p class="text-sm font-extrabold text-gray-900 truncate" id="sideUserName">Nama User</p>
-          <p class="text-xs text-corporate font-bold truncate mt-0.5" id="sideUserRole">Role</p>
-          <p class="text-[10px] text-gray-500 font-medium truncate uppercase tracking-wide mt-0.5"><i class="fa-solid fa-building mr-1"></i><span id="sideUserDivisi">Divisi</span></p>
+      <!-- HRD -->
+      <div id="menuHRD" class="hide">
+        <p class="px-3 text-[9px] font-black text-white/25 uppercase tracking-widest mb-2 mt-4">Area HRD</p>
+        <button onclick="nav('db-karyawan')" id="nb-db-karyawan" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-users w-4 text-center"></i> Database Karyawan
+        </button>
+        <button onclick="nav('pemanggilan')" id="nb-pemanggilan" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-envelope-open-text w-4 text-center"></i> Pemanggilan / SP
+        </button>
+        <button onclick="nav('form-builder')" id="nb-form-builder" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-sliders w-4 text-center"></i> Form Builder
+        </button>
+        <button onclick="nav('broadcast')" id="nb-broadcast" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-bullhorn w-4 text-center"></i> Broadcast
+        </button>
+        <button onclick="doExport('PENGAJUAN')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-file-csv w-4 text-center text-green-400"></i> Export Pengajuan
+        </button>
+        <button onclick="doExport('CUTI')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-file-excel w-4 text-center text-green-400"></i> Export Cuti
+        </button>
+      </div>
+
+      <!-- GUDANG -->
+      <div id="menuGudang" class="hide">
+        <p class="px-3 text-[9px] font-black text-white/25 uppercase tracking-widest mb-2 mt-4">Gudang & Aset</p>
+        <button onclick="nav('kendaraan')" id="nb-kendaraan" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-car w-4 text-center"></i> Master Kendaraan
+        </button>
+        <button onclick="nav('inventory')" id="nb-inventory" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 text-sm font-semibold text-left">
+          <i class="fa-solid fa-boxes-stacked w-4 text-center"></i> Master Inventory
+        </button>
+      </div>
+    </nav>
+
+    <!-- Logout -->
+    <div class="p-3 border-t border-white/5">
+      <button onclick="doLogout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 text-sm font-semibold transition">
+        <i class="fa-solid fa-power-off w-4 text-center"></i> Keluar Sistem
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- Topbar -->
+    <header class="bg-white border-b border-gray-100 h-16 flex items-center px-5 md:px-8 gap-4 flex-shrink-0 shadow-sm z-10">
+      <button onclick="toggleSidebar()" class="p-2 rounded-lg text-gray-400 hover:text-corp hover:bg-corp-l transition md:hidden">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+      <button onclick="toggleSidebar()" class="p-2 rounded-lg text-gray-400 hover:text-corp hover:bg-corp-l transition hidden md:flex items-center">
+        <i class="fa-solid fa-bars text-base"></i>
+      </button>
+      <h1 id="pageTitle" class="font-black text-gray-800 text-lg">Dashboard</h1>
+      <div class="ml-auto flex items-center gap-3">
+        <div class="hidden sm:block text-right">
+          <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Hari ini</p>
+          <p id="todayDate" class="text-xs font-bold text-gray-700"></p>
+        </div>
+        <div id="topNIK" class="hidden sm:flex items-center gap-1.5 bg-corp-l px-3 py-1.5 rounded-lg">
+          <i class="fa-solid fa-id-badge text-corp text-xs"></i>
+          <span id="topNIKval" class="text-corp text-xs font-bold">-</span>
         </div>
       </div>
+    </header>
 
-      <!-- ===== NESTED ACCORDION MENU ===== -->
-      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 custom-scrollbar" id="sidebarMenu">
+    <!-- Views -->
+    <main id="viewport" class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
 
-        <!-- GROUP 1: AREA PRIBADI -->
-        <div class="rounded-xl overflow-hidden" data-group="pribadi">
-          <button onclick="toggleAccordion('pribadi')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
-            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
-              <i class="fa-solid fa-user-shield mr-2 text-corporate"></i> Area Pribadi
-            </span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron rotated" id="chevron-pribadi"></i>
-          </button>
-          <div class="accordion-content" id="acc-pribadi" style="max-height:600px;">
-            <ul class="space-y-1 pt-1 pb-2 pl-1">
-              <li><button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-chart-pie w-7 text-base"></i> Dashboard</button></li>
-              <li><button onclick="navigate('pengajuan')" id="nav-pengajuan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-file-signature w-7 text-base"></i> Pengajuan ISO</button></li>
-              <li><button onclick="navigate('klaim-bensin')" id="nav-klaim-bensin" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-gas-pump w-7 text-base"></i> Klaim Bensin</button></li>
-              <li><button onclick="navigate('riwayat')" id="nav-riwayat" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-clock-rotate-left w-7 text-base"></i> Rekam Jejak</button></li>
-            </ul>
+      <!-- ══ VIEW: DASHBOARD ══ -->
+      <div id="v-dashboard" class="app-view hide fade max-w-7xl mx-auto space-y-6">
+
+        <!-- Alert Kontrak -->
+        <div id="alertKontrak" class="hide bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-5 text-white shadow-lg">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-black text-sm mb-1">⚠️ Peringatan Kontrak Akan Habis</p>
+              <div id="alertKontrakList" class="text-sm text-white/80"></div>
+            </div>
           </div>
         </div>
 
-        <!-- GROUP 2: AREA MANAJEMEN (RBAC) -->
-        <div class="rounded-xl overflow-hidden hidden-view" data-group="manajemen" id="groupManajemen">
-          <button onclick="toggleAccordion('manajemen')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
-            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
-              <i class="fa-solid fa-users-gear mr-2 text-corporate"></i> Area Manajemen
-            </span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-manajemen"></i>
-          </button>
-          <div class="accordion-content" id="acc-manajemen">
-            <ul class="space-y-1 pt-1 pb-2 pl-1">
-              <li>
-                <button onclick="navigate('approval')" id="nav-approval" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200">
-                  <i class="fa-solid fa-check-double w-7 text-base"></i> Antrean Approval
-                  <span id="badgeApproval" class="ml-auto bg-red-500 text-white py-0.5 px-2.5 rounded-full text-xs font-black hidden-view shadow-sm animate-pulse">0</span>
+        <!-- Hero + Cuti Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="lg:col-span-2 bg-gradient-to-br from-corp to-corp-d rounded-2xl p-7 text-white relative overflow-hidden shadow-xl">
+            <div class="absolute -right-10 -bottom-10 w-52 h-52 rounded-full bg-white/5"></div>
+            <div class="absolute -right-20 -top-10 w-64 h-64 rounded-full bg-white/3"></div>
+            <div class="relative z-10">
+              <p class="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Selamat datang</p>
+              <h2 class="text-3xl font-black mb-1">Halo, <span id="dNama">User</span>!</h2>
+              <p class="text-white/70 text-sm leading-relaxed mb-6 max-w-md">Portal HRIS & Operasional CV Andela Jaya. Kelola pengajuan, approval, dan data karyawan dari satu platform terpusat.</p>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <span class="bg-white/10 px-3 py-1.5 rounded-lg font-semibold border border-white/10"><i class="fa-solid fa-id-badge mr-1.5 opacity-60"></i>NIK: <span id="dNIK" class="font-black">-</span></span>
+                <span class="bg-white/10 px-3 py-1.5 rounded-lg font-semibold border border-white/10"><i class="fa-solid fa-location-dot mr-1.5 opacity-60"></i><span id="dCabang" class="font-black">-</span></span>
+                <span class="bg-white/10 px-3 py-1.5 rounded-lg font-semibold border border-white/10"><i class="fa-solid fa-calendar-check mr-1.5 opacity-60"></i>Join: <span id="dJoin" class="font-black">-</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm border-t-4 border-blue-500 card-hover">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Sisa Kuota Cuti</p>
+            <div id="dSisaCuti" class="text-6xl font-black text-gray-800 my-2">-</div>
+            <p class="text-sm text-gray-400 font-medium">dari <span id="dJatahCuti" class="font-bold text-gray-600">-</span> hari jatah</p>
+            <div class="mt-4 w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div id="cutiBar" class="h-full bg-blue-500 rounded-full transition-all duration-700" style="width:0%"></div>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-2 font-medium uppercase tracking-wide"><i class="fa-solid fa-sync mr-1"></i>Sync dari Master Karyawan</p>
+          </div>
+        </div>
+
+        <!-- Broadcast + Riwayat Singkat -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-corp-l flex items-center justify-center">
+                <i class="fa-solid fa-bullhorn text-corp text-sm"></i>
+              </div>
+              <h3 class="font-black text-gray-800 text-sm">Pengumuman Terbaru</h3>
+            </div>
+            <div id="bcList" class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+              <p class="p-6 text-center text-gray-400 text-sm">Memuat pengumuman...</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i>
+                </div>
+                <h3 class="font-black text-gray-800 text-sm">Pengajuan Terakhir</h3>
+              </div>
+              <button onclick="nav('riwayat')" class="text-xs font-bold text-blue-600 hover:underline">Lihat semua</button>
+            </div>
+            <div id="dashRiwayat" class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+              <p class="p-6 text-center text-gray-400 text-sm">Memuat riwayat...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Widget Alert Kontrak HRD -->
+        <div id="kontrakWidget" class="hide bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+          <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center">
+              <i class="fa-solid fa-file-contract text-orange-600 text-sm"></i>
+            </div>
+            <h3 class="font-black text-gray-800 text-sm">Kontrak Akan / Sudah Habis</h3>
+            <span id="kontrakCount" class="ml-auto bg-orange-100 text-orange-700 text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="kontrakTable" class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <th class="px-5 py-3 text-left">Karyawan</th>
+                <th class="px-5 py-3 text-left">Jabatan</th>
+                <th class="px-5 py-3 text-left">Cabang</th>
+                <th class="px-5 py-3 text-left">Kontrak Habis</th>
+                <th class="px-5 py-3 text-right">Sisa Hari</th>
+              </tr></thead>
+              <tbody id="kontrakBody" class="divide-y divide-gray-50"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ VIEW: BUAT PENGAJUAN ══ -->
+      <div id="v-pengajuan" class="app-view hide fade max-w-3xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-7 py-5 border-b border-gray-100 bg-gray-50 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-corp-l flex items-center justify-center">
+              <i class="fa-solid fa-file-signature text-corp"></i>
+            </div>
+            <div>
+              <h2 class="font-black text-gray-800">Formulir Pengajuan ISO</h2>
+              <p class="text-xs text-gray-500 font-medium mt-0.5">Pilih jenis form, isi detail, dan kirim untuk diproses.</p>
+            </div>
+          </div>
+          <div class="p-7 space-y-6">
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Jenis Formulir</label>
+              <select id="selForm" onchange="renderForm()" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50">
+                <option value="">— Memuat form... —</option>
+              </select>
+            </div>
+            <div id="kasbonWarn" class="hide bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+              <p class="font-bold flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i>Akses Ditolak</p>
+              <p class="mt-1">Pengajuan <strong>Cash Advance (Kasbon)</strong> hanya untuk karyawan dengan masa kerja <strong>minimal 1 tahun</strong>. Masa kerja Anda belum mencukupi.</p>
+            </div>
+            <form id="dynForm" class="hide space-y-5">
+              <div id="dynFields" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
+              <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="nav('dashboard')" class="px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">Batal</button>
+                <button type="submit" id="btnSubmit" class="btn-corp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
+                  <i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan
                 </button>
-              </li>
-              <li><button onclick="navigate('kpi')" id="nav-kpi" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-star-half-stroke w-7 text-base"></i> Penilaian KPI</button></li>
-            </ul>
+              </div>
+            </form>
           </div>
         </div>
-
-        <!-- GROUP 3: AREA HRGA (RBAC) -->
-        <div class="rounded-xl overflow-hidden hidden-view" data-group="hrga" id="groupHRGA">
-          <button onclick="toggleAccordion('hrga')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
-            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
-              <i class="fa-solid fa-id-card-clip mr-2 text-corporate"></i> Area HRGA
-            </span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-hrga"></i>
-          </button>
-          <div class="accordion-content" id="acc-hrga">
-            <ul class="space-y-1 pt-1 pb-2 pl-1">
-              <li><button onclick="navigate('karyawan')" id="nav-karyawan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-address-card w-7 text-base"></i> Data Karyawan</button></li>
-              <li><button onclick="navigate('kontrak')" id="nav-kontrak" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-file-contract w-7 text-base"></i> Kontrak &amp; Rekrutmen</button></li>
-              <li><button onclick="navigate('pemanggilan')" id="nav-pemanggilan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-bullhorn w-7 text-base"></i> Pemanggilan &amp; Teguran</button></li>
-              <li><button onclick="navigate('kendaraan')" id="nav-kendaraan" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-car-side w-7 text-base"></i> Kendaraan</button></li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- GROUP 4: AREA GUDANG (RBAC) -->
-        <div class="rounded-xl overflow-hidden hidden-view" data-group="gudang" id="groupGudang">
-          <button onclick="toggleAccordion('gudang')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
-            <span class="flex items-center text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
-              <i class="fa-solid fa-warehouse mr-2 text-corporate"></i> Area Gudang
-            </span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron" id="chevron-gudang"></i>
-          </button>
-          <div class="accordion-content" id="acc-gudang">
-            <ul class="space-y-1 pt-1 pb-2 pl-1">
-              <li><button onclick="navigate('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-600 hover:bg-corporate-light hover:text-corporate transition-all duration-200"><i class="fa-solid fa-boxes-stacked w-7 text-base"></i> Inventory &amp; Gimmick</button></li>
-            </ul>
-          </div>
-        </div>
-
       </div>
 
-      <div class="p-4 border-t border-gray-100 bg-white flex-shrink-0">
-        <button onclick="doLogout()" class="w-full px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition duration-200 text-sm flex items-center justify-center border border-red-100">
-          <i class="fa-solid fa-power-off mr-2"></i> Keluar Sistem
-        </button>
+      <!-- ══ VIEW: RIWAYAT ══ -->
+      <div id="v-riwayat" class="app-view hide fade">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-7 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i>
+              </div>
+              <h2 class="font-black text-gray-800">Rekam Jejak Pengajuan</h2>
+            </div>
+            <button onclick="loadRiwayat()" class="sm:ml-auto flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-100 transition">
+              <i class="fa-solid fa-rotate-right"></i> Refresh
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm whitespace-nowrap">
+              <thead><tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                <th class="px-6 py-3 text-left">Formulir</th>
+                <th class="px-6 py-3 text-left">Tanggal</th>
+                <th class="px-6 py-3 text-left">Posisi</th>
+                <th class="px-6 py-3 text-left">Status</th>
+                <th class="px-6 py-3 text-center">Aksi</th>
+              </tr></thead>
+              <tbody id="riwayatBody" class="divide-y divide-gray-50 text-gray-700"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </aside>
 
-    <!-- ===== KONTEN UTAMA ===== -->
-    <div class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden relative w-full">
-
-      <header class="h-[72px] bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-10 border-b border-gray-100 flex-shrink-0">
-        <div class="flex items-center gap-4">
-          <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-corporate-light text-gray-600 hover:text-corporate transition border border-gray-100">
-            <i class="fa-solid fa-bars text-lg"></i>
-          </button>
-          <h2 class="text-lg md:text-2xl font-extrabold text-gray-800 tracking-tight" id="headerTitle">Dashboard Utama</h2>
-        </div>
-        <div class="flex items-center space-x-6">
-          <div class="text-right hidden md:block">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Hari Ini</p>
-            <p class="text-sm text-gray-700 font-bold" id="currentDate">Senin, 1 Januari 2026</p>
+      <!-- ══ VIEW: APPROVAL ══ -->
+      <div id="v-approval" class="app-view hide fade">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-t-corp">
+          <div class="px-7 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-corp-l flex items-center justify-center">
+                <i class="fa-solid fa-list-check text-corp text-sm"></i>
+              </div>
+              <h2 class="font-black text-gray-800">Antrean Persetujuan</h2>
+            </div>
+            <button onclick="loadApproval()" class="sm:ml-auto flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-100 transition">
+              <i class="fa-solid fa-rotate-right"></i> Segarkan
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm whitespace-nowrap">
+              <thead><tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                <th class="px-6 py-3 text-left">Pemohon</th>
+                <th class="px-6 py-3 text-left">Tgl Submit</th>
+                <th class="px-6 py-3 text-left">Jenis Form</th>
+                <th class="px-6 py-3 text-left">Step</th>
+                <th class="px-6 py-3 text-center">Keputusan</th>
+              </tr></thead>
+              <tbody id="approvalBody" class="divide-y divide-gray-50 text-gray-700"></tbody>
+            </table>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar" id="mainViewport">
-
-        <!-- ========================================== -->
-        <!-- VIEW: DASHBOARD                             -->
-        <!-- ========================================== -->
-        <div id="view-dashboard" class="app-view fade-in max-w-7xl mx-auto">
-
-          <!-- BANNER ALERT KONTRAK -->
-          <div id="contractAlertBanner" class="hidden-view alert-pulse mb-6 bg-amber-50 border border-amber-300 text-amber-800 rounded-2xl px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
-            <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>
-            </div>
-            <div class="flex-1">
-              <p class="font-extrabold text-sm" id="contractAlertTitle">Peringatan Masa Kerja</p>
-              <p class="text-sm" id="contractAlertText">Sisa masa kontrak Anda kurang dari 30 hari.</p>
-            </div>
-            <span class="text-[10px] font-extrabold uppercase tracking-widest bg-amber-600 text-white px-3 py-1.5 rounded-lg whitespace-nowrap" id="contractAlertBadge">30 HARI</span>
+      <!-- ══ VIEW: DATABASE KARYAWAN ══ -->
+      <div id="v-db-karyawan" class="app-view hide fade space-y-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div>
+            <h2 class="font-black text-gray-800">Database Karyawan</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Total: <span id="totalKary" class="font-bold text-corp">0</span> karyawan aktif</p>
           </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div class="col-span-1 lg:col-span-2 bg-gradient-to-br from-corporate to-corporate-dark rounded-2xl shadow-lg p-6 md:p-8 text-white flex flex-col justify-center relative overflow-hidden">
-              <i class="fa-solid fa-briefcase text-white opacity-5 absolute -right-8 -bottom-12" style="font-size: 200px;"></i>
-              <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-
-              <h2 class="text-2xl md:text-3xl font-extrabold mb-3 relative z-10 drop-shadow-md">Halo, <span id="dashName">User</span>! 👋</h2>
-              <p class="text-corporate-light text-sm mb-8 relative z-10 w-full md:w-3/4 font-medium leading-relaxed">Selamat datang di Portal HRIS &amp; ERP CV Andela Jaya. Kelola seluruh persetujuan, formulir ISO, klaim, dan data operasional perusahaan dalam satu pintu terpusat.</p>
-
-              <div class="flex flex-wrap items-center gap-3 text-sm relative z-10 mt-auto">
-                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-id-badge mr-2 opacity-70"></i> NIK: <span id="dashNIK" class="text-white">-</span></span>
-                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-calendar-check mr-2 opacity-70"></i> Bergabung: <span id="dashJoin" class="text-white">-</span></span>
-                <span class="bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold border border-white border-opacity-10 shadow-sm"><i class="fa-solid fa-map-location-dot mr-2 opacity-70"></i> Cabang: <span id="dashCabang" class="text-white">-</span></span>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md p-6 md:p-8 border-t-[6px] border-blue-500 flex flex-col justify-center items-center text-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
-              <div class="absolute top-0 left-0 w-full h-full bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
-              <i class="fa-solid fa-umbrella-beach absolute text-blue-100 opacity-30 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition duration-500 group-hover:scale-125" style="font-size: 140px; z-index: 0;"></i>
-
-              <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-4 relative z-10 shadow-sm border border-blue-200">Tahunan</div>
-              <h3 class="text-gray-500 font-extrabold text-xs mb-1 uppercase tracking-widest relative z-10">Sisa Kuota Cuti</h3>
-              <div class="text-6xl md:text-7xl font-black text-gray-800 mb-2 relative z-10 drop-shadow-sm" id="dashCutiQuota">-</div>
-              <div class="flex items-center gap-2 mt-2 relative z-10">
-                <span class="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">Jatah: <span id="dashJatahCuti" class="text-gray-700">-</span></span>
-              </div>
-              <p class="text-[10px] text-gray-400 relative z-10 font-bold mt-4 uppercase tracking-wider"><i class="fa-solid fa-database mr-1"></i> Sync: Master Karyawan</p>
+          <div class="sm:ml-auto flex items-center gap-2 flex-wrap">
+            <select id="filterCabang" onchange="loadKaryawan()" class="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold bg-gray-50">
+              <option value="">Semua Cabang</option>
+              <option value="CIREBON">Cirebon</option>
+              <option value="MALANG">Malang</option>
+            </select>
+            <div class="relative">
+              <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+              <input id="searchKary" type="text" placeholder="Cari nama / NIK..." oninput="loadKaryawan()"
+                class="pl-8 pr-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold bg-gray-50 w-44">
             </div>
           </div>
+        </div>
+        <div id="karyGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
-              <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
-                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-bullhorn text-corporate mr-3 bg-corporate-light p-2 rounded-lg"></i> Pengumuman Terbaru</h3>
+      <!-- ══ VIEW: PEMANGGILAN / SP ══ -->
+      <div id="v-pemanggilan" class="app-view hide fade max-w-2xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-7 py-5 border-b border-gray-100 bg-red-50 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+              <i class="fa-solid fa-envelope-open-text text-red-600"></i>
+            </div>
+            <div>
+              <h2 class="font-black text-gray-800">Surat Pemanggilan / SP Karyawan</h2>
+              <p class="text-xs text-gray-500 mt-0.5">Email HTML profesional akan dikirim otomatis ke karyawan yang dipilih.</p>
+            </div>
+          </div>
+          <form id="pemanggilanForm" class="p-7 space-y-5">
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Nama Karyawan</label>
+              <select id="pKaryawan" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50">
+                <option value="">— Pilih Karyawan —</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Jenis Peringatan</label>
+                <select id="pJenis" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50">
+                  <option>Surat Panggilan</option>
+                  <option>SP 1 (Surat Peringatan Pertama)</option>
+                  <option>SP 2 (Surat Peringatan Kedua)</option>
+                  <option>SP 3 (Surat Peringatan Ketiga)</option>
+                  <option>Surat PHK</option>
+                </select>
               </div>
-              <div class="p-0 overflow-y-auto flex-1 divide-y divide-gray-50 custom-scrollbar" id="listBroadcast">
-                <div class="p-6 text-center text-gray-400 text-sm flex flex-col items-center justify-center h-full">
-                  <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-envelope-open-text text-2xl text-gray-300"></i>
+              <div>
+                <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Tanggal Kejadian</label>
+                <input id="pTanggal" type="date" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Alasan / Uraian Pelanggaran <span class="text-red-500">*</span></label>
+              <textarea id="pAlasan" rows="4" required placeholder="Uraikan secara jelas alasan atau pelanggaran yang dilakukan..."
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Catatan Tambahan (Opsional)</label>
+              <textarea id="pCatatan" rows="2" placeholder="Catatan atau instruksi tambahan..."
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50 resize-none"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button type="button" onclick="nav('dashboard')" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">Batal</button>
+              <button type="submit" class="btn-corp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Kirim Email Sekarang
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ══ VIEW: FORM BUILDER ══ -->
+      <div id="v-form-builder" class="app-view hide fade">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-7 py-5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-corp-l flex items-center justify-center">
+                <i class="fa-solid fa-sliders text-corp text-sm"></i>
+              </div>
+              <div>
+                <h2 class="font-black text-gray-800">Master Konfigurasi Form ISO</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Kelola approval flow, otorisasi role, dan field input dinamis.</p>
+              </div>
+            </div>
+            <button onclick="openNewFormModal()" class="btn-corp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+              <i class="fa-solid fa-plus"></i> Form Baru
+            </button>
+          </div>
+          <div class="flex flex-col lg:flex-row h-[600px]">
+            <div class="w-full lg:w-1/3 border-r border-gray-100 overflow-y-auto">
+              <ul id="fbList" class="divide-y divide-gray-50">
+                <li class="p-5 text-center text-sm text-gray-400">Memuat...</li>
+              </ul>
+            </div>
+            <div class="flex-1 p-7 overflow-y-auto">
+              <div id="fbEmpty" class="h-full flex flex-col items-center justify-center text-gray-300">
+                <i class="fa-solid fa-hand-pointer text-5xl mb-3"></i>
+                <p class="font-bold text-gray-400">Pilih form dari kiri untuk mengedit</p>
+              </div>
+              <div id="fbEditor" class="hide space-y-5">
+                <input type="hidden" id="fbId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Nama Form</label>
+                    <input id="fbNama" type="text" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Contoh: Permohonan Cuti">
                   </div>
-                  <span class="font-bold">Memuat pengumuman...</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px]">
-              <div class="px-6 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
-                <h3 class="font-extrabold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-3 bg-blue-50 p-2 rounded-lg"></i> Pengajuan Terakhir</h3>
-                <button onclick="navigate('riwayat')" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg transition">Lihat Semua</button>
-              </div>
-              <div class="p-0 overflow-y-auto flex-1 custom-scrollbar">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                  <tbody id="dashRiwayatList" class="divide-y divide-gray-50">
-                    <tr><td class="p-6 text-center text-gray-400 text-sm font-bold">Memuat data riwayat...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: PENGAJUAN ISO (FORM DINAMIS + BASE64) -->
-        <!-- ========================================== -->
-        <div id="view-pengajuan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex items-center">
-              <i class="fa-solid fa-file-signature text-corporate mr-3 bg-corporate-light p-2.5 rounded-lg text-lg"></i>
-              <div>
-                <h3 class="font-extrabold text-gray-800 text-lg">Buat Pengajuan Baru</h3>
-                <p class="text-xs text-gray-400 font-medium">Formulir dinamis - field menyesuaikan jenis pengajuan terpilih</p>
-              </div>
-            </div>
-
-            <div class="p-6 md:p-8 space-y-5">
-              <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Jenis Pengajuan</label>
-                <select id="selectJenisForm" onchange="renderDynamicForm()" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
-                  <option value="">-- Memuat daftar formulir... --</option>
-                </select>
-              </div>
-
-              <div id="kasbonWarning" class="hidden-view bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-semibold flex items-center">
-                <i class="fa-solid fa-circle-exclamation mr-2"></i> Pengajuan Kasbon ditolak: masa kerja Anda kurang dari 1 tahun.
-              </div>
-
-              <div id="dynamicFormFields" class="space-y-4"></div>
-
-              <button onclick="submitDynamicForm()" id="btnSubmitPengajuan" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition shadow-md">
-                <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pengajuan
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: KLAIM BENSIN (PLACEHOLDER FONDASI)    -->
-        <!-- ========================================== -->
-        <div id="view-klaim-bensin" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
-            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-gas-pump text-corporate text-2xl"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Klaim Bensin</h3>
-            <p class="text-sm text-gray-500 max-w-md mx-auto">Modul ini akan dikembangkan pada tahap berikutnya menggunakan engine Pengajuan ISO &amp; upload bukti Base64 yang sama persis seperti pada menu <b>Pengajuan ISO</b>.</p>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: RIWAYAT / REKAM JEJAK                 -->
-        <!-- ========================================== -->
-        <div id="view-riwayat" class="app-view hidden-view fade-in max-w-5xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100">
-              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-clock-rotate-left text-corporate mr-2"></i> Rekam Jejak Pengajuan Saya</h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-extrabold tracking-widest">
-                  <tr>
-                    <th class="px-6 py-3">ID / Tanggal</th>
-                    <th class="px-6 py-3">Jenis Form</th>
-                    <th class="px-6 py-3">Posisi Alur</th>
-                    <th class="px-6 py-3 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="listRiwayat" class="divide-y divide-gray-50">
-                  <tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Memuat riwayat...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: ANTREAN APPROVAL                      -->
-        <!-- ========================================== -->
-        <div id="view-approval" class="app-view hidden-view fade-in max-w-5xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-check-double text-corporate mr-2"></i> Antrean Persetujuan</h3>
-              <button onclick="fetchApprovalList()" class="text-xs font-bold text-gray-500 hover:text-corporate bg-gray-50 hover:bg-corporate-light px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
-            </div>
-            <div id="listApproval" class="divide-y divide-gray-50">
-              <div class="p-8 text-center text-gray-400 font-bold">Memuat antrean approval...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: PENILAIAN KPI (PLACEHOLDER)            -->
-        <!-- ========================================== -->
-        <div id="view-kpi" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
-            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-star-half-stroke text-corporate text-2xl"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Penilaian KPI</h3>
-            <p class="text-sm text-gray-500 max-w-md mx-auto">Modul Penilaian SPV &amp; KPI (terhubung ke sheet <code>Penilaian_SPV</code>, <code>Target_Bulanan</code>, <code>Realisasi_Bulanan</code>) akan dibangun pada tahap berikutnya di atas fondasi router ini.</p>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: DATA KARYAWAN (PENCARIAN RINGAN)      -->
-        <!-- ========================================== -->
-        <div id="view-karyawan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100">
-              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-address-card text-corporate mr-2"></i> Pencarian Cepat Data Karyawan</h3>
-              <p class="text-xs text-gray-400 font-medium mt-1">Contoh fetching ringan: hanya membuka sheet Master Karyawan, tanpa load seluruh database.</p>
-            </div>
-            <div class="p-6 md:p-8">
-              <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="inputSearchKaryawan" oninput="debouncedSearchKaryawan()" placeholder="Ketik minimal 2 huruf nama karyawan..." class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
-              </div>
-              <div id="resultSearchKaryawan" class="mt-4 space-y-2"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: KONTRAK & REKRUTMEN                    -->
-        <!-- ========================================== -->
-        <div id="view-kontrak" class="app-view hidden-view fade-in max-w-5xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden mb-6">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 class="font-extrabold text-gray-800 text-lg"><i class="fa-solid fa-file-contract text-corporate mr-2"></i> Monitoring Kontrak Akan Habis</h3>
-              <button onclick="fetchKontrakAlertList()" class="text-xs font-bold text-gray-500 hover:text-corporate bg-gray-50 hover:bg-corporate-light px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-extrabold tracking-widest">
-                  <tr>
-                    <th class="px-6 py-3">Karyawan</th>
-                    <th class="px-6 py-3">Divisi / Jabatan</th>
-                    <th class="px-6 py-3">Tanggal Habis</th>
-                    <th class="px-6 py-3 text-right">Sisa Hari</th>
-                  </tr>
-                </thead>
-                <tbody id="listKontrak" class="divide-y divide-gray-50">
-                  <tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Memuat data kontrak...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-8 text-center">
-            <i class="fa-solid fa-user-plus text-corporate text-2xl mb-3"></i>
-            <h3 class="font-extrabold text-gray-800 text-base mb-1">Modul Rekrutmen</h3>
-            <p class="text-sm text-gray-500">Terhubung ke sheet <code>DATABASE REKRUTMEN</code> &amp; <code>MASTER SOAL INTERVIEW</code> - dikembangkan pada tahap berikutnya.</p>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- VIEW: PEMANGGILAN & TEGURAN (FITUR INTI)    -->
-        <!-- ========================================== -->
-        <div id="view-pemanggilan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="px-6 md:px-8 py-6 border-b border-gray-100 flex items-center">
-              <i class="fa-solid fa-bullhorn text-corporate mr-3 bg-corporate-light p-2.5 rounded-lg text-lg"></i>
-              <div>
-                <h3 class="font-extrabold text-gray-800 text-lg">Form Pemanggilan / Teguran Karyawan</h3>
-                <p class="text-xs text-gray-400 font-medium">Submit akan otomatis mengirim email resmi (kop merah) ke karyawan terkait</p>
-              </div>
-            </div>
-
-            <div class="p-6 md:p-8 space-y-4">
-              <div class="relative">
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Nama Karyawan</label>
-                <input type="text" id="pmgNamaKaryawan" oninput="debouncedSearchPemanggilan()" placeholder="Ketik nama karyawan..." class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
-                <input type="hidden" id="pmgNIKKaryawan">
-                <div id="pmgSuggestList" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 hidden-view max-h-52 overflow-y-auto custom-scrollbar"></div>
-              </div>
-
-              <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Jenis Kasus</label>
-                <select id="pmgJenisKasus" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
-                  <option value="Keterlambatan">Keterlambatan</option>
-                  <option value="Pelanggaran SOP">Pelanggaran SOP</option>
-                  <option value="Kedisiplinan">Kedisiplinan</option>
-                  <option value="Kinerja">Evaluasi Kinerja</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-gray-700 font-bold mb-1.5 text-sm">Tanggal Panggilan</label>
-                  <input type="date" id="pmgTanggal" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                  <div>
+                    <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Otorisasi Role (ALL / SALES, SPV)</label>
+                    <input id="fbRoles" type="text" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold bg-gray-50" placeholder="ALL">
+                  </div>
                 </div>
                 <div>
-                  <label class="block text-gray-700 font-bold mb-1.5 text-sm">Waktu</label>
-                  <input type="time" id="pmgWaktu" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                  <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Approval Flow (JSON Array)</label>
+                  <input id="fbFlow" type="text" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono bg-gray-50" placeholder='["SPV","HRD","GM"]'>
+                  <p class="text-xs text-gray-400 mt-1.5">Gunakan <code class="bg-gray-100 px-1 rounded font-bold">ATASAN</code> untuk routing ke atasan pemohon.</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Skema Fields (JSON Array)</label>
+                  <textarea id="fbFields" rows="10" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs font-mono bg-gray-50 resize-none"
+                    placeholder='[{"name":"alasan","label":"Alasan","type":"textarea","required":true}]'></textarea>
+                  <p class="text-xs text-gray-400 mt-1.5">Type: <code class="bg-gray-100 px-1 rounded">text</code> <code class="bg-gray-100 px-1 rounded">textarea</code> <code class="bg-gray-100 px-1 rounded">date</code> <code class="bg-gray-100 px-1 rounded">number</code> <code class="bg-gray-100 px-1 rounded">select</code> <code class="bg-gray-100 px-1 rounded">file</code> <code class="bg-gray-100 px-1 rounded">karyawan</code> <code class="bg-gray-100 px-1 rounded">kendaraan</code></p>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                  <button onclick="deleteFbConfig()" class="px-4 py-2 text-xs font-bold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Hapus Form
+                  </button>
+                  <button onclick="saveFbConfig()" class="btn-corp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- ══ VIEW: BROADCAST ══ -->
+      <div id="v-broadcast" class="app-view hide fade max-w-2xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-7 py-5 border-b border-gray-100 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <i class="fa-solid fa-bullhorn text-blue-600"></i>
+            </div>
+            <div>
+              <h2 class="font-black text-gray-800">Broadcast Pengumuman</h2>
+              <p class="text-xs text-gray-500 mt-0.5">Kirim info atau memo massal langsung ke email karyawan.</p>
+            </div>
+          </div>
+          <form id="bcForm" class="p-7 space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Tempat</label>
-                <input type="text" id="pmgTempat" placeholder="Cth: Ruang HRD - Kantor Pusat" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+                <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Target Penerima</label>
+                <select id="bcType" onchange="toggleBcTarget()" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50">
+                  <option value="GENERAL">Semua Karyawan</option>
+                  <option value="DIVISI">Spesifik Divisi</option>
+                  <option value="NIK">Spesifik Karyawan (NIK)</option>
+                </select>
               </div>
-
-              <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Perihal</label>
-                <input type="text" id="pmgPerihal" placeholder="Cth: Panggilan Klarifikasi Keterlambatan" class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none">
+              <div id="bcTargetWrap" class="hide">
+                <label id="bcTargetLbl" class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Nilai Target</label>
+                <input id="bcTarget" type="text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50" placeholder="Contoh: SALES / 1062503910">
               </div>
-
-              <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Isi Teguran / Keterangan</label>
-                <textarea id="pmgIsiTeguran" rows="4" placeholder="Jelaskan detail pelanggaran/keterangan secara rinci..." class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></textarea>
-              </div>
-
-              <div>
-                <label class="block text-gray-700 font-bold mb-1.5 text-sm">Lampiran Bukti (Opsional)</label>
-                <input type="file" id="pmgLampiran" class="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-corporate file:text-white file:font-bold file:text-xs">
-              </div>
-
-              <button onclick="submitPemanggilan()" id="btnSubmitPemanggilan" class="w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition shadow-md">
-                <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Surat Pemanggilan
+            </div>
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Judul Pengumuman</label>
+              <input id="bcJudul" type="text" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50" placeholder="Judul singkat dan jelas">
+            </div>
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Isi Pesan</label>
+              <textarea id="bcIsi" rows="5" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold bg-gray-50 resize-none" placeholder="Detail pengumuman..."></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Lampiran (Opsional, maks 2MB)</label>
+              <input id="bcFile" type="file" class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm bg-white file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-corp-l file:text-corp">
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button type="submit" class="btn-corp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Kirim Broadcast
               </button>
             </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ══ VIEW: KENDARAAN ══ -->
+      <div id="v-kendaraan" class="app-view hide fade space-y-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-4 flex items-center justify-between">
+          <h2 class="font-black text-gray-800">Master Kendaraan</h2>
+          <button onclick="openKendaraanModal(null)" class="btn-corp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Tambah Kendaraan
+          </button>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                <th class="px-5 py-3 text-left">No Polisi</th>
+                <th class="px-5 py-3 text-left">Merk / Tipe</th>
+                <th class="px-5 py-3 text-left">Tahun</th>
+                <th class="px-5 py-3 text-left">Status</th>
+                <th class="px-5 py-3 text-left">Keterangan</th>
+                <th class="px-5 py-3 text-center">Aksi</th>
+              </tr></thead>
+              <tbody id="kendaraanBody" class="divide-y divide-gray-50 text-gray-700"></tbody>
+            </table>
           </div>
         </div>
+      </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW: KENDARAAN (PLACEHOLDER)                -->
-        <!-- ========================================== -->
-        <div id="view-kendaraan" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
-            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-car-side text-corporate text-2xl"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Kendaraan</h3>
-            <p class="text-sm text-gray-500 max-w-md mx-auto">Terhubung ke sheet <code>MASTER KENDARAAN</code> &amp; <code>OPERASIONAL KENDARAAN</code> - dikembangkan pada tahap berikutnya.</p>
+      <!-- ══ VIEW: INVENTORY ══ -->
+      <div id="v-inventory" class="app-view hide fade space-y-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-4 flex items-center justify-between">
+          <h2 class="font-black text-gray-800">Master Inventory</h2>
+          <button onclick="openInventoryModal(null)" class="btn-corp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Tambah Barang
+          </button>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                <th class="px-5 py-3 text-left">ID</th>
+                <th class="px-5 py-3 text-left">Nama Barang</th>
+                <th class="px-5 py-3 text-left">Kategori</th>
+                <th class="px-5 py-3 text-right">Stok</th>
+                <th class="px-5 py-3 text-left">Satuan</th>
+                <th class="px-5 py-3 text-left">Keterangan</th>
+                <th class="px-5 py-3 text-center">Aksi</th>
+              </tr></thead>
+              <tbody id="inventoryBody" class="divide-y divide-gray-50 text-gray-700"></tbody>
+            </table>
           </div>
         </div>
+      </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW: INVENTORY & GIMMICK (PLACEHOLDER)      -->
-        <!-- ========================================== -->
-        <div id="view-inventory" class="app-view hidden-view fade-in max-w-3xl mx-auto">
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-10 text-center">
-            <div class="w-16 h-16 bg-corporate-light rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-boxes-stacked text-corporate text-2xl"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-800 text-lg mb-2">Modul Inventory &amp; Gimmick</h3>
-            <p class="text-sm text-gray-500 max-w-md mx-auto">Terhubung ke sheet <code>MASTER INVENTORY</code>, <code>LOG INVENTORY</code>, <code>MASTER GIMMICK</code> - dikembangkan pada tahap berikutnya.</p>
-          </div>
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+
+<!-- Modal: Detail Pengajuan -->
+<div id="mDetail" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div>
+        <h3 class="font-black text-gray-800">Detail Pengajuan</h3>
+        <p id="mDetailId" class="text-xs font-mono text-gray-400 mt-0.5"></p>
+      </div>
+      <button onclick="closeM('mDetail')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+    <div class="overflow-y-auto flex-1 p-7 space-y-5 bg-gray-50">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white rounded-xl p-3 border border-gray-100">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Pemohon</p>
+          <p id="mNama" class="font-bold text-gray-800 text-sm mt-1"></p>
         </div>
-
-      </main>
+        <div class="bg-white rounded-xl p-3 border border-gray-100">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Form</p>
+          <p id="mJenis" class="font-bold text-corp text-sm mt-1"></p>
+        </div>
+        <div class="bg-white rounded-xl p-3 border border-gray-100">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Tanggal</p>
+          <p id="mTgl" class="font-bold text-gray-800 text-sm mt-1"></p>
+        </div>
+        <div class="bg-white rounded-xl p-3 border border-gray-100">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Status</p>
+          <div id="mStatus" class="mt-1"></div>
+        </div>
+      </div>
+      <div id="mCatatanBox" class="hide bg-red-50 border border-red-200 rounded-xl p-4">
+        <p class="text-xs font-black text-red-700 uppercase tracking-widest mb-1">Catatan Penolakan</p>
+        <p id="mCatatan" class="text-sm text-red-700 font-medium"></p>
+      </div>
+      <div>
+        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Detail Isian Form</p>
+        <div id="mDetail2" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      </div>
+      <div>
+        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Jalur Persetujuan</p>
+        <div id="mFlow" class="space-y-2"></div>
+      </div>
+    </div>
+    <div class="px-7 py-4 border-t border-gray-100 flex justify-end">
+      <button onclick="closeM('mDetail')" class="px-6 py-2.5 bg-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-200 transition">Tutup</button>
     </div>
   </div>
+</div>
 
+<!-- Modal: Reject -->
+<div id="mReject" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 modal-bg bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="bg-red-600 px-6 py-5 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-white text-lg"></i>
+      </div>
+      <h3 class="font-black text-white">Konfirmasi Penolakan</h3>
+    </div>
+    <div class="p-6 space-y-4">
+      <input type="hidden" id="rjctId">
+      <p class="text-sm text-gray-600 font-medium">Pengajuan akan ditolak dan siklus approval dihentikan. Status berubah menjadi <strong class="text-red-600">REJECTED</strong>.</p>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
+        <textarea id="rjctAlasan" rows="4" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium resize-none" placeholder="Jelaskan alasan secara spesifik..."></textarea>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+      <button onclick="closeM('mReject')" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50">Batal</button>
+      <button onclick="submitReject()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl text-sm font-black hover:bg-red-700 flex items-center gap-2">
+        <i class="fa-solid fa-xmark"></i> Tolak Pengajuan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Karyawan Detail / Edit -->
+<div id="mKaryawan" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-black text-gray-800" id="mKaryTitle">Detail Karyawan</h3>
+      <button onclick="closeM('mKaryawan')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div id="mKaryBody" class="overflow-y-auto flex-1 p-7 space-y-4 bg-gray-50"></div>
+    <div class="px-7 py-4 border-t border-gray-100 flex justify-end gap-3">
+      <button onclick="closeM('mKaryawan')" class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-200">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Kendaraan Form -->
+<div id="mKendaraan" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+      <h3 id="mKendaraanTitle" class="font-black text-gray-800">Tambah Kendaraan</h3>
+      <button onclick="closeM('mKendaraan')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">No Polisi <span class="text-red-500">*</span></label>
+          <input id="fNoPolisi" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="B 1234 XY">
+        </div>
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Tahun</label>
+          <input id="fTahunKend" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="2022">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Merk / Tipe</label>
+        <input id="fMerkTipe" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Toyota Avanza 1.5">
+      </div>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Status</label>
+        <select id="fStatusKend" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50">
+          <option>TERSEDIA</option><option>DIGUNAKAN</option><option>SERVIS</option><option>RUSAK</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Keterangan</label>
+        <input id="fKetKend" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Opsional">
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+      <button onclick="closeM('mKendaraan')" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50">Batal</button>
+      <button onclick="saveKendaraan()" class="btn-corp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Inventory Form -->
+<div id="mInventory" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg bg-black/50">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+      <h3 id="mInventoryTitle" class="font-black text-gray-800">Tambah Barang</h3>
+      <button onclick="closeM('mInventory')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">ID Barang</label>
+          <input id="fIdBarang" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Auto-generate jika kosong">
+        </div>
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Kategori</label>
+          <input id="fKategori" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="ATK / Elektronik">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Nama Barang <span class="text-red-500">*</span></label>
+        <input id="fNamaBarang" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Nama barang / aset">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Stok</label>
+          <input id="fStok" type="number" min="0" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Satuan</label>
+          <input id="fSatuan" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="pcs / unit / rim">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Keterangan</label>
+        <input id="fKetInv" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold bg-gray-50" placeholder="Opsional">
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+      <button onclick="closeM('mInventory')" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50">Batal</button>
+      <button onclick="saveInventory()" class="btn-corp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     APPLICATION SCRIPT
+══════════════════════════════════════════════ -->
 <script>
-  // ============================================
-  // 0. KONFIGURASI & STATE GLOBAL
-  // ============================================
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbHMEt4fdgUc61uxtuVbMVfpjgsHXMvrdnnHAo6OvIw_cFrtfo7PMPyzqLeLGndOeKog/exec'; // TODO: isi URL Web App Apps Script Anda
-  let currentUser = null;
+// ╔══════════════════════════════════════════════
+// ║  CONFIG
+// ╚══════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNVNTdelC4MdfiE9Z-3lIs26Tx4Pt0ll1T8tGUZX78XmFxW-dnOtVFl5FQ_rEPlaf1GQ/exec';
 
-  const getEl = (id) => document.getElementById(id);
+let CU       = null;  // currentUser
+let FORMS    = [];    // masterForms
+let CTX      = [];    // currentContext (riwayat/approval data)
+let KARY_DD  = [];    // karyawan dropdown cache
+let KEND_DD  = [];    // kendaraan dropdown cache
+let INV_DD   = [];    // inventory dropdown cache
 
-  function showLoader(text) {
-    getEl('loaderText').textContent = text || 'Mohon tunggu sebentar';
-    getEl('loaderOverlay').classList.remove('hidden');
-    getEl('loaderOverlay').classList.add('flex');
-  }
-  function hideLoader() {
-    getEl('loaderOverlay').classList.add('hidden');
-    getEl('loaderOverlay').classList.remove('flex');
-  }
+// ╔══════════════════════════════════════════════
+// ║  UTILITIES
+// ╚══════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+const on = (id, ev, fn) => $(id) && $(id).addEventListener(ev, fn);
 
-  function showToast(message, isError) {
-    const div = document.createElement('div');
-    div.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-sm font-bold text-white fade-in flex items-center ${isError ? 'bg-red-600' : 'bg-corporate'}`;
-    div.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'} mr-2"></i>${message}`;
-    getEl('toastContainer').appendChild(div);
-    setTimeout(() => div.remove(), 3500);
-  }
+function showLoader(msg = 'Memproses...') {
+  $('loaderMsg').textContent = msg;
+  $('loader').classList.remove('hidden');
+  $('loader').classList.add('flex');
+}
+function hideLoader() {
+  $('loader').classList.add('hidden');
+  $('loader').classList.remove('flex');
+}
 
-  const isApiSuccess = (res) => res && res.success === true;
+function toast(msg, err = false) {
+  const el = document.createElement('div');
+  const c  = err ? 'bg-red-600' : 'bg-green-600';
+  const ic = err ? 'fa-circle-exclamation' : 'fa-circle-check';
+  el.className = `${c} text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 pointer-events-auto fade border border-white/20`;
+  el.innerHTML = `<i class="fa-solid ${ic}"></i> <span>${msg}</span>`;
+  $('toastBox').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 4000);
+}
 
-  const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    if (!file) { resolve(null); return; }
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (err) => reject(err);
-  });
+function openM(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove('hidden');
+  el.classList.add('flex');
+}
+function closeM(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.add('hidden');
+  el.classList.remove('flex');
+}
 
-  // ============================================
-  // 1. CORE FETCH API (ANTI-CORS PREFLIGHT: text/plain)
-  // ============================================
-  async function fetchAPI(payload) {
-    try {
-      showLoader();
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      return await response.json();
-    } catch (err) {
-      console.error('API Error:', err);
-      return { success: false, message: 'Terjadi kesalahan jaringan. Pastikan SCRIPT_URL sudah benar.' };
-    } finally {
-      hideLoader();
-    }
-  }
-
-  // ============================================
-  // 2. AUTENTIKASI & AUTO-LOGIN TOKEN
-  // ============================================
-  window.onload = async () => {
-    getEl('currentDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-
-    if (token) {
-      getEl('formLogin').style.display = 'none';
-      getEl('tokenAuthMessage').classList.remove('hidden');
-
-      const res = await fetchAPI({ action: 'login_token', token: token });
-      window.history.replaceState({}, document.title, window.location.pathname); // bersihkan ?token= dari URL
-
-      if (isApiSuccess(res) && res.user) {
-        currentUser = res.user;
-        localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
-        showToast(`Otentikasi berhasil. Halo, ${currentUser.Nama}`);
-        setupWorkspace();
-      } else {
-        showToast(res.message || 'Tautan tidak valid atau kadaluarsa', true);
-        getEl('formLogin').style.display = 'block';
-        getEl('tokenAuthMessage').classList.add('hidden');
-      }
+function toggleSidebar() {
+  const s  = $('sidebar');
+  const ov = $('sidebar-overlay');
+  if (window.innerWidth < 768) {
+    s.classList.toggle('open');
+    ov.classList.toggle('show');
+  } else {
+    if (s.style.width === '0px' || s.style.width === '') {
+      s.style.width = '16rem';
     } else {
-      checkSession();
-    }
-  };
-
-  function checkSession() {
-    const savedUser = localStorage.getItem('erp_user_data');
-    if (savedUser) {
-      currentUser = JSON.parse(savedUser);
-      setupWorkspace();
-    } else {
-      getEl('viewLogin').classList.remove('hidden-view');
-      getEl('mainApp').classList.add('hidden-view');
+      s.style.width = s.offsetWidth < 100 ? '16rem' : '0px';
     }
   }
+}
 
-  getEl('formLogin').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const u = getEl('loginUsername').value.trim();
-    const p = getEl('loginPassword').value;
+const b64 = file => new Promise((res, rej) => {
+  if (!file) return res(null);
+  const r = new FileReader();
+  r.onload  = () => res(r.result);
+  r.onerror = rej;
+  r.readAsDataURL(file);
+});
 
-    const btn = getEl('btnLoginSubmit');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Memverifikasi...';
-    btn.disabled = true;
+function badge(status) {
+  const s = (status || '').toUpperCase();
+  if (s === 'APPROVED FINAL') return `<span class="badge-approved text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-check mr-1"></i>Approved</span>`;
+  if (s === 'REJECTED')       return `<span class="badge-rejected text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i>Rejected</span>`;
+  return `<span class="badge-proses text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i>Proses</span>`;
+}
 
-    const res = await fetchAPI({ action: 'login', username: u, password: p });
-
-    if (isApiSuccess(res) && res.user) {
-      currentUser = res.user;
-      localStorage.setItem('erp_user_data', JSON.stringify(currentUser));
-      getEl('loginUsername').value = ''; getEl('loginPassword').value = '';
-      showToast(`Login berhasil. Selamat datang, ${currentUser.Nama}`);
-      setupWorkspace();
-    } else {
-      showToast(res.message || 'Username atau Password salah', true);
-    }
-
-    btn.innerHTML = 'Masuk ke Portal';
-    btn.disabled = false;
-  });
-
-  function doLogout() {
-    localStorage.removeItem('erp_user_data');
-    currentUser = null;
-    getEl('mainApp').classList.add('hidden-view');
-    getEl('viewLogin').classList.remove('hidden-view');
-    showToast('Berhasil keluar dari sistem.');
-  }
-
-  // ============================================
-  // 3. WORKSPACE, RBAC SIDEBAR & ACCORDION
-  // ============================================
-  function setupWorkspace() {
-    getEl('viewLogin').classList.add('hidden-view');
-    getEl('mainApp').classList.remove('hidden-view');
-
-    getEl('sideUserName').textContent = currentUser.Nama || currentUser.username;
-    getEl('sideUserRole').textContent = currentUser.Role || '-';
-    getEl('sideUserDivisi').textContent = currentUser.Divisi || '-';
-    getEl('userAvatar').textContent = (currentUser.Nama || currentUser.username).charAt(0).toUpperCase();
-
-    getEl('dashName').textContent = currentUser.Nama || currentUser.username;
-    getEl('dashNIK').textContent = currentUser.NIK || '-';
-    getEl('dashCabang').textContent = currentUser.Cabang || '-';
-    getEl('dashJoin').textContent = currentUser.TanggalJoin ? new Date(currentUser.TanggalJoin).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-';
-    getEl('dashCutiQuota').textContent = currentUser.SisaCuti !== undefined ? currentUser.SisaCuti : '0';
-    getEl('dashJatahCuti').textContent = currentUser.JatahTahunan !== undefined ? currentUser.JatahTahunan : '0';
-
-    applyRBAC();
-    renderContractAlert(currentUser.SisaHariKontrak, currentUser.KontrakHabis);
-
-    fetchMasterForms();
-    navigate('dashboard');
-  }
-
-  // RBAC: tampilkan grup menu sesuai Role/Posisi. Sesuaikan daftar keyword di sini sesuai struktur jabatan Anda.
-  function applyRBAC() {
-    const role = (currentUser.Role || '').toUpperCase();
-    const posisi = (currentUser.posisi || '').toUpperCase();
-    const combined = role + ' ' + posisi;
-
-    const isManagement = ['SPV', 'GM', 'FINANCE', 'HRD', 'MANAGER', 'DIREKTUR'].some(r => combined.includes(r));
-    const isHRGA       = ['HRD', 'HR', 'GA'].some(r => combined.includes(r));
-    const isGudang     = ['GUDANG', 'WAREHOUSE', 'LOGISTIK'].some(r => combined.includes(r));
-
-    toggleGroupVisibility('groupManajemen', isManagement);
-    toggleGroupVisibility('groupHRGA', isHRGA);
-    toggleGroupVisibility('groupGudang', isGudang);
-  }
-
-  function toggleGroupVisibility(groupId, isVisible) {
-    const el = getEl(groupId);
-    if (isVisible) el.classList.remove('hidden-view');
-    else el.classList.add('hidden-view');
-  }
-
-  function toggleAccordion(name) {
-    const content = getEl('acc-' + name);
-    const chevron = getEl('chevron-' + name);
-    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
-
-    if (isOpen) {
-      content.style.maxHeight = '0px';
-      chevron.classList.remove('rotated');
-    } else {
-      content.style.maxHeight = content.scrollHeight + 'px';
-      chevron.classList.add('rotated');
-    }
-  }
-
-  // ============================================
-  // 4. SIDEBAR DRAWER (MOBILE HAMBURGER)
-  // ============================================
-  function toggleSidebar() {
-    const isOpen = getEl('sidebar').classList.contains('sidebar-open');
-    if (isOpen) closeSidebar(); else openSidebar();
-  }
-  function openSidebar() {
-    getEl('sidebar').classList.add('sidebar-open');
-    getEl('sidebarOverlay').classList.remove('hidden');
-  }
-  function closeSidebar() {
-    getEl('sidebar').classList.remove('sidebar-open');
-    getEl('sidebarOverlay').classList.add('hidden');
-  }
-
-  // ============================================
-  // 5. NAVIGASI / ROUTER FRONTEND
-  // ============================================
-  const VIEW_TITLES = {
-    'dashboard': 'Dashboard Utama',
-    'pengajuan': 'Buat Pengajuan ISO',
-    'klaim-bensin': 'Klaim Bensin',
-    'riwayat': 'Rekam Jejak Pengajuan',
-    'approval': 'Antrean Persetujuan',
-    'kpi': 'Penilaian KPI',
-    'karyawan': 'Data Karyawan',
-    'kontrak': 'Kontrak & Rekrutmen',
-    'pemanggilan': 'Pemanggilan & Teguran',
-    'kendaraan': 'Kendaraan',
-    'inventory': 'Inventory & Gimmick'
-  };
-
-  function navigate(viewId) {
-    document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden-view'));
-    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-
-    const targetView = getEl('view-' + viewId);
-    if (targetView) targetView.classList.remove('hidden-view');
-
-    const targetNav = getEl('nav-' + viewId);
-    if (targetNav) targetNav.classList.add('active');
-
-    getEl('headerTitle').textContent = VIEW_TITLES[viewId] || 'Portal Internal';
-    if (window.innerWidth < 1024) closeSidebar();
-
-    if (viewId === 'dashboard')    fetchDashboardData();
-    if (viewId === 'riwayat')      fetchRiwayat();
-    if (viewId === 'approval')     fetchApprovalList();
-    if (viewId === 'kontrak')      fetchKontrakAlertList();
-  }
-
-  // ============================================
-  // 6. DASHBOARD: ALERT KONTRAK, BROADCAST, RIWAYAT
-  // ============================================
-  async function fetchDashboardData() {
-    const res = await fetchAPI({ action: 'get_dashboard', user: currentUser });
-    if (!isApiSuccess(res)) return;
-
-    if (res.kontrak_alert) {
-      renderContractAlert(res.kontrak_alert.sisaHari, res.kontrak_alert.tanggalHabis);
-    } else {
-      getEl('contractAlertBanner').classList.add('hidden-view');
-    }
-
-    const bcList = getEl('listBroadcast');
-    if (res.broadcasts && res.broadcasts.length > 0) {
-      bcList.innerHTML = res.broadcasts.map(b => `
-        <div class="px-6 py-5 hover:bg-gray-50 transition group">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="font-extrabold text-sm text-gray-800 group-hover:text-corporate transition">${b.Judul}</h4>
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap ml-3 bg-gray-100 px-2 py-1 rounded">${new Date(b.Tanggal).toLocaleDateString('id-ID')}</span>
-          </div>
-          <p class="text-sm text-gray-600 leading-relaxed">${b.Isi}</p>
-          ${b.FileUrl ? `<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center mt-3 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"><i class="fa-solid fa-cloud-arrow-down mr-2"></i> Unduh Lampiran</a>` : ''}
-        </div>`).join('');
-    } else {
-      bcList.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm h-full flex flex-col items-center justify-center"><i class="fa-regular fa-bell-slash text-4xl mb-3 text-gray-200"></i><span class="font-medium">Tidak ada pengumuman baru.</span></div>`;
-    }
-
-    const riwBody = getEl('dashRiwayatList');
-    if (res.riwayat_singkat && res.riwayat_singkat.length > 0) {
-      riwBody.innerHTML = res.riwayat_singkat.map(r => `
-        <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-blue-500">
-          <td class="p-5"><span class="font-extrabold text-gray-800 text-sm">${r.JenisForm}</span><br><span class="text-[10px] font-mono font-bold text-gray-400 mt-1 uppercase tracking-widest block">${r.ID}</span></td>
-          <td class="p-5 text-right">${getBadgeHTML(r.StatusFinal)}</td>
-        </tr>`).join('');
-    } else {
-      riwBody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-gray-400 text-sm"><i class="fa-solid fa-file-circle-question text-3xl mb-3 block text-gray-200"></i><span class="font-medium">Belum ada pengajuan.</span></td></tr>`;
-    }
-  }
-
-  function renderContractAlert(sisaHari, tanggalHabis) {
-    const banner = getEl('contractAlertBanner');
-    if (sisaHari === undefined || sisaHari === null) { banner.classList.add('hidden-view'); return; }
-
-    const isExpired = sisaHari < 0;
-    getEl('contractAlertTitle').textContent = isExpired ? 'Kontrak Anda Telah Berakhir' : 'Peringatan Masa Kontrak';
-    getEl('contractAlertText').textContent = isExpired
-      ? `Kontrak kerja Anda berakhir pada ${new Date(tanggalHabis).toLocaleDateString('id-ID')}. Segera hubungi HRD.`
-      : `Sisa masa kontrak Anda ${sisaHari} hari (berakhir ${new Date(tanggalHabis).toLocaleDateString('id-ID')}). Segera koordinasi dengan HRD.`;
-    getEl('contractAlertBadge').textContent = isExpired ? 'EXPIRED' : sisaHari + ' HARI';
-    banner.classList.remove('hidden-view');
-  }
-
-  function getBadgeHTML(status) {
-    const s = (status || '').toUpperCase();
-    if (s === 'APPROVED FINAL') return `<span class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-green-200 shadow-sm"><i class="fa-solid fa-check mr-1"></i> APPROVED</span>`;
-    if (s === 'REJECTED') return `<span class="bg-red-50 text-red-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-red-200 shadow-sm"><i class="fa-solid fa-xmark mr-1"></i> REJECTED</span>`;
-    return `<span class="bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-yellow-200 shadow-sm"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i> PROSES</span>`;
-  }
-
-  // ============================================
-  // 7. PENGAJUAN ISO: FORM DINAMIS + UPLOAD BASE64 + VALIDASI KASBON
-  // ============================================
-  let masterForms = [];
-  let dynamicFileFields = {}; // { fieldName: { file: File } } -> dikonversi ke base64 saat submit
-
-  async function fetchMasterForms() {
-    const res = await fetchAPI({ action: 'get_form_configs' });
-    const select = getEl('selectJenisForm');
-    if (isApiSuccess(res) && res.forms && res.forms.length > 0) {
-      masterForms = res.forms;
-      select.innerHTML = '<option value="">-- Pilih Jenis Pengajuan --</option>' +
-        masterForms.map(f => `<option value="${f.FormID}">${f.NamaForm}</option>`).join('');
-    } else {
-      masterForms = [];
-      select.innerHTML = '<option value="">Belum ada formulir terkonfigurasi (hubungi HRD)</option>';
-    }
-  }
-
-  function renderDynamicForm() {
-    const formId = getEl('selectJenisForm').value;
-    const container = getEl('dynamicFormFields');
-    const kasbonWarning = getEl('kasbonWarning');
-    const btnSubmit = getEl('btnSubmitPengajuan');
-    container.innerHTML = '';
-    dynamicFileFields = {};
-
-    const form = masterForms.find(f => f.FormID === formId);
-    if (!form) return;
-
-    // Validasi front-end khusus Kasbon: masa kerja < 1 tahun langsung diblokir.
-    const isKasbon = (form.NamaForm || '').toUpperCase().includes('KASBON');
-    if (isKasbon) {
-      const tahunKerja = currentUser.TanggalJoin ? (new Date() - new Date(currentUser.TanggalJoin)) / (1000 * 60 * 60 * 24 * 365) : 0;
-      if (tahunKerja < 1) {
-        kasbonWarning.classList.remove('hidden-view');
-        btnSubmit.disabled = true;
-        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-        return;
-      }
-    }
-    kasbonWarning.classList.add('hidden-view');
-    btnSubmit.disabled = false;
-    btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
-
-    let fields = [];
-    try { fields = JSON.parse(form.FieldsJSON || '[]'); } catch (e) { fields = []; }
-
-    if (fields.length === 0) {
-      container.innerHTML = `<p class="text-sm text-gray-400 italic">Formulir ini belum memiliki konfigurasi field. Hubungi HRD untuk melengkapi Form Builder.</p>`;
-      return;
-    }
-
-    container.innerHTML = fields.map(f => {
-      if (f.type === 'file') {
-        return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
-          <input type="file" data-field="${f.name}" onchange="handleDynamicFileChange(this)" class="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-corporate file:text-white file:font-bold file:text-xs"></div>`;
-      }
-      if (f.type === 'textarea') {
-        return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
-          <textarea data-field="${f.name}" rows="3" class="dyn-input w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></textarea></div>`;
-      }
-      return `<div><label class="block text-gray-700 font-bold mb-1.5 text-sm">${f.label}</label>
-        <input type="${f.type || 'text'}" data-field="${f.name}" class="dyn-input w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-corporate focus:outline-none"></div>`;
-    }).join('');
-  }
-
-  function handleDynamicFileChange(inputEl) {
-    const fieldName = inputEl.getAttribute('data-field');
-    dynamicFileFields[fieldName] = inputEl.files[0] || null;
-  }
-
-  async function submitDynamicForm() {
-    const formId = getEl('selectJenisForm').value;
-    const form = masterForms.find(f => f.FormID === formId);
-    if (!form) { showToast('Pilih jenis pengajuan terlebih dahulu.', true); return; }
-
-    const detail = {};
-    document.querySelectorAll('#dynamicFormFields .dyn-input').forEach(el => {
-      detail[el.getAttribute('data-field')] = el.value;
+// ╔══════════════════════════════════════════════
+// ║  API WRAPPER
+// ╚══════════════════════════════════════════════
+async function api(payload, msg = null) {
+  try {
+    if (msg) showLoader(msg);
+    else showLoader();
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
     });
+    return await r.json();
+  } catch (e) {
+    console.error(e);
+    return { success: false, message: 'Koneksi gagal: ' + e.message };
+  } finally {
+    hideLoader();
+  }
+}
 
-    for (const fieldName in dynamicFileFields) {
-      const file = dynamicFileFields[fieldName];
-      if (file) {
-        const base64 = await fileToBase64(file);
-        detail[fieldName] = { name: file.name, data: base64 };
+// ╔══════════════════════════════════════════════
+// ║  INIT & AUTH
+// ╚══════════════════════════════════════════════
+window.onload = async () => {
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  $('todayDate').textContent = new Date().toLocaleDateString('id-ID', opts);
+
+  const params = new URLSearchParams(location.search);
+  const token  = params.get('token');
+
+  if (token) {
+    $('loginForm').classList.add('hide');
+    $('tokenMsg').classList.remove('hide');
+    const res = await api({ action: 'login_token', token });
+    if (res.success && res.user) {
+      CU = res.user;
+      localStorage.setItem('hris_user', JSON.stringify(CU));
+      history.replaceState({}, '', location.pathname);
+      toast('Otentikasi berhasil. Halo, ' + CU.Nama + '!');
+      initApp();
+    } else {
+      toast(res.message || 'Token tidak valid', true);
+      $('loginForm').classList.remove('hide');
+      $('tokenMsg').classList.add('hide');
+    }
+  } else {
+    const saved = localStorage.getItem('hris_user');
+    if (saved) { try { CU = JSON.parse(saved); initApp(); } catch(e) { showLogin(); } }
+    else showLogin();
+  }
+};
+
+function showLogin() {
+  $('loginPage').classList.remove('hide');
+  $('mainApp').classList.add('hide');
+}
+
+on('loginForm', 'submit', async e => {
+  e.preventDefault();
+  const btn = $('btnLogin');
+  btn.textContent = 'Memverifikasi...';
+  btn.disabled = true;
+  const res = await api({ action: 'login', username: $('uname').value.trim(), password: $('upass').value });
+  if (res.success && res.user) {
+    CU = res.user;
+    localStorage.setItem('hris_user', JSON.stringify(CU));
+    toast('Selamat datang, ' + CU.Nama + '!');
+    initApp();
+  } else {
+    toast(res.message || 'Username / Password salah', true);
+  }
+  btn.innerHTML = 'Masuk ke Portal';
+  btn.disabled = false;
+});
+
+function doLogout() {
+  localStorage.removeItem('hris_user');
+  CU = null; FORMS = []; CTX = [];
+  $('mainApp').classList.add('hide');
+  $('loginPage').classList.remove('hide');
+  $('loginPage').classList.add('fade');
+  toast('Berhasil keluar.');
+}
+
+// ╔══════════════════════════════════════════════
+// ║  WORKSPACE SETUP & RBAC
+// ╚══════════════════════════════════════════════
+function initApp() {
+  $('loginPage').classList.add('hide');
+  $('mainApp').classList.remove('hide');
+
+  // Sidebar info
+  const init = (CU.Nama || CU.username || 'U').charAt(0).toUpperCase();
+  $('avatar').textContent  = init;
+  $('sideNama').textContent = CU.Nama || CU.username;
+  $('sideRole').textContent = CU.Role || '-';
+  $('sideDivisi').textContent = CU.Divisi || CU.posisi || '-';
+
+  // Topbar
+  $('topNIKval').textContent = CU.NIK || '-';
+  $('topNIK').classList.remove('hidden');
+
+  // Dashboard hero
+  $('dNama').textContent   = (CU.Nama || '').split(' ')[0];
+  $('dNIK').textContent    = CU.NIK    || '-';
+  $('dCabang').textContent = CU.Cabang || '-';
+  $('dJoin').textContent   = CU.TanggalJoin
+    ? new Date(CU.TanggalJoin).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})
+    : '-';
+
+  // RBAC — menu visibility
+  const role   = (CU.Role   || '').toUpperCase();
+  const posisi = (CU.posisi || '').toUpperCase();
+  const isMgmt = ['SPV','GM','GENERAL MANAGER','MANAGER','DIREKTUR','HRD','STAFF HRD','FINANCE','ACCOUNTING'].some(r => role.includes(r) || posisi.includes(r));
+  const isHRD  = role.includes('HRD') || role.includes('HR') || posisi.includes('HRD') || posisi.includes('HR');
+  const isWHS  = ['WAREHOUSE','GUDANG','INVENTORY','GENERAL AFFAIR','GA'].some(r => role.includes(r) || posisi.includes(r));
+
+  if (isMgmt) $('menuMgmt').classList.remove('hide');
+  if (isHRD)  $('menuHRD').classList.remove('hide');
+  if (isHRD || isWHS || isMgmt) $('menuGudang').classList.remove('hide');
+
+  fetchForms();
+  prefetchDropdowns();
+  nav('dashboard');
+}
+
+// ╔══════════════════════════════════════════════
+// ║  NAVIGATION
+// ╚══════════════════════════════════════════════
+function nav(viewId) {
+  document.querySelectorAll('.app-view').forEach(v => v.classList.add('hide'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const v = $(`v-${viewId}`);
+  if (v) { v.classList.remove('hide'); v.classList.add('fade'); }
+
+  const nb = $(`nb-${viewId}`);
+  if (nb) nb.classList.add('active');
+
+  const titles = {
+    'dashboard':   'Dashboard', 'pengajuan':   'Buat Pengajuan',
+    'riwayat':     'Rekam Jejak', 'approval':  'Antrean Persetujuan',
+    'db-karyawan': 'Database Karyawan', 'pemanggilan': 'Pemanggilan / SP',
+    'form-builder':'Form Builder', 'broadcast': 'Broadcast Pengumuman',
+    'kendaraan':   'Master Kendaraan', 'inventory':'Master Inventory'
+  };
+  $('pageTitle').textContent = titles[viewId] || 'Portal HRIS';
+
+  if (viewId === 'dashboard')   loadDashboard();
+  if (viewId === 'riwayat')     loadRiwayat();
+  if (viewId === 'approval')    loadApproval();
+  if (viewId === 'db-karyawan') loadKaryawan();
+  if (viewId === 'form-builder') loadFbList();
+  if (viewId === 'kendaraan')   loadKendaraan();
+  if (viewId === 'inventory')   loadInventory();
+  if (viewId === 'pemanggilan') fillPemanggilanDD();
+
+  // Close mobile sidebar
+  if (window.innerWidth < 768) {
+    $('sidebar').classList.remove('open');
+    $('sidebar-overlay').classList.remove('show');
+  }
+}
+
+// ╔══════════════════════════════════════════════
+// ║  DASHBOARD
+// ╚══════════════════════════════════════════════
+async function loadDashboard() {
+  // Cuti bar
+  const sisa  = CU.SisaCuti  || 0;
+  const jatah = CU.JatahTahunan || 0;
+  $('dSisaCuti').textContent = sisa;
+  $('dJatahCuti').textContent = jatah;
+  if (jatah > 0) {
+    const pct = Math.round((sisa / jatah) * 100);
+    setTimeout(() => { $('cutiBar').style.width = pct + '%'; }, 100);
+  }
+
+  const res = await api({ action: 'get_dashboard', user: CU });
+  if (!res.success) return toast(res.message, true);
+
+  // Broadcast
+  const bcEl = $('bcList');
+  if (res.broadcasts && res.broadcasts.length) {
+    bcEl.innerHTML = res.broadcasts.map(b => `
+      <div class="px-6 py-4 hover:bg-gray-50 transition">
+        <div class="flex justify-between items-start gap-2 mb-1">
+          <p class="font-bold text-gray-800 text-sm leading-tight">${b.Judul}</p>
+          <span class="text-[10px] text-gray-400 font-semibold whitespace-nowrap bg-gray-100 px-2 py-0.5 rounded">${new Date(b.Tanggal).toLocaleDateString('id-ID')}</span>
+        </div>
+        <p class="text-xs text-gray-500 leading-relaxed">${b.Isi}</p>
+        ${b.FileUrl ? `<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-blue-600 hover:underline"><i class="fa-solid fa-download"></i>Unduh Lampiran</a>` : ''}
+      </div>`).join('');
+  } else {
+    bcEl.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm"><i class="fa-regular fa-bell-slash text-3xl block mb-2 text-gray-200"></i>Tidak ada pengumuman baru.</div>`;
+  }
+
+  // Riwayat singkat
+  const rwEl = $('dashRiwayat');
+  if (res.riwayat_singkat && res.riwayat_singkat.length) {
+    rwEl.innerHTML = res.riwayat_singkat.map(r => `
+      <div class="px-6 py-3.5 flex items-center justify-between hover:bg-gray-50 transition">
+        <div>
+          <p class="font-bold text-gray-800 text-sm">${r.JenisForm}</p>
+          <p class="text-[10px] font-mono text-gray-400 mt-0.5">${r.ID}</p>
+        </div>
+        ${badge(r.StatusFinal)}
+      </div>`).join('');
+  } else {
+    rwEl.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">Belum ada riwayat pengajuan.</div>`;
+  }
+
+  // Alert kontrak
+  if (res.alertKontrak && res.alertKontrak.length) {
+    const role = (CU.Role || '').toUpperCase();
+    if (role.includes('HRD') || role.includes('HR') || role === 'GENERAL MANAGER') {
+      $('kontrakWidget').classList.remove('hide');
+      $('kontrakCount').textContent = res.alertKontrak.length;
+      $('kontrakBody').innerHTML = res.alertKontrak.map(k => {
+        const cls = k.SisaHari < 0 ? 'text-red-600 font-black' : k.SisaHari <= 7 ? 'text-orange-600 font-bold' : 'text-yellow-600 font-semibold';
+        return `<tr class="hover:bg-orange-50 transition">
+          <td class="px-5 py-3 font-bold text-gray-800">${k.Nama}</td>
+          <td class="px-5 py-3 text-gray-600">${k.Jabatan}</td>
+          <td class="px-5 py-3 text-gray-600">${k.Cabang}</td>
+          <td class="px-5 py-3 text-gray-600">${new Date(k.KontrakHabis).toLocaleDateString('id-ID')}</td>
+          <td class="px-5 py-3 text-right ${cls}">${k.SisaHari < 0 ? 'Lewat ' + Math.abs(k.SisaHari) + ' hari' : k.SisaHari + ' hari'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Banner alert pribadi
+    if (res.alertKontrak.some(k => k.Nama === CU.Nama)) {
+      const mine = res.alertKontrak.find(k => k.Nama === CU.Nama);
+      $('alertKontrak').classList.remove('hide');
+      $('alertKontrakList').innerHTML = `<p>Kontrak Anda akan berakhir pada <strong>${new Date(mine.KontrakHabis).toLocaleDateString('id-ID')}</strong> (${mine.SisaHari > 0 ? mine.SisaHari + ' hari lagi' : 'sudah habis'}). Segera hubungi HRD.</p>`;
+    }
+  }
+
+  // Approval badge
+  const aRes = await api({ action: 'get_approval_list', user: CU });
+  if (aRes.success && aRes.data && aRes.data.length) {
+    $('badgeApproval').textContent = aRes.data.length;
+    $('badgeApproval').classList.remove('hide');
+  }
+}
+
+// ╔══════════════════════════════════════════════
+// ║  PENGAJUAN (FORM DINAMIS)
+// ╚══════════════════════════════════════════════
+async function fetchForms() {
+  const res = await api({ action: 'get_form_configs' });
+  if (!res.success) return;
+  FORMS = res.forms || [];
+
+  const sel = $('selForm');
+  sel.innerHTML = '<option value="">— Pilih Jenis Formulir —</option>';
+  const myRole  = (CU.Role   || '').toUpperCase();
+  const myPosisi = (CU.posisi || '').toUpperCase();
+
+  FORMS.forEach(f => {
+    const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
+    if (allowed === 'ALL' || allowed.includes(myRole) || allowed.includes(myPosisi)) {
+      sel.innerHTML += `<option value="${f.FormID}">${f.NamaForm}</option>`;
+    }
+  });
+}
+
+async function prefetchDropdowns() {
+  const [kr, kd, iv] = await Promise.all([
+    api({ action: 'get_dropdown_karyawan' }),
+    api({ action: 'get_dropdown_kendaraan' }),
+    api({ action: 'get_dropdown_inventory' })
+  ]);
+  if (kr.success) KARY_DD = kr.data || [];
+  if (kd.success) KEND_DD = kd.data || [];
+  if (iv.success) INV_DD  = iv.data || [];
+}
+
+function renderForm() {
+  const fid    = $('selForm').value;
+  const dynF   = $('dynForm');
+  const dynFld = $('dynFields');
+  const kWarn  = $('kasbonWarn');
+
+  dynF.classList.add('hide');
+  kWarn.classList.add('hide');
+  dynFld.innerHTML = '';
+
+  if (!fid) return;
+  const cfg = FORMS.find(f => f.FormID === fid);
+  if (!cfg) return;
+
+  // Validasi kasbon
+  const nm = (cfg.NamaForm || '').toLowerCase();
+  if (nm.includes('kasbon') || nm.includes('cash advance')) {
+    if (!CU.TanggalJoin) { kWarn.classList.remove('hide'); return; }
+    const yrs = (new Date() - new Date(CU.TanggalJoin)) / (1000*60*60*24*365.25);
+    if (yrs < 1) { kWarn.classList.remove('hide'); return; }
+  }
+
+  let fields = [];
+  try { fields = JSON.parse(cfg.FieldsJSON || '[]'); } catch(e) {
+    dynFld.innerHTML = '<div class="col-span-full text-red-500 text-sm font-semibold bg-red-50 p-3 rounded-xl">⚠️ Skema JSON form bermasalah. Hubungi HRD.</div>';
+    dynF.classList.remove('hide'); return;
+  }
+
+  const baseI = 'w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium bg-gray-50';
+
+  fields.forEach(f => {
+    const req  = f.required ? 'required' : '';
+    const star = f.required ? '<span class="text-red-500 ml-0.5">*</span>' : '';
+    const span = (f.type === 'textarea' || f.fullWidth) ? 'sm:col-span-2' : '';
+    let inp = '';
+
+    if (f.type === 'textarea') {
+      inp = `<textarea id="df_${f.name}" rows="3" ${req} placeholder="${f.label}..." class="${baseI} resize-none"></textarea>`;
+    } else if (f.type === 'select') {
+      const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+      inp = `<select id="df_${f.name}" ${req} class="${baseI}"><option value="">— Pilih —</option>${opts}</select>`;
+    } else if (f.type === 'karyawan') {
+      const opts = KARY_DD.map(k => `<option value="${k.nama}">${k.nama} – ${k.jabatan}</option>`).join('');
+      inp = `<select id="df_${f.name}" ${req} class="${baseI}"><option value="">— Pilih Karyawan —</option>${opts}</select>`;
+    } else if (f.type === 'kendaraan') {
+      const opts = KEND_DD.map(k => `<option value="${k.noPolisi}">${k.noPolisi} – ${k.merkTipe} (${k.status})</option>`).join('');
+      inp = `<select id="df_${f.name}" ${req} class="${baseI}"><option value="">— Pilih Kendaraan —</option>${opts}</select>`;
+    } else if (f.type === 'file') {
+      inp = `<input type="file" id="df_${f.name}" ${req} class="${baseI} p-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-corp-l file:text-corp cursor-pointer">`;
+    } else {
+      inp = `<input type="${f.type || 'text'}" id="df_${f.name}" ${req} placeholder="${f.label}..." class="${baseI}">`;
+    }
+
+    dynFld.insertAdjacentHTML('beforeend', `
+      <div class="${span}">
+        <label class="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">${f.label}${star}</label>
+        ${inp}
+      </div>`);
+  });
+
+  dynF.classList.remove('hide');
+}
+
+on('dynForm', 'submit', async e => {
+  e.preventDefault();
+  const fid = $('selForm').value;
+  const cfg = FORMS.find(f => f.FormID === fid);
+  if (!cfg) return;
+
+  let fields = [];
+  try { fields = JSON.parse(cfg.FieldsJSON || '[]'); } catch(e) {}
+
+  let detail = {};
+  let proms  = [];
+
+  for (const f of fields) {
+    const el = $(`df_${f.name}`);
+    if (!el) continue;
+    if (f.type === 'file') {
+      if (el.files.length) {
+        const file = el.files[0];
+        if (file.size > 2*1024*1024) return toast('File terlalu besar (max 2MB)', true);
+        proms.push(b64(file).then(d => detail[f.name] = { name: file.name, data: d }));
       }
-    }
-
-    const res = await fetchAPI({ action: 'submit_pengajuan', user: currentUser, formId: form.FormID, namaForm: form.NamaForm, detail: detail });
-    if (isApiSuccess(res)) {
-      showToast(res.message || 'Pengajuan berhasil dikirim.');
-      getEl('selectJenisForm').value = '';
-      renderDynamicForm();
     } else {
-      showToast(res.message || 'Pengajuan gagal dikirim.', true);
+      detail[f.name] = el.value;
     }
   }
 
-  // ============================================
-  // 8. RIWAYAT & APPROVAL QUEUE
-  // ============================================
-  async function fetchRiwayat() {
-    const res = await fetchAPI({ action: 'get_riwayat', user: currentUser });
-    const body = getEl('listRiwayat');
-    if (isApiSuccess(res) && res.data && res.data.length > 0) {
-      body.innerHTML = res.data.map(r => `
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4"><span class="font-extrabold text-gray-800 block">${r.ID}</span><span class="text-xs text-gray-400">${new Date(r.Tanggal).toLocaleDateString('id-ID')}</span></td>
-          <td class="px-6 py-4 font-semibold">${r.NamaForm}</td>
-          <td class="px-6 py-4 text-sm text-gray-500">${r.PosisiFlow}</td>
-          <td class="px-6 py-4 text-right">${getBadgeHTML(r.StatusFinal)}</td>
-        </tr>`).join('');
+  if (proms.length) { showLoader('Mengunggah file...'); await Promise.all(proms); hideLoader(); }
+
+  const btn = $('btnSubmit');
+  btn.disabled = true;
+  const res = await api({ action: 'submit_pengajuan', user: CU, formId: fid, namaForm: cfg.NamaForm, detail }, 'Mengirim pengajuan...');
+  btn.disabled = false;
+
+  if (res.success) {
+    toast('Pengajuan berhasil dikirim!');
+    $('dynForm').reset();
+    $('selForm').value = '';
+    $('dynForm').classList.add('hide');
+    $('dynFields').innerHTML = '';
+    nav('riwayat');
+  } else {
+    toast(res.message || 'Gagal mengirim', true);
+  }
+});
+
+// ╔══════════════════════════════════════════════
+// ║  RIWAYAT
+// ╚══════════════════════════════════════════════
+async function loadRiwayat() {
+  $('riwayatBody').innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 text-sm"><i class="fa-solid fa-spin fa-spinner text-corp text-2xl block mb-3"></i>Memuat riwayat...</td></tr>`;
+  const res = await api({ action: 'get_riwayat', user: CU });
+  if (!res.success) return toast(res.message, true);
+  CTX = res.data || [];
+  if (!CTX.length) {
+    $('riwayatBody').innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 text-sm"><i class="fa-solid fa-folder-open text-3xl block mb-2 text-gray-200"></i>Belum ada riwayat pengajuan.</td></tr>`;
+    return;
+  }
+  $('riwayatBody').innerHTML = CTX.map(r => `
+    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corp">
+      <td class="px-6 py-4">
+        <p class="font-bold text-gray-800">${r.NamaForm}</p>
+        <p class="text-[10px] font-mono text-gray-400 mt-0.5">${r.ID}</p>
+      </td>
+      <td class="px-6 py-4 text-gray-600 text-xs font-semibold">${new Date(r.Tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td class="px-6 py-4"><span class="text-xs bg-gray-100 text-gray-600 font-semibold px-3 py-1 rounded-lg"><i class="fa-solid fa-location-dot mr-1 text-gray-400"></i>${r.PosisiFlow}</span></td>
+      <td class="px-6 py-4">${badge(r.StatusFinal)}</td>
+      <td class="px-6 py-4 text-center">
+        <button onclick="openDetail('${r.ID}')" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition border border-blue-100">Detail</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ╔══════════════════════════════════════════════
+// ║  APPROVAL
+// ╚══════════════════════════════════════════════
+async function loadApproval() {
+  $('approvalBody').innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 text-sm"><i class="fa-solid fa-spin fa-spinner text-corp text-2xl block mb-3"></i>Memuat antrean...</td></tr>`;
+  const res = await api({ action: 'get_approval_list', user: CU });
+  if (!res.success) return toast(res.message, true);
+  CTX = res.data || [];
+
+  const badge2 = $('badgeApproval');
+  if (CTX.length) { badge2.textContent = CTX.length; badge2.classList.remove('hide'); }
+  else badge2.classList.add('hide');
+
+  if (!CTX.length) {
+    $('approvalBody').innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 text-sm"><div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-clipboard-check text-green-500 text-2xl"></i></div>Antrean kosong. Semua pengajuan sudah diproses!</td></tr>`;
+    return;
+  }
+
+  $('approvalBody').innerHTML = CTX.map(tx => `
+    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corp">
+      <td class="px-6 py-4">
+        <p class="font-bold text-gray-800">${tx.NamaPemohon}</p>
+        <p class="text-[10px] font-mono text-gray-400 mt-0.5">${tx.NIKPemohon}</p>
+      </td>
+      <td class="px-6 py-4 text-xs text-gray-500 font-semibold">${new Date(tx.Tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td class="px-6 py-4 font-bold text-corp text-sm">${tx.NamaForm}</td>
+      <td class="px-6 py-4"><span class="text-[10px] bg-gray-100 text-gray-600 font-bold px-2.5 py-1 rounded-lg">${tx.PosisiFlow}</span></td>
+      <td class="px-6 py-4">
+        <div class="flex items-center justify-center gap-2">
+          <button onclick="openDetail('${tx.ID}')" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition flex items-center justify-center" title="Lihat Detail"><i class="fa-solid fa-eye text-xs"></i></button>
+          <button onclick="quickApprove('${tx.ID}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-xs font-black transition shadow-sm"><i class="fa-solid fa-check mr-1"></i>Setujui</button>
+          <button onclick="openRejectM('${tx.ID}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-black transition shadow-sm"><i class="fa-solid fa-xmark mr-1"></i>Tolak</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openDetail(txId) {
+  const tx = CTX.find(t => t.ID === txId);
+  if (!tx) return;
+
+  $('mDetailId').textContent  = tx.ID;
+  $('mNama').textContent      = (tx.NamaPemohon || '') + (tx.NIKPemohon ? ' (' + tx.NIKPemohon + ')' : '');
+  $('mJenis').textContent     = tx.NamaForm;
+  $('mTgl').textContent       = tx.Tanggal ? new Date(tx.Tanggal).toLocaleString('id-ID') : '-';
+  $('mStatus').innerHTML      = badge(tx.StatusFinal);
+
+  if (tx.StatusFinal === 'REJECTED' && tx.Catatan) {
+    $('mCatatan').textContent = tx.Catatan;
+    $('mCatatanBox').classList.remove('hide');
+  } else {
+    $('mCatatanBox').classList.add('hide');
+  }
+
+  let det = {};
+  try { det = JSON.parse(tx.DetailJSON || '{}'); } catch(e) {}
+  let detHtml = '';
+  for (const k in det) {
+    const lbl = k.replace(/_/g,' ').toUpperCase();
+    if (det[k] && typeof det[k] === 'object' && det[k].data) {
+      detHtml += `<div class="bg-white border border-gray-100 rounded-xl p-3 col-span-full flex justify-between items-center">
+        <span class="text-xs font-black text-gray-500 uppercase tracking-widest"><i class="fa-solid fa-paperclip mr-1"></i>${lbl}</span>
+        <a href="${det[k].data}" target="_blank" class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition border border-blue-100 flex items-center gap-1.5"><i class="fa-solid fa-download"></i>Buka</a>
+      </div>`;
     } else {
-      body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Belum ada riwayat pengajuan.</td></tr>`;
+      detHtml += `<div class="bg-white border border-gray-100 rounded-xl p-3">
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">${lbl}</p>
+        <p class="font-semibold text-gray-800 text-sm whitespace-pre-wrap">${det[k] || '-'}</p>
+      </div>`;
     }
   }
+  $('mDetail2').innerHTML = detHtml || '<p class="text-sm text-gray-400 col-span-full">Tidak ada detail isian.</p>';
 
-  async function fetchApprovalList() {
-    const res = await fetchAPI({ action: 'get_approval_list', user: currentUser });
-    const container = getEl('listApproval');
-    const badge = getEl('badgeApproval');
+  let flows = [], steps = [];
+  try { flows = JSON.parse(tx.ApprovalFlowJson || '[]'); steps = JSON.parse(tx.ApprovalStepsJSON || '[]'); } catch(e) {}
+  $('mFlow').innerHTML = flows.map((r, i) => {
+    const st  = steps[i] || 'PENDING';
+    const cls = st === 'APPROVE' ? 'bg-green-50 border-green-200 text-green-700' :
+                st === 'REJECT'  ? 'bg-red-50 border-red-200 text-red-700' :
+                'bg-gray-50 border-gray-200 text-gray-600';
+    const ic  = st === 'APPROVE' ? 'fa-check text-green-500' :
+                st === 'REJECT'  ? 'fa-xmark text-red-500' : 'fa-clock text-gray-400';
+    return `<div class="flex items-center justify-between p-3 border rounded-xl ${cls}">
+      <span class="font-bold text-sm flex items-center gap-2"><i class="fa-solid ${ic}"></i>${r}</span>
+      <span class="text-[10px] font-black uppercase tracking-widest bg-white px-2 py-0.5 rounded shadow-sm">${st}</span>
+    </div>`;
+  }).join('') || '<p class="text-sm text-gray-400">Data flow tidak tersedia.</p>';
 
-    if (isApiSuccess(res) && res.data && res.data.length > 0) {
-      badge.textContent = res.data.length;
-      badge.classList.remove('hidden-view');
-      container.innerHTML = res.data.map(item => `
-        <div class="p-5 flex flex-wrap items-center justify-between gap-3 hover:bg-gray-50">
-          <div>
-            <p class="font-extrabold text-gray-800 text-sm">${item.NamaForm} <span class="text-gray-400 font-medium">- ${item.NamaPemohon}</span></p>
-            <p class="text-xs text-gray-400 mt-1">${item.ID} &middot; ${item.PosisiFlow}</p>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="quickApprove('${item.ID}','REJECT')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition">Tolak</button>
-            <button onclick="quickApprove('${item.ID}','APPROVE')" class="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition">Setujui</button>
-          </div>
-        </div>`).join('');
-    } else {
-      badge.classList.add('hidden-view');
-      container.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold"><i class="fa-solid fa-circle-check text-3xl mb-3 block text-gray-200"></i>Tidak ada antrean approval saat ini.</div>`;
-    }
+  openM('mDetail');
+}
+
+async function quickApprove(txId) {
+  if (!confirm('Setujui pengajuan ini?')) return;
+  const res = await api({ action: 'process_approval', user: CU, txId, decision: 'APPROVE', alasan: '' }, 'Memproses persetujuan...');
+  if (res.success) { toast('Pengajuan disetujui.'); loadApproval(); } else toast(res.message, true);
+}
+
+function openRejectM(txId) {
+  $('rjctId').value    = txId;
+  $('rjctAlasan').value = '';
+  openM('mReject');
+}
+
+async function submitReject() {
+  const alasan = $('rjctAlasan').value.trim();
+  if (!alasan) return toast('Alasan penolakan wajib diisi!', true);
+  const res = await api({ action: 'process_approval', user: CU, txId: $('rjctId').value, decision: 'REJECT', alasan }, 'Memproses penolakan...');
+  if (res.success) { toast('Pengajuan ditolak.'); closeM('mReject'); loadApproval(); } else toast(res.message, true);
+}
+
+// ╔══════════════════════════════════════════════
+// ║  DATABASE KARYAWAN (HRD)
+// ╚══════════════════════════════════════════════
+async function loadKaryawan() {
+  const grid   = $('karyGrid');
+  grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8"><i class="fa-solid fa-spin fa-spinner text-corp text-2xl"></i></div>';
+  const cabang = $('filterCabang').value;
+  const search = $('searchKary').value.trim();
+
+  const res = await api({ action: 'get_master_karyawan', cabang, search, user: CU });
+  if (!res.success) return toast(res.message, true);
+  const data = res.data || [];
+  $('totalKary').textContent = res.total || data.length;
+
+  if (!data.length) {
+    grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-12 text-sm">Tidak ada data karyawan ditemukan.</div>';
+    return;
   }
 
-  async function quickApprove(txId, decision) {
-    const alasan = decision === 'REJECT' ? prompt('Alasan penolakan:') : null;
-    if (decision === 'REJECT' && !alasan) return;
+  grid.innerHTML = data.map(k => {
+    const nama = k.Nama_Karyawan || '-';
+    const ini  = nama.charAt(0).toUpperCase();
+    const st   = (k['AKTIF/TDK AKTIF'] || '').toUpperCase();
+    const stBadge = st === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500';
+    return `
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 card-hover">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-corp text-white font-black text-lg flex items-center justify-center flex-shrink-0 shadow-md">${ini}</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-gray-900 text-sm leading-tight truncate">${nama}</p>
+          <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider truncate mt-0.5">${k.JABATAN || '-'}</p>
+        </div>
+      </div>
+      <div class="space-y-1.5 text-xs text-gray-600 mb-4">
+        <p><i class="fa-solid fa-id-badge w-4 text-gray-300"></i> ${k.NIK_Karyawan || '-'}</p>
+        <p><i class="fa-solid fa-building w-4 text-gray-300"></i> ${k.DIVISI || '-'}</p>
+        <p><i class="fa-solid fa-location-dot w-4 text-gray-300"></i> ${k.CABANG || '-'}</p>
+        <p><i class="fa-solid fa-calendar w-4 text-gray-300"></i> ${k.Status_Karyawan || k['Status Karyawan'] || '-'}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${stBadge}">${st || '-'}</span>
+        <button onclick="openKaryDetail(${JSON.stringify(k).replace(/"/g,'&quot;')})" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg transition">Detail</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-    const res = await fetchAPI({ action: 'process_approval', user: currentUser, txId: txId, decision: decision, alasan: alasan });
-    if (isApiSuccess(res)) {
-      showToast(res.message || 'Berhasil diproses.');
-      fetchApprovalList();
-    } else {
-      showToast(res.message || 'Gagal memproses persetujuan.', true);
-    }
+function openKaryDetail(k) {
+  $('mKaryTitle').textContent = k.Nama_Karyawan || 'Detail Karyawan';
+  const skip = ['_rowIndex'];
+  const fields = Object.keys(k).filter(kk => !skip.includes(kk) && k[kk] !== '');
+  $('mKaryBody').innerHTML = `
+    <div class="grid grid-cols-2 gap-3">
+      ${fields.map(kk => `
+        <div class="bg-white border border-gray-100 rounded-xl p-3">
+          <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">${kk.replace(/_/g,' ')}</p>
+          <p class="text-sm font-semibold text-gray-800 break-all leading-snug">${k[kk] || '-'}</p>
+        </div>`).join('')}
+    </div>`;
+  openM('mKaryawan');
+}
+
+// ╔══════════════════════════════════════════════
+// ║  PEMANGGILAN / SP
+// ╚══════════════════════════════════════════════
+function fillPemanggilanDD() {
+  const sel = $('pKaryawan');
+  sel.innerHTML = '<option value="">— Pilih Karyawan —</option>';
+  KARY_DD.forEach(k => {
+    sel.innerHTML += `<option value="${k.nama}">${k.nama} – ${k.jabatan}</option>`;
+  });
+}
+
+on('pemanggilanForm', 'submit', async e => {
+  e.preventDefault();
+  const nama = $('pKaryawan').value;
+  if (!nama) return toast('Pilih karyawan terlebih dahulu', true);
+  const res = await api({
+    action:         'send_pemanggilan',
+    user:            CU,
+    namaPemohon:     nama,
+    jenisPeringatan: $('pJenis').value,
+    alasan:          $('pAlasan').value.trim(),
+    tanggalKejadian: $('pTanggal').value,
+    catatanTambahan: $('pCatatan').value.trim()
+  }, 'Mengirim surat...');
+  if (res.success) {
+    toast(res.message || 'Surat berhasil dikirim!');
+    $('pemanggilanForm').reset();
+  } else { toast(res.message, true); }
+});
+
+// ╔══════════════════════════════════════════════
+// ║  FORM BUILDER (HRD)
+// ╚══════════════════════════════════════════════
+function loadFbList() {
+  const ul = $('fbList');
+  if (!FORMS.length) { ul.innerHTML = '<li class="p-5 text-center text-sm text-gray-400">Belum ada form. Klik "+ Form Baru" untuk membuat.</li>'; return; }
+  ul.innerHTML = FORMS.map(f => `
+    <li>
+      <button onclick="loadFbEditor('${f.FormID}')" class="w-full text-left px-5 py-4 hover:bg-corp-l hover:text-corp transition group flex items-center justify-between text-gray-600">
+        <div>
+          <p class="font-bold text-sm group-hover:text-corp">${f.NamaForm}</p>
+          <p class="text-[10px] font-mono text-gray-400 mt-0.5">${f.FormID}</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-xs opacity-30 group-hover:opacity-100"></i>
+      </button>
+    </li>`).join('');
+}
+
+function loadFbEditor(fid) {
+  const cfg = FORMS.find(f => f.FormID === fid);
+  if (!cfg) return;
+  $('fbId').value    = fid;
+  $('fbNama').value  = cfg.NamaForm || '';
+  $('fbRoles').value = cfg.AllowedRoles || 'ALL';
+  try { $('fbFlow').value = JSON.stringify(JSON.parse(cfg.ApprovalFlowJson || '[]')); } catch(e) { $('fbFlow').value = '[]'; }
+  try { $('fbFields').value = JSON.stringify(JSON.parse(cfg.FieldsJSON || '[]'), null, 2); } catch(e) { $('fbFields').value = '[]'; }
+  $('fbEmpty').classList.add('hide');
+  $('fbEditor').classList.remove('hide');
+}
+
+function openNewFormModal() {
+  const id = 'FORM-' + Date.now();
+  $('fbId').value    = id;
+  $('fbNama').value  = '';
+  $('fbRoles').value = 'ALL';
+  $('fbFlow').value  = '["HRD"]';
+  $('fbFields').value = '[\n  {"name":"alasan","label":"Alasan","type":"textarea","required":true}\n]';
+  $('fbEmpty').classList.add('hide');
+  $('fbEditor').classList.remove('hide');
+}
+
+async function saveFbConfig() {
+  const fieldsVal = $('fbFields').value.trim();
+  try { JSON.parse(fieldsVal); } catch(e) { return toast('Struktur JSON Fields tidak valid!', true); }
+
+  let flowArr = [];
+  try { flowArr = JSON.parse($('fbFlow').value); } catch(e) {
+    flowArr = $('fbFlow').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
   }
 
-  // ============================================
-  // 9. AREA HRGA: KONTRAK, PEMANGGILAN, PENCARIAN KARYAWAN
-  // ============================================
-  async function fetchKontrakAlertList() {
-    const res = await fetchAPI({ action: 'get_kontrak_alert_list', user: currentUser });
-    const body = getEl('listKontrak');
-    if (isApiSuccess(res) && res.data && res.data.length > 0) {
-      body.innerHTML = res.data.map(k => `
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4"><span class="font-extrabold text-gray-800 block">${k.Nama}</span><span class="text-xs text-gray-400">${k.NIK}</span></td>
-          <td class="px-6 py-4 text-sm text-gray-500">${k.Divisi || '-'} / ${k.Jabatan || '-'}</td>
-          <td class="px-6 py-4 text-sm">${new Date(k.TanggalHabis).toLocaleDateString('id-ID')}</td>
-          <td class="px-6 py-4 text-right">
-            <span class="px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest ${k.Status === 'EXPIRED' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">${k.SisaHari} HARI</span>
-          </td>
-        </tr>`).join('');
-    } else {
-      body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">Tidak ada kontrak yang mendekati batas waktu.</td></tr>`;
-    }
+  const res = await api({
+    action: 'save_form_config', user: CU,
+    formId:      $('fbId').value,
+    namaForm:    $('fbNama').value.trim(),
+    flowJson:    JSON.stringify(flowArr),
+    allowedRoles: $('fbRoles').value.trim() || 'ALL',
+    fieldsJson:  fieldsVal,
+    needFinance: 'FALSE'
+  }, 'Menyimpan konfigurasi...');
+
+  if (res.success) {
+    toast('Konfigurasi form berhasil disimpan!');
+    await fetchForms();
+    loadFbList();
+  } else { toast(res.message, true); }
+}
+
+async function deleteFbConfig() {
+  const fid = $('fbId').value;
+  if (!fid) return;
+  if (!confirm('Hapus form ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  const res = await api({ action: 'delete_form_config', user: CU, formId: fid }, 'Menghapus form...');
+  if (res.success) {
+    toast('Form berhasil dihapus.');
+    $('fbEditor').classList.add('hide');
+    $('fbEmpty').classList.remove('hide');
+    await fetchForms();
+    loadFbList();
+  } else { toast(res.message, true); }
+}
+
+// ╔══════════════════════════════════════════════
+// ║  BROADCAST
+// ╚══════════════════════════════════════════════
+function toggleBcTarget() {
+  const t = $('bcType').value;
+  const w = $('bcTargetWrap');
+  const l = $('bcTargetLbl');
+  if (t === 'GENERAL') { w.classList.add('hide'); $('bcTarget').removeAttribute('required'); }
+  else {
+    w.classList.remove('hide');
+    $('bcTarget').setAttribute('required','');
+    l.textContent = t === 'DIVISI' ? 'Nama Divisi' : 'NIK Karyawan';
+  }
+}
+
+on('bcForm', 'submit', async e => {
+  e.preventDefault();
+  const fi = $('bcFile');
+  let file64 = null, fileName = null;
+  if (fi.files.length) {
+    if (fi.files[0].size > 2*1024*1024) return toast('File terlalu besar (max 2MB)', true);
+    showLoader('Mengunggah lampiran...');
+    file64   = await b64(fi.files[0]);
+    fileName = fi.files[0].name;
+    hideLoader();
+  }
+  const res = await api({
+    action:      'send_broadcast', user: CU,
+    targetType:  $('bcType').value,
+    targetValue: $('bcType').value === 'GENERAL' ? 'ALL' : $('bcTarget').value.trim(),
+    judul:       $('bcJudul').value.trim(),
+    isi:         $('bcIsi').value.trim(),
+    file:        file64, fileName
+  }, 'Mengirim broadcast...');
+  if (res.success) { toast(res.message || 'Broadcast dikirim!'); $('bcForm').reset(); toggleBcTarget(); }
+  else toast(res.message, true);
+});
+
+// ╔══════════════════════════════════════════════
+// ║  KENDARAAN
+// ╚══════════════════════════════════════════════
+async function loadKendaraan() {
+  $('kendaraanBody').innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm"><i class="fa-solid fa-spin fa-spinner text-corp text-2xl block mb-3"></i>Memuat data...</td></tr>`;
+  const res = await api({ action: 'get_kendaraan' });
+  if (!res.success) return toast(res.message, true);
+  const data = res.data || [];
+
+  if (!data.length) {
+    $('kendaraanBody').innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm">Belum ada data kendaraan.</td></tr>`;
+    return;
   }
 
-  let searchKaryawanTimer = null;
-  function debouncedSearchKaryawan() {
-    clearTimeout(searchKaryawanTimer);
-    searchKaryawanTimer = setTimeout(async () => {
-      const q = getEl('inputSearchKaryawan').value.trim();
-      const resultBox = getEl('resultSearchKaryawan');
-      if (q.length < 2) { resultBox.innerHTML = ''; return; }
+  const stColor = { 'TERSEDIA':'bg-green-100 text-green-700', 'DIGUNAKAN':'bg-blue-100 text-blue-700', 'SERVIS':'bg-yellow-100 text-yellow-700', 'RUSAK':'bg-red-100 text-red-700' };
+  $('kendaraanBody').innerHTML = data.map(k => `
+    <tr class="hover:bg-gray-50 transition">
+      <td class="px-5 py-3.5 font-black text-gray-900">${k['No Polisi'] || '-'}</td>
+      <td class="px-5 py-3.5 font-semibold text-gray-700">${k['Merk/Tipe'] || '-'}</td>
+      <td class="px-5 py-3.5 text-gray-600">${k['Tahun'] || '-'}</td>
+      <td class="px-5 py-3.5"><span class="text-xs font-bold px-2.5 py-1 rounded-lg ${stColor[k['Status']] || 'bg-gray-100 text-gray-600'}">${k['Status'] || '-'}</span></td>
+      <td class="px-5 py-3.5 text-gray-500 text-xs">${k['Keterangan'] || '-'}</td>
+      <td class="px-5 py-3.5 text-center">
+        <div class="flex items-center justify-center gap-2">
+          <button onclick="openKendaraanModal(${JSON.stringify(k).replace(/"/g,'&quot;')})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-xs"></i></button>
+          <button onclick="deleteKendaraan('${k['No Polisi']}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
 
-      const res = await fetchAPI({ action: 'search_karyawan', query: q });
-      if (isApiSuccess(res) && res.data.length > 0) {
-        resultBox.innerHTML = res.data.map(k => `
-          <div class="p-4 bg-gray-50 rounded-xl flex justify-between items-center">
-            <div><p class="font-bold text-gray-800 text-sm">${k.Nama}</p><p class="text-xs text-gray-400">${k.NIK} &middot; ${k.Jabatan || '-'} &middot; ${k.Divisi || '-'}</p></div>
-          </div>`).join('');
-      } else {
-        resultBox.innerHTML = `<p class="text-sm text-gray-400 text-center py-4">Tidak ditemukan.</p>`;
-      }
-    }, 400);
+function openKendaraanModal(k) {
+  $('mKendaraanTitle').textContent = k ? 'Edit Kendaraan' : 'Tambah Kendaraan';
+  $('fNoPolisi').value   = k ? k['No Polisi']  || '' : '';
+  $('fMerkTipe').value   = k ? k['Merk/Tipe']  || '' : '';
+  $('fTahunKend').value  = k ? k['Tahun']       || '' : '';
+  $('fStatusKend').value = k ? k['Status']      || 'TERSEDIA' : 'TERSEDIA';
+  $('fKetKend').value    = k ? k['Keterangan']  || '' : '';
+  openM('mKendaraan');
+}
+
+async function saveKendaraan() {
+  const pol = $('fNoPolisi').value.trim();
+  if (!pol) return toast('No Polisi wajib diisi!', true);
+  const res = await api({
+    action: 'save_kendaraan', user: CU,
+    noPolisi: pol, merkTipe: $('fMerkTipe').value.trim(),
+    tahun: $('fTahunKend').value, status: $('fStatusKend').value,
+    keterangan: $('fKetKend').value.trim()
+  }, 'Menyimpan data...');
+  if (res.success) { toast(res.message); closeM('mKendaraan'); loadKendaraan(); } else toast(res.message, true);
+}
+
+async function deleteKendaraan(pol) {
+  if (!confirm(`Hapus kendaraan ${pol}?`)) return;
+  const res = await api({ action: 'delete_kendaraan', user: CU, noPolisi: pol }, 'Menghapus...');
+  if (res.success) { toast(res.message); loadKendaraan(); } else toast(res.message, true);
+}
+
+// ╔══════════════════════════════════════════════
+// ║  INVENTORY
+// ╚══════════════════════════════════════════════
+async function loadInventory() {
+  $('inventoryBody').innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm"><i class="fa-solid fa-spin fa-spinner text-corp text-2xl block mb-3"></i>Memuat data...</td></tr>`;
+  const res = await api({ action: 'get_inventory' });
+  if (!res.success) return toast(res.message, true);
+  const data = res.data || [];
+
+  if (!data.length) {
+    $('inventoryBody').innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">Belum ada data inventory.</td></tr>`;
+    return;
   }
 
-  let searchPemanggilanTimer = null;
-  function debouncedSearchPemanggilan() {
-    clearTimeout(searchPemanggilanTimer);
-    searchPemanggilanTimer = setTimeout(async () => {
-      const q = getEl('pmgNamaKaryawan').value.trim();
-      const box = getEl('pmgSuggestList');
-      if (q.length < 2) { box.classList.add('hidden-view'); return; }
+  $('inventoryBody').innerHTML = data.map(iv => {
+    const stok = parseInt(iv['Stok']) || 0;
+    const stokC = stok === 0 ? 'text-red-600 font-black' : stok <= 5 ? 'text-orange-600 font-bold' : 'text-gray-800 font-semibold';
+    return `
+    <tr class="hover:bg-gray-50 transition">
+      <td class="px-5 py-3.5 text-xs font-mono text-gray-500">${iv['ID Barang'] || '-'}</td>
+      <td class="px-5 py-3.5 font-bold text-gray-800">${iv['Nama Barang'] || '-'}</td>
+      <td class="px-5 py-3.5 text-gray-600 text-sm">${iv['Kategori'] || '-'}</td>
+      <td class="px-5 py-3.5 text-right ${stokC}">${stok}</td>
+      <td class="px-5 py-3.5 text-gray-500 text-xs">${iv['Satuan'] || '-'}</td>
+      <td class="px-5 py-3.5 text-gray-400 text-xs">${iv['Keterangan'] || '-'}</td>
+      <td class="px-5 py-3.5 text-center">
+        <div class="flex items-center justify-center gap-2">
+          <button onclick="openInventoryModal(${JSON.stringify(iv).replace(/"/g,'&quot;')})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
+          <button onclick="deleteInventory('${iv['ID Barang']}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
 
-      const res = await fetchAPI({ action: 'search_karyawan', query: q });
-      if (isApiSuccess(res) && res.data.length > 0) {
-        box.innerHTML = res.data.map(k => `
-          <button type="button" onclick="selectPemanggilanKaryawan('${k.Nama.replace(/'/g, "\\'")}','${k.NIK}')" class="w-full text-left px-4 py-2.5 hover:bg-corporate-light text-sm border-b border-gray-50 last:border-0">
-            <span class="font-bold text-gray-800 block">${k.Nama}</span><span class="text-xs text-gray-400">${k.NIK} &middot; ${k.Jabatan || '-'}</span>
-          </button>`).join('');
-        box.classList.remove('hidden-view');
-      } else {
-        box.innerHTML = `<p class="px-4 py-3 text-sm text-gray-400">Tidak ditemukan.</p>`;
-        box.classList.remove('hidden-view');
-      }
-    }, 400);
-  }
+function openInventoryModal(iv) {
+  $('mInventoryTitle').textContent = iv ? 'Edit Barang' : 'Tambah Barang';
+  $('fIdBarang').value   = iv ? iv['ID Barang']    || '' : '';
+  $('fNamaBarang').value = iv ? iv['Nama Barang']  || '' : '';
+  $('fKategori').value   = iv ? iv['Kategori']     || '' : '';
+  $('fStok').value       = iv ? iv['Stok']         || '0' : '0';
+  $('fSatuan').value     = iv ? iv['Satuan']       || '' : '';
+  $('fKetInv').value     = iv ? iv['Keterangan']   || '' : '';
+  openM('mInventory');
+}
 
-  function selectPemanggilanKaryawan(nama, nik) {
-    getEl('pmgNamaKaryawan').value = nama;
-    getEl('pmgNIKKaryawan').value = nik;
-    getEl('pmgSuggestList').classList.add('hidden-view');
-  }
+async function saveInventory() {
+  const nama = $('fNamaBarang').value.trim();
+  if (!nama) return toast('Nama Barang wajib diisi!', true);
+  const res = await api({
+    action: 'save_inventory', user: CU,
+    idBarang:   $('fIdBarang').value.trim(),
+    namaBarang: nama, kategori: $('fKategori').value.trim(),
+    stok: $('fStok').value, satuan: $('fSatuan').value.trim(),
+    keterangan: $('fKetInv').value.trim()
+  }, 'Menyimpan data...');
+  if (res.success) { toast(res.message); closeM('mInventory'); loadInventory(); } else toast(res.message, true);
+}
 
-  async function submitPemanggilan() {
-    const namaKaryawan = getEl('pmgNamaKaryawan').value.trim();
-    if (!namaKaryawan) { showToast('Pilih nama karyawan terlebih dahulu.', true); return; }
+async function deleteInventory(id) {
+  if (!confirm(`Hapus barang ${id} dari inventory?`)) return;
+  const res = await api({ action: 'delete_inventory', user: CU, idBarang: id }, 'Menghapus...');
+  if (res.success) { toast(res.message); loadInventory(); } else toast(res.message, true);
+}
 
-    const fileInput = getEl('pmgLampiran');
-    let lampiran = null;
-    if (fileInput.files[0]) {
-      const base64 = await fileToBase64(fileInput.files[0]);
-      lampiran = { name: fileInput.files[0].name, data: base64 };
-    }
+// ╔══════════════════════════════════════════════
+// ║  EXPORT
+// ╚══════════════════════════════════════════════
+async function doExport(type) {
+  const res = await api({ action: 'export_data', exportType: type }, `Mengekspor data ${type}...`);
+  if (res.success && res.csvData) {
+    const blob = new Blob([res.csvData], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = res.filename || `export_${type}.csv`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast(`Data ${type} berhasil diunduh!`);
+  } else { toast(res.message || 'Gagal export', true); }
+}
 
-    const detail = {
-      namaKaryawan: namaKaryawan,
-      nikKaryawan: getEl('pmgNIKKaryawan').value,
-      jenisKasus: getEl('pmgJenisKasus').value,
-      tanggalPanggilan: getEl('pmgTanggal').value,
-      waktuPanggilan: getEl('pmgWaktu').value,
-      tempat: getEl('pmgTempat').value,
-      perihal: getEl('pmgPerihal').value,
-      isiTeguran: getEl('pmgIsiTeguran').value,
-      lampiran: lampiran
-    };
-
-    const res = await fetchAPI({ action: 'submit_pemanggilan', user: currentUser, detail: detail });
-    if (isApiSuccess(res)) {
-      showToast(res.message || 'Surat pemanggilan berhasil dikirim.');
-      ['pmgNamaKaryawan','pmgNIKKaryawan','pmgTanggal','pmgWaktu','pmgTempat','pmgPerihal','pmgIsiTeguran'].forEach(id => getEl(id).value = '');
-      fileInput.value = '';
-    } else {
-      showToast(res.message || 'Gagal mengirim surat pemanggilan.', true);
-    }
-  }
+// Close modals on backdrop click
+document.querySelectorAll('[id^="m"]').forEach(el => {
+  if (!el.id.startsWith('m') || el.tagName !== 'DIV') return;
+  el.addEventListener('click', function(e) {
+    if (e.target === this) closeM(this.id);
+  });
+});
 </script>
 </body>
 </html>
