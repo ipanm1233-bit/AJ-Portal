@@ -446,7 +446,7 @@
                 </div>
 
               <!-- ========================================== -->
-                <!-- VIEW: HRD FORM BUILDER                     -->
+                <!-- VIEW: HRD FORM BUILDER (VISUAL UI)         -->
                 <!-- ========================================== -->
                 <div id="view-hrd-form" class="app-view hidden-view fade-in">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -454,16 +454,17 @@
                         <div class="px-8 py-6 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                             <div>
                                 <h3 class="font-extrabold text-gray-800 text-xl flex items-center"><i class="fa-solid fa-sliders text-corporate mr-3 bg-corporate-light p-2.5 rounded-xl"></i> Master Konfigurasi Form ISO</h3>
-                                <p class="text-sm text-gray-500 mt-2 font-medium">Atur Alur Persetujuan (Approval Flow), Otorisasi Jabatan, dan Field Input Dinamis.</p>
+                                <p class="text-sm text-gray-500 mt-2 font-medium">Buat dan atur formulir dengan antarmuka Visual Drag & Drop.</p>
                             </div>
                         </div>
                         
                         <div class="p-8 flex flex-col lg:flex-row gap-8 bg-gray-50 bg-opacity-50">
-                            <div class="w-full lg:w-1/3 flex flex-col h-[600px]">
+                            <!-- Panel Kiri: Daftar Form -->
+                            <div class="w-full lg:w-1/3 flex flex-col h-[700px]">
                                 <h4 class="font-extrabold text-gray-700 mb-4 text-xs uppercase tracking-widest flex items-center"><i class="fa-solid fa-folder-open mr-2 text-gray-400"></i> Direktori Formulir</h4>
                                 
-                                <button onclick="createNewFormConfig()" class="mb-4 w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3 rounded-xl transition shadow-md flex justify-center items-center">
-                                    <i class="fa-solid fa-plus mr-2"></i> Buat Form Baru
+                                <button onclick="createNewFormConfig()" class="mb-4 w-full bg-corporate hover:bg-corporate-dark text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-center items-center">
+                                    <i class="fa-solid fa-plus mr-2 text-lg"></i> Buat Form Baru
                                 </button>
 
                                 <div class="overflow-y-auto pr-2 bg-white border border-gray-200 rounded-2xl flex-1 shadow-sm custom-scrollbar">
@@ -473,6 +474,7 @@
                                 </div>
                             </div>
 
+                            <!-- Panel Kanan: Visual Editor Konfigurasi -->
                             <div class="w-full lg:w-2/3 flex flex-col">
                                 <h4 class="font-extrabold text-gray-700 mb-4 text-xs uppercase tracking-widest border-b border-gray-200 pb-3" id="hrdFormEditTitle">Editor Konfigurasi</h4>
                                 
@@ -489,34 +491,47 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-2">Kode Form (ID)</label>
-                                            <input type="text" id="cfgFormId" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-bold bg-gray-100 focus:outline-none" readonly placeholder="Auto-Generate">
+                                            <input type="text" id="cfgFormId" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-bold bg-gray-100 focus:outline-none" readonly>
                                         </div>
                                         <div>
                                             <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-2">Nama Pengajuan (ISO)</label>
-                                            <input type="text" id="cfgNamaForm" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-corporate" placeholder="Contoh: Pengajuan Cuti">
+                                            <input type="text" id="cfgNamaForm" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-corporate bg-white shadow-sm" placeholder="Contoh: Pengajuan Cuti">
                                         </div>
                                         
                                         <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-inner">
-                                            <label class="block text-[11px] font-extrabold text-blue-800 uppercase tracking-widest mb-3"><i class="fa-solid fa-route mr-1.5"></i> Approval Flow</label>
+                                            <label class="block text-[11px] font-extrabold text-blue-800 uppercase tracking-widest mb-3"><i class="fa-solid fa-route mr-1.5"></i> Approval Flow (Urutan)</label>
                                             <input type="text" id="cfgFlow" class="w-full px-4 py-2.5 border border-blue-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" placeholder='["ATASAN", "HRD", "GM"]'>
+                                            <p class="text-[10px] text-blue-600 mt-2 font-bold leading-relaxed">Pisahkan dengan koma. Gunakan <code class="bg-white px-1.5 py-0.5 rounded text-corporate">ATASAN</code> untuk routing otomatis.</p>
                                         </div>
 
                                         <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-inner">
-                                            <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-1.5"></i> Otorisasi (Role)</label>
-                                            <input type="text" id="cfgAllowedRoles" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-corporate bg-white" placeholder="ALL atau SALES, SPV">
+                                            <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-1.5"></i> Otorisasi (Role / Jabatan)</label>
+                                            <input type="text" id="cfgAllowedRoles" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-corporate bg-white" placeholder="ALL atau SALES, STAFF">
+                                            <p class="text-[10px] text-gray-500 mt-2 font-bold leading-relaxed">Ketik <code class="bg-white px-1.5 py-0.5 rounded text-corporate border border-gray-200">ALL</code> untuk semua karyawan.</p>
                                         </div>
                                     </div>
                                     
+                                    <!-- VISUAL BUILDER CONTAINER -->
                                     <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-inner">
-                                        <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest mb-3 flex justify-between items-center">
-                                            <span><i class="fa-solid fa-code mr-1.5"></i> Skema Input Fields (JSON Array)</span>
-                                        </label>
-                                        <textarea id="cfgFields" rows="12" class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-corporate bg-white shadow-sm custom-scrollbar" placeholder='[{"name":"tujuan","label":"Tujuan","type":"text"}]'></textarea>
+                                        <div class="flex justify-between items-center mb-4">
+                                            <label class="block text-[11px] font-extrabold text-gray-700 uppercase tracking-widest"><i class="fa-solid fa-table-columns mr-1.5"></i> Susunan Kolom Formulir</label>
+                                            <button type="button" onclick="addBuilderField()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center">
+                                                <i class="fa-solid fa-plus mr-1.5"></i> Tambah Kolom Baru
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- List Drag & Drop Fields -->
+                                        <div id="visualBuilderContainer" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar p-1">
+                                            <!-- Fields akan di-render di sini oleh JavaScript -->
+                                        </div>
+                                        
+                                        <!-- Hidden textarea JSON untuk backend (Murni sistem back-end) -->
+                                        <textarea id="cfgFields" class="hidden"></textarea>
                                     </div>
                                     
                                     <div class="pt-4 flex justify-end border-t border-gray-100">
-                                        <button type="button" onclick="saveFormConfig()" class="bg-corporate hover:bg-corporate-dark text-white px-8 py-3 rounded-xl font-extrabold shadow-md transition flex items-center">
-                                            <i class="fa-solid fa-floppy-disk mr-2.5"></i> Simpan Form
+                                        <button type="button" onclick="saveFormConfig()" class="bg-corporate hover:bg-corporate-dark text-white px-8 py-3.5 rounded-xl font-extrabold shadow-md transition flex items-center transform hover:-translate-y-0.5 text-sm uppercase tracking-wider">
+                                            <i class="fa-solid fa-floppy-disk mr-2.5 text-lg"></i> Simpan Formulir
                                         </button>
                                     </div>
                                 </form>
@@ -528,6 +543,7 @@
                 <!-- ========================================== -->
                 <!-- VIEW: HRD BROADCAST                        -->
                 <!-- ========================================== -->
+                <!-- (Bagian Broadcast tetap sama seperti sebelumnya, biarkan utuh di file HTML Anda) -->
                 <div id="view-hrd-broadcast" class="app-view hidden-view fade-in">
                     <div class="max-w-4xl mx-auto space-y-6">
                         
@@ -1383,14 +1399,17 @@
 
         function createNewFormConfig() {
             getEl('hrdFormEditTitle').innerHTML = `Membuat Master Form Baru`;
-            // Auto-generate ID (Contoh: F-1715421)
             getEl('cfgFormId').value = `F-${new Date().getTime().toString().slice(-7)}`; 
             getEl('cfgNamaForm').value = '';
             getEl('cfgFlow').value = '["ATASAN", "HRD"]';
             getEl('cfgAllowedRoles').value = 'ALL';
             
-            // Template dasar JSON agar HRD tidak bingung
-            getEl('cfgFields').value = `[\n  {\n    "name": "keterangan_singkat",\n    "label": "Keterangan Pengajuan",\n    "type": "text",\n    "required": true\n  }\n]`;
+            // Set Kolom Kosong
+            builderFields = [
+                { name: 'alasan_pengajuan', label: 'Keterangan Pengajuan', type: 'text', required: true }
+            ];
+            
+            renderVisualBuilder();
             
             getEl('hrdEmptyState').classList.add('hidden-view');
             getEl('formHRDConfig').classList.remove('hidden-view');
@@ -1404,29 +1423,129 @@
             getEl('cfgNamaForm').value = conf.NamaForm || '';
             getEl('cfgFlow').value = conf.ApprovalFlowJson ? JSON.parse(conf.ApprovalFlowJson).join(', ') : '';
             getEl('cfgAllowedRoles').value = conf.AllowedRoles || 'ALL';
-            getEl('cfgFields').value = conf.FieldsJSON ? JSON.stringify(JSON.parse(conf.FieldsJSON), null, 4) : '[]';
             
-            getEl('hrdEmptyState').classList.add('hidden-view');
+            try { 
+                builderFields = JSON.parse(conf.FieldsJSON || '[]'); 
+            } catch(e) { builderFields = []; }
+            
+            renderVisualBuilder();
+            
+            getEl('hrdEmptyState').classList.add('hidden-view'); 
             getEl('formHRDConfig').classList.remove('hidden-view');
+        }
+
+        function renderVisualBuilder() {
+            const container = getEl('visualBuilderContainer');
+            container.innerHTML = '';
+            
+            if (builderFields.length === 0) {
+                container.innerHTML = '<div class="text-center p-8 text-gray-400 text-sm font-bold border-2 border-dashed border-gray-300 rounded-xl bg-white"><i class="fa-solid fa-table-columns text-3xl mb-3 text-gray-300 block"></i>Belum ada kolom form. Klik "Tambah Kolom Baru".</div>';
+            }
+
+            builderFields.forEach((fld, idx) => {
+                const isSelect = fld.type === 'select';
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex gap-3 relative group" draggable="true" ondragstart="dragStart(event, ${idx})" ondragover="dragOver(event)" ondrop="drop(event, ${idx})">
+                        
+                        <!-- Drag Handle -->
+                        <div class="flex items-center text-gray-300 hover:text-corporate cursor-grab px-1 transition" title="Tahan dan geser untuk memindahkan">
+                            <i class="fa-solid fa-grip-vertical text-xl"></i>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col md:flex-row gap-4 w-full">
+                            <div class="flex-1">
+                                <label class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Judul Pertanyaan / Kolom</label>
+                                <input type="text" value="${fld.label}" onchange="updateBuilderField(${idx}, 'label', this.value)" class="w-full border-b-2 border-gray-200 px-1 py-1.5 text-sm font-bold text-gray-900 focus:outline-none focus:border-corporate bg-transparent transition" placeholder="Contoh: Nama Lengkap">
+                            </div>
+                            
+                            <div class="w-full md:w-40">
+                                <label class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Tipe Isian</label>
+                                <select onchange="updateBuilderField(${idx}, 'type', this.value)" class="w-full border-b-2 border-gray-200 px-1 py-1.5 text-sm font-bold text-corporate focus:outline-none focus:border-corporate bg-transparent cursor-pointer">
+                                    <option value="text" ${fld.type==='text'?'selected':''}>Teks Pendek</option>
+                                    <option value="textarea" ${fld.type==='textarea'?'selected':''}>Teks Panjang</option>
+                                    <option value="number" ${fld.type==='number'?'selected':''}>Angka / Nominal</option>
+                                    <option value="date" ${fld.type==='date'?'selected':''}>Tanggal (Kalender)</option>
+                                    <option value="select" ${fld.type==='select'?'selected':''}>Pilihan (Dropdown)</option>
+                                    <option value="file" ${fld.type==='file'?'selected':''}>Upload Dokumen</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 mt-3 md:mt-0">
+                                <label class="flex items-center gap-2 cursor-pointer text-[11px] font-extrabold text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+                                    <input type="checkbox" onchange="updateBuilderField(${idx}, 'required', this.checked)" ${fld.required ? 'checked' : ''} class="w-4 h-4 text-corporate focus:ring-corporate rounded cursor-pointer">
+                                    Wajib Diisi
+                                </label>
+                                <button type="button" onclick="removeBuilderField(${idx})" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 w-9 h-9 rounded-lg flex items-center justify-center transition shadow-sm" title="Hapus Kolom"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${isSelect ? `
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 ml-8 mb-2 shadow-inner">
+                        <label class="text-[9px] font-extrabold text-blue-500 uppercase tracking-widest"><i class="fa-solid fa-list-ul mr-1"></i> Daftar Pilihan Dropdown (Pisahkan dengan koma)</label>
+                        <input type="text" value="${(fld.options||[]).join(', ')}" onchange="updateBuilderField(${idx}, 'options', this.value)" class="w-full border-b border-blue-200 px-1 py-1.5 text-xs font-bold text-blue-900 focus:outline-none focus:border-blue-500 bg-transparent placeholder-blue-300" placeholder="Contoh: Pria, Wanita, Tidak Menyebutkan">
+                    </div>
+                    ` : ''}
+                `);
+            });
+            
+            // Sync hasil UI ke textarea tersembunyi untuk dikirim ke Backend
+            getEl('cfgFields').value = JSON.stringify(builderFields, null, 2);
+        }
+
+        function addBuilderField() {
+            builderFields.push({ name: 'kolom_' + new Date().getTime().toString().slice(-5), label: 'Kolom Baru', type: 'text', required: true });
+            renderVisualBuilder();
+        }
+
+        function removeBuilderField(idx) {
+            if(confirm("Apakah Anda yakin ingin menghapus kolom ini dari formulir?")) {
+                builderFields.splice(idx, 1);
+                renderVisualBuilder();
+            }
+        }
+
+        function updateBuilderField(idx, key, value) {
+            if(key === 'options') {
+                builderFields[idx][key] = value.split(',').map(s => s.trim()).filter(s => s);
+            } else if (key === 'label') {
+                builderFields[idx][key] = value;
+                // Auto-generate ID sistem berdasarkan nama label yang diketik HRD
+                builderFields[idx]['name'] = value.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + new Date().getTime().toString().slice(-3);
+            } else {
+                builderFields[idx][key] = value;
+            }
+            renderVisualBuilder();
+        }
+
+        // Drag and Drop State
+        let draggedIdx = null;
+        function dragStart(e, idx) { draggedIdx = idx; e.dataTransfer.effectAllowed = "move"; }
+        function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
+        function drop(e, dropIdx) {
+            e.preventDefault();
+            if(draggedIdx === dropIdx || draggedIdx === null) return;
+            const item = builderFields.splice(draggedIdx, 1)[0];
+            builderFields.splice(dropIdx, 0, item); // Pindah posisi array
+            renderVisualBuilder();
         }
 
         async function saveFormConfig() {
             const id = getEl('cfgFormId').value;
-            const namaForm = getEl('cfgNamaForm').value.trim(); // Ambil nama form baru
+            const namaForm = getEl('cfgNamaForm').value.trim();
             const flowStr = getEl('cfgFlow').value;
             const allowedStr = getEl('cfgAllowedRoles').value;
-            let fieldsJson = getEl('cfgFields').value;
+            let fieldsJson = getEl('cfgFields').value; // Mengambil JSON dari Visual Builder
 
-            if(!namaForm) return showToast("Nama Pengajuan tidak boleh kosong!", true);
+            if(!namaForm) return showToast("Nama Pengajuan (ISO) tidak boleh kosong!", true);
 
             let flowArr = flowStr.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
-            try { JSON.parse(fieldsJson); } catch(e) { return showToast("Struktur JSON Fields error. Cek kembali tanda kutip & koma.", true); }
 
             const payload = { 
                 action: 'save_form_config', 
                 user: currentUser, 
                 formId: id, 
-                namaForm: namaForm, // Kirim nama form ke backend
+                namaForm: namaForm,
                 flowJson: JSON.stringify(flowArr), 
                 allowedRoles: allowedStr, 
                 fieldsJson: fieldsJson, 
@@ -1435,10 +1554,10 @@
             
             const res = await fetchAPI(payload);
             if(isApiSuccess(res)) { 
-                showToast("Master Konfigurasi ISO Form berhasil disimpan!"); 
+                showToast(`Formulir "${namaForm}" berhasil disimpan & di-deploy ke sistem!`); 
                 fetchMasterForms(); 
             } else { 
-                showToast(res.message || "Gagal menyimpan pengaturan", true); 
+                showToast(res.message || "Gagal menyimpan formulir", true); 
             }
         }
 
