@@ -47,8 +47,8 @@
     <!-- ============================================================ -->
     <!-- LOGIN VIEW -->
     <!-- ============================================================ -->
-    <div id="login-view" class="flex items-center justify-center h-screen bg-gray-200 z-50 absolute inset-0">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-corporate fade-in">
+    <div id="login-view" class="flex items-center justify-center h-screen bg-gray-200 z-50 absolute inset-0 p-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-corporate fade-in">
             <div class="text-center mb-8">
                 <div class="w-16 h-16 bg-corporate-light text-corporate rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                     <i class="fa-solid fa-building-user"></i>
@@ -89,10 +89,18 @@
     <!-- ============================================================ -->
     <div id="app-view" class="hidden-view flex h-screen bg-gray-50">
 
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-20">
-            <div class="h-16 flex items-center px-6 bg-corporate text-white shrink-0">
-                <i class="fa-solid fa-layer-group text-xl mr-3"></i>
-                <span class="text-lg font-bold tracking-wider">PORTAL AJ</span>
+        <!-- Backdrop overlay - hanya tampak di mobile saat sidebar terbuka -->
+        <div id="sidebar-backdrop" class="hidden-view fixed inset-0 bg-gray-900 bg-opacity-50 z-30 md:hidden"></div>
+
+        <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shrink-0">
+            <div class="h-16 flex items-center justify-between px-6 bg-corporate text-white shrink-0">
+                <div class="flex items-center overflow-hidden">
+                    <i class="fa-solid fa-layer-group text-xl mr-3 shrink-0"></i>
+                    <span class="text-lg font-bold tracking-wider whitespace-nowrap">PORTAL AJ</span>
+                </div>
+                <button id="btn-close-sidebar" class="md:hidden text-white hover:text-red-200 p-1 shrink-0">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
 
             <div class="flex-1 overflow-y-auto py-6" id="sidebar-menu">
@@ -152,18 +160,23 @@
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
 
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10 shrink-0">
-                <h2 class="text-xl font-bold text-gray-800" id="header-title">Dashboard</h2>
-                <div class="flex items-center space-x-4">
-                    <div class="bg-corporate-light text-corporate px-4 py-1.5 rounded-full text-sm font-bold shadow-sm border border-red-200">
-                        <i class="fa-solid fa-calendar-check mr-1"></i> Sisa Cuti: <span id="ui-cuti" class="text-lg">0</span> Hari
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 z-10 shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button id="btn-toggle-sidebar" class="text-gray-500 hover:text-corporate p-2 -ml-2 shrink-0" title="Tampilkan/Sembunyikan Menu">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <h2 class="text-base md:text-xl font-bold text-gray-800 truncate" id="header-title">Dashboard</h2>
+                </div>
+                <div class="flex items-center space-x-2 md:space-x-4 shrink-0">
+                    <div class="bg-corporate-light text-corporate px-2.5 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold shadow-sm border border-red-200 whitespace-nowrap">
+                        <i class="fa-solid fa-calendar-check md:mr-1"></i><span class="hidden sm:inline"> Sisa Cuti:</span> <span id="ui-cuti" class="text-sm md:text-lg">0</span><span class="hidden sm:inline"> Hari</span>
                     </div>
                 </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-8" id="main-content">
+            <div class="flex-1 overflow-y-auto p-4 md:p-8" id="main-content">
 
                 <!-- ======================== PAGE: DASHBOARD ======================== -->
                 <div id="page-dashboard" class="page-section fade-in">
@@ -406,7 +419,7 @@
     <!-- ============================================================ -->
     <!-- MODAL: TOLAK PENGAJUAN -->
     <!-- ============================================================ -->
-    <div id="modal-reject" class="hidden-view fixed inset-0 bg-gray-900 bg-opacity-60 z-50 flex items-center justify-center fade-in">
+    <div id="modal-reject" class="hidden-view fixed inset-0 bg-gray-900 bg-opacity-60 z-50 flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
             <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Tolak Pengajuan</h3>
             <p class="text-sm text-gray-600 mb-4">Siklus persetujuan sekuensial akan dihentikan dan notifikasi akan dikirim ke pemohon.</p>
@@ -858,6 +871,12 @@
             document.getElementById('menu-hrd').classList.add('hidden-view');
         }
 
+        // ---- Inisialisasi state sidebar sesuai ukuran layar saat ini ----
+        // Penting dipanggil di sini (bukan hanya saat resize) supaya user
+        // yang login langsung dari HP tidak melihat sidebar menutupi
+        // seluruh layar di percobaan pertama sebelum sempat resize apapun.
+        handleViewportResize();
+
         // ---- Load data awal ----
         navigate('dashboard');
         fetchFormConfigs().then(() => {
@@ -881,6 +900,98 @@
         'hrd-broadcast': 'Sistem Broadcast Pengumuman'
     };
 
+    // ============================================================
+    // MODULE: SIDEBAR TOGGLE (Mobile overlay + Desktop collapse)
+    // Perilaku berbeda tergantung lebar layar:
+    //   - Mobile (<768px): sidebar default tersembunyi, toggle
+    //     menampilkan/menyembunyikannya sebagai overlay di atas
+    //     konten (slide-in dari kiri + backdrop gelap).
+    //   - Desktop (>=768px): sidebar default tampil mendampingi
+    //     konten, toggle MENYUSUTKAN lebarnya jadi 0 (collapse)
+    //     supaya konten utama mendapat ruang lebih lega.
+    // Breakpoint 768px sengaja disamakan dengan breakpoint `md:`
+    // Tailwind supaya konsisten dengan kelas-kelas responsive lain.
+    // ============================================================
+    const MOBILE_BREAKPOINT = 768;
+    let isSidebarCollapsedDesktop = false; // hanya relevan saat layar desktop
+
+    function isMobileViewport() {
+        return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+
+    function openSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        if (isMobileViewport()) {
+            sidebar.classList.remove('-translate-x-full');
+            backdrop.classList.remove('hidden-view');
+        } else {
+            sidebar.classList.remove('md:w-0', 'md:opacity-0', 'md:overflow-hidden', 'md:border-r-0');
+            sidebar.classList.add('md:w-64');
+            isSidebarCollapsedDesktop = false;
+        }
+    }
+
+    function closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        if (isMobileViewport()) {
+            sidebar.classList.add('-translate-x-full');
+            backdrop.classList.add('hidden-view');
+        } else {
+            sidebar.classList.remove('md:w-64');
+            sidebar.classList.add('md:w-0', 'md:opacity-0', 'md:overflow-hidden', 'md:border-r-0');
+            isSidebarCollapsedDesktop = true;
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+
+        if (isMobileViewport()) {
+            const isCurrentlyHidden = sidebar.classList.contains('-translate-x-full');
+            if (isCurrentlyHidden) openSidebar(); else closeSidebar();
+        } else {
+            if (isSidebarCollapsedDesktop) openSidebar(); else closeSidebar();
+        }
+    }
+
+    // Di mobile, sidebar harus otomatis tertutup setelah user memilih
+    // sebuah menu - tanpa ini, user harus klik 2x (pilih menu, lalu
+    // tutup sidebar manual) yang terasa janggal di pengalaman mobile.
+    function closeSidebarOnMobileAfterNavigate() {
+        if (isMobileViewport()) closeSidebar();
+    }
+
+    // Jika user resize window (misal rotasi tablet, atau resize browser
+    // desktop melewati breakpoint), reset state transform/width supaya
+    // tidak terjebak di kondisi visual yang salah (contoh: sidebar
+    // collapsed di desktop lalu di-resize ke mobile, harus tetap bisa
+    // dibuka normal sebagai overlay, bukan ikut collapsed).
+    function handleViewportResize() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        if (isMobileViewport()) {
+            sidebar.classList.remove('md:w-0', 'md:opacity-0', 'md:overflow-hidden', 'md:border-r-0', 'md:w-64');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                // sidebar sedang "terbuka" status desktop - pastikan dianggap tertutup saat masuk mode mobile
+                sidebar.classList.add('-translate-x-full');
+            }
+            backdrop.classList.add('hidden-view');
+        } else {
+            backdrop.classList.add('hidden-view');
+            sidebar.classList.remove('-translate-x-full');
+            if (isSidebarCollapsedDesktop) {
+                sidebar.classList.add('md:w-0', 'md:opacity-0', 'md:overflow-hidden', 'md:border-r-0');
+            } else {
+                sidebar.classList.add('md:w-64');
+            }
+        }
+    }
+
     function navigate(pageId) {
         document.querySelectorAll('.page-section').forEach((el) => el.classList.add('hidden-view'));
         const targetPage = document.getElementById('page-' + pageId);
@@ -903,6 +1014,8 @@
         if (pageId === 'approval') fetchDashboardData();
         if (pageId === 'hrd-form-builder') renderFormBuilderList();
         if (pageId === 'hrd-broadcast') fetchBroadcastHistory();
+
+        closeSidebarOnMobileAfterNavigate();
     }
 
     // ============================================================
@@ -917,6 +1030,11 @@
         document.querySelectorAll('.nav-btn').forEach((btn) => {
             btn.addEventListener('click', () => navigate(btn.getAttribute('data-page')));
         });
+
+        document.getElementById('btn-toggle-sidebar').addEventListener('click', toggleSidebar);
+        document.getElementById('btn-close-sidebar').addEventListener('click', closeSidebar);
+        document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+        window.addEventListener('resize', handleViewportResize);
 
         document.getElementById('btn-refresh-approval').addEventListener('click', fetchDashboardData);
 
@@ -937,6 +1055,17 @@
         document.getElementById('broadcast-type').addEventListener('change', toggleBroadcastTargetField);
         document.getElementById('broadcast-form').addEventListener('submit', submitBroadcast);
         document.getElementById('btn-refresh-broadcast-history').addEventListener('click', fetchBroadcastHistory);
+
+        document.getElementById('btn-fb-add-approver').addEventListener('click', addFbApprover);
+        document.getElementById('btn-fb-add-field').addEventListener('click', addFbField);
+        document.getElementById('btn-save-form-builder').addEventListener('click', saveFormBuilder);
+        document.getElementById('btn-cancel-form-builder').addEventListener('click', closeFormBuilderModal);
+        document.getElementById('btn-close-form-builder').addEventListener('click', closeFormBuilderModal);
+        document.getElementById('modal-form-builder').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeFormBuilderModal();
+        });
+
+        document.getElementById('btn-export').addEventListener('click', executeExport);
     }
 
     // ============================================================
