@@ -9,70 +9,44 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script>
 tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        corp:  '#C8102E',
-        corpd: '#a00d24',
-        corpl: '#fde8ec',
-        sb:    '#0f1623',
-        sbl:   '#1a2235'
-      },
-      fontFamily: { sans: ['Inter','sans-serif'] }
-    }
+  theme: { 
+    extend: { 
+      colors: { corp: '#C8102E', corpd: '#a00d24', corpl: '#fde8ec', sb: '#0f1623', sbl: '#1a2235' }, 
+      fontFamily: { sans: ['Inter','sans-serif'] } 
+    } 
   }
 }
 </script>
 <style>
-  *{box-sizing:border-box;}
-  body{font-family:'Inter',sans-serif;overflow:hidden;}
-  .fade{animation:fi .22s ease;}
-  @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-  .hide{display:none!important;}
-  .spin{animation:sp 1s linear infinite;}
-  @keyframes sp{to{transform:rotate(360deg)}}
-  ::-webkit-scrollbar{width:4px;height:4px;}
-  ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px;}
-  .nitem{transition:all .15s;}
-  .nitem.active{background:rgba(200,16,46,.18);color:#C8102E;}
-  .nitem:not(.active):hover{background:rgba(255,255,255,.06);color:#e2e8f0;}
-  .card{transition:box-shadow .2s,transform .2s;}
-  .card:hover{box-shadow:0 8px 28px rgba(0,0,0,.12);transform:translateY(-2px);}
-  .ba{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;}
-  .br{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;}
-  .bp{background:#fef9c3;color:#92400e;border:1px solid #fde68a;}
-  .bcorp{background:#C8102E;color:#fff;transition:background .15s,transform .1s;}
-  .bcorp:hover{background:#a00d24;transform:translateY(-1px);}
-  input,select,textarea{transition:border-color .15s,box-shadow .15s;}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:#C8102E;box-shadow:0 0 0 3px rgba(200,16,46,.1);}
+  *{box-sizing:border-box;} body{font-family:'Inter',sans-serif;overflow:hidden;}
+  .fade{animation:fi .22s ease;} @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .hide{display:none!important;} .spin{animation:sp 1s linear infinite;} @keyframes sp{to{transform:rotate(360deg)}}
+  ::-webkit-scrollbar{width:4px;height:4px;} ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px;}
+  .nitem{transition:all .15s;} .nitem.active{background:rgba(200,16,46,.18);color:#C8102E;} .nitem:not(.active):hover{background:rgba(255,255,255,.06);color:#e2e8f0;}
+  .card{transition:all .2s;} .card:hover{box-shadow:0 8px 28px rgba(0,0,0,.08);transform:translateY(-2px);}
+  .ba{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;} .br{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;} .bp{background:#fef9c3;color:#92400e;border:1px solid #fde68a;}
+  .bcorp{background:#C8102E;color:#fff;transition:all .15s;} .bcorp:hover{background:#a00d24;transform:translateY(-1px);}
+  input,select,textarea{transition:all .15s;} input:focus,select:focus,textarea:focus{outline:none;border-color:#C8102E;box-shadow:0 0 0 3px rgba(200,16,46,.1);}
   #sidebar{transition:transform .25s ease,width .25s ease;}
-  @media(max-width:767px){
-    #sidebar{position:fixed;z-index:50;height:100vh;transform:translateX(-100%);}
-    #sidebar.open{transform:translateX(0);}
-    #sbo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;}
-    #sbo.show{display:block;}
-  }
+  @media(max-width:767px){ #sidebar{position:fixed;z-index:50;height:100vh;transform:translateX(-100%);} #sidebar.open{transform:translateX(0);} #sbo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;} #sbo.show{display:block;} }
   .inp{width:100%;border:1px solid #e2e8f0;border-radius:.75rem;padding:.7rem 1rem;font-size:.875rem;font-weight:500;background:#f8fafc;}
   .lbl{display:block;font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;}
-  table{border-collapse:collapse;}
   th,td{white-space:nowrap;}
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen">
 
-<!-- ▌GLOBAL LOADER -->
+<!-- GLOBAL LOADER -->
 <div id="GLD" class="fixed inset-0 bg-black/60 z-[300] hidden items-center justify-center flex-col backdrop-blur-sm">
   <div class="w-14 h-14 rounded-full border-4 border-slate-500 border-t-corp spin mb-4"></div>
   <p id="GLDM" class="text-white font-bold text-sm tracking-wide">Memproses...</p>
 </div>
 
-<!-- ▌TOAST -->
+<!-- TOAST NOTIFICATIONS & OVERLAY -->
 <div id="TBOX" class="fixed top-4 right-4 z-[400] flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
-
-<!-- ▌MOBILE OVERLAY -->
 <div id="sbo" onclick="sbToggle()"></div>
 
-<!-- ══════════════ LOGIN PAGE ══════════════ -->
+<!-- LOGIN PAGE -->
 <div id="PGlogin" class="fixed inset-0 bg-gradient-to-br from-slate-900 via-sb to-slate-900 flex items-center justify-center z-50">
   <div class="w-full max-w-sm mx-4 fade">
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -85,7 +59,7 @@ tailwind.config = {
       </div>
       <div class="px-8 py-7">
         <div id="TOKENMSG" class="hide mb-5 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 font-semibold text-center">
-          <i class="fa-solid fa-link-simple fa-spin mr-2"></i>Memverifikasi tautan aman...
+          <i class="fa-solid fa-link-simple fa-spin mr-2"></i>Memverifikasi tautan...
         </div>
         <form id="FMLOGIN" class="space-y-4">
           <div>
@@ -105,74 +79,73 @@ tailwind.config = {
           </div>
           <button type="submit" id="BTNLOG" class="bcorp w-full py-3 rounded-xl font-black text-sm mt-1 shadow-md">Masuk ke Portal</button>
         </form>
-        <p class="text-center text-xs text-slate-400 mt-6">© 2026 CV Andela Jaya · Sistem Internal</p>
       </div>
     </div>
   </div>
 </div>
-
-<!-- ══════════════ MAIN APP ══════════════ -->
+<!-- MAIN APP -->
 <div id="PGapp" class="hide w-full h-screen flex overflow-hidden">
-
-  <!-- ▌SIDEBAR -->
+  
+  <!-- SIDEBAR NAVIGASI -->
   <aside id="sidebar" class="w-64 bg-sb flex flex-col flex-shrink-0 shadow-2xl overflow-y-auto z-50">
     <!-- Logo -->
     <div class="flex items-center px-5 py-5 border-b border-white/5 flex-shrink-0">
-      <div class="w-9 h-9 rounded-xl bg-corp flex items-center justify-center mr-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-xl bg-corp flex items-center justify-center mr-3">
         <i class="fa-solid fa-layer-group text-white text-sm"></i>
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-black text-white text-sm truncate">Portal HRIS</p>
         <p class="text-white/35 text-[10px] font-bold tracking-[.2em] uppercase truncate">CV Andela Jaya</p>
       </div>
-      <button onclick="sbToggle()" class="ml-2 text-white/30 hover:text-white md:hidden flex-shrink-0">
+      <button onclick="sbToggle()" class="ml-2 text-white/30 hover:text-white md:hidden">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
     </div>
-    <!-- User pill -->
+    
+    <!-- Profil User Singkat -->
     <div class="px-4 py-3.5 border-b border-white/5 flex-shrink-0">
       <div class="flex items-center gap-3">
-        <div id="SAVATAR" class="w-10 h-10 rounded-xl bg-corp flex items-center justify-center font-black text-white text-base flex-shrink-0">U</div>
+        <div id="SAVATAR" class="w-10 h-10 rounded-xl bg-corp flex items-center justify-center font-black text-white text-base">U</div>
         <div class="min-w-0 flex-1">
-          <p id="SNAMA"  class="text-white text-sm font-bold truncate">-</p>
-          <p id="SROLE"  class="text-corp  text-xs font-semibold truncate">-</p>
-          <p id="SCAB"   class="text-white/35 text-[10px] font-medium truncate uppercase">-</p>
+          <p id="SNAMA" class="text-white text-sm font-bold truncate">-</p>
+          <p id="SROLE" class="text-corp text-xs font-semibold truncate">-</p>
+          <p id="SCAB" class="text-white/35 text-[10px] font-medium truncate uppercase">-</p>
         </div>
       </div>
     </div>
-    <!-- Nav -->
+    
+    <!-- Menu Sidebar Dinamis -->
     <nav class="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto text-white/45">
-
       <p class="px-3 text-[9px] font-black text-white/20 uppercase tracking-[.15em] mb-1.5 mt-1">Area Pribadi</p>
-      <button onclick="nav('dashboard')"  id="NB-dashboard"  class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-chart-pie w-4 text-center"></i>Dashboard</button>
-      <button onclick="nav('pengajuan')"  id="NB-pengajuan"  class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-file-signature w-4 text-center"></i>Buat Pengajuan</button>
-      <button onclick="nav('riwayat')"    id="NB-riwayat"    class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>Rekam Jejak</button>
-
+      <button onclick="nav('dashboard')" id="NB-dashboard" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-chart-pie w-4 text-center"></i>Dashboard</button>
+      <button onclick="nav('pengajuan')" id="NB-pengajuan" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-file-signature w-4 text-center"></i>Buat Pengajuan</button>
+      <button onclick="nav('riwayat')" id="NB-riwayat" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>Rekam Jejak</button>
+      
       <div id="MNUAPPR" class="hide">
-        <p class="px-3 text-[9px] font-black text-white/20 uppercase tracking-[.15em] mb-1.5 mt-3">Manajemen</p>
+        <p class="px-3 text-[9px] font-black text-white/20 uppercase tracking-[.15em] mb-1.5 mt-3">Manajemen Atasan</p>
         <button onclick="nav('approval')" id="NB-approval" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left">
           <i class="fa-solid fa-check-double w-4 text-center"></i>Persetujuan
           <span id="BAPPR" class="hide ml-auto bg-corp text-white text-[10px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center animate-pulse">0</span>
         </button>
       </div>
-
+      
       <div id="MNUHRD" class="hide">
         <p class="px-3 text-[9px] font-black text-white/20 uppercase tracking-[.15em] mb-1.5 mt-3">Area HRD</p>
-        <button onclick="nav('dbkary')"   id="NB-dbkary"   class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-users w-4 text-center"></i>Database Karyawan</button>
-        <button onclick="nav('sp')"       id="NB-sp"       class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-envelope-open-text w-4 text-center"></i>Pemanggilan / SP</button>
+        <button onclick="nav('dbkary')" id="NB-dbkary" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-users w-4 text-center"></i>Database Karyawan</button>
+        <button onclick="nav('sp')" id="NB-sp" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-envelope-open-text w-4 text-center"></i>Pemanggilan / SP</button>
         <button onclick="nav('fbuilder')" id="NB-fbuilder" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-sliders w-4 text-center"></i>Form Builder</button>
-        <button onclick="nav('broadcast')"id="NB-broadcast"class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-bullhorn w-4 text-center"></i>Broadcast</button>
+        <button onclick="nav('broadcast')" id="NB-broadcast" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-bullhorn w-4 text-center"></i>Broadcast</button>
         <button onclick="doExport('PENGAJUAN')" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-file-csv w-4 text-center text-emerald-400"></i>Export Pengajuan</button>
-        <button onclick="doExport('CUTI')"      class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-file-excel w-4 text-center text-emerald-400"></i>Export Cuti</button>
+        <button onclick="doExport('CUTI')" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-file-excel w-4 text-center text-emerald-400"></i>Export Cuti</button>
       </div>
-
+      
       <div id="MNUWHS" class="hide">
         <p class="px-3 text-[9px] font-black text-white/20 uppercase tracking-[.15em] mb-1.5 mt-3">Gudang & Aset</p>
         <button onclick="nav('kendaraan')" id="NB-kendaraan" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-car w-4 text-center"></i>Master Kendaraan</button>
         <button onclick="nav('inventory')" id="NB-inventory" class="nitem w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left"><i class="fa-solid fa-boxes-stacked w-4 text-center"></i>Master Inventory</button>
       </div>
     </nav>
-    <!-- Logout -->
+    
     <div class="p-3 border-t border-white/5 flex-shrink-0">
       <button onclick="doLogout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 text-sm font-semibold transition">
         <i class="fa-solid fa-power-off w-4 text-center"></i>Keluar Sistem
@@ -180,13 +153,12 @@ tailwind.config = {
     </div>
   </aside>
 
-  <!-- ▌CONTENT AREA -->
+  <!-- CONTENT WRAPPER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    <!-- Topbar -->
+    
+    <!-- TOPBAR -->
     <header class="bg-white border-b border-slate-100 h-16 flex items-center px-4 md:px-7 gap-3 flex-shrink-0 shadow-sm z-10">
-      <button onclick="sbToggle()" class="p-2 rounded-lg text-slate-400 hover:text-corp hover:bg-corpl transition">
-        <i class="fa-solid fa-bars text-base"></i>
-      </button>
+      <button onclick="sbToggle()" class="p-2 rounded-lg text-slate-400 hover:text-corp hover:bg-corpl transition"><i class="fa-solid fa-bars text-base"></i></button>
       <h1 id="PTITLE" class="font-black text-slate-800 text-lg truncate">Dashboard</h1>
       <div class="ml-auto flex items-center gap-3 flex-shrink-0">
         <div class="hidden sm:block text-right">
@@ -200,69 +172,66 @@ tailwind.config = {
       </div>
     </header>
 
-    <!-- VIEWS -->
+    <!-- VIEWPORT MAIN CONTENT -->
     <main id="VIEWPORT" class="flex-1 overflow-y-auto p-4 md:p-7 bg-slate-50">
-
-      <!-- ══ DASHBOARD ══ -->
+      
+      <!-- 1. VIEW DASHBOARD -->
       <div id="V-dashboard" class="app-view hide fade max-w-7xl mx-auto space-y-5">
-        <!-- Alert Kontrak Banner -->
+        
+        <!-- Banner Kontrak Pribadi -->
         <div id="ALERT_KB" class="hide bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-5 text-white shadow-lg">
           <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-            </div>
+            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
             <div class="flex-1 min-w-0">
-              <p class="font-black text-sm mb-1">⚠ Peringatan: Kontrak Karyawan Akan Habis</p>
+              <p class="font-black text-sm mb-1">⚠ Peringatan: Kontrak Kerja Akan Berakhir</p>
               <div id="ALERT_KB_LIST" class="text-sm text-white/85 space-y-0.5"></div>
             </div>
           </div>
         </div>
-
-        <!-- Hero Row -->
+        
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <!-- Hero Card -->
+          <!-- Welcome Card -->
           <div class="lg:col-span-2 bg-gradient-to-br from-corp to-corpd rounded-2xl p-7 text-white relative overflow-hidden shadow-xl">
             <div class="absolute -right-8 -bottom-8 w-48 h-48 rounded-full bg-white/5"></div>
-            <div class="absolute right-8 -top-12 w-40 h-40 rounded-full bg-white/4"></div>
             <div class="relative z-10">
               <p class="text-white/55 text-xs font-bold uppercase tracking-widest mb-1">Selamat Datang</p>
               <h2 class="text-3xl font-black mb-1">Halo, <span id="DNAME">User</span>!</h2>
-              <p class="text-white/65 text-sm leading-relaxed mb-5 max-w-md">Portal HRIS & ERP Terpusat CV Andela Jaya. Kelola pengajuan, approval, dan seluruh data operasional dari satu sistem.</p>
-              <div class="flex flex-wrap gap-2 text-xs">
-                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg font-semibold"><i class="fa-solid fa-id-badge mr-1.5 opacity-60"></i>NIK: <span id="DNIK" class="font-black">-</span></span>
-                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg font-semibold"><i class="fa-solid fa-location-dot mr-1.5 opacity-60"></i><span id="DCAB" class="font-black">-</span></span>
-                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg font-semibold"><i class="fa-solid fa-calendar-check mr-1.5 opacity-60"></i>Join: <span id="DJOIN" class="font-black">-</span></span>
-                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg font-semibold"><i class="fa-solid fa-briefcase mr-1.5 opacity-60"></i><span id="DMAS" class="font-black">-</span></span>
+              <p class="text-white/65 text-sm mt-1 max-w-md">Portal HRIS & ERP Internal CV Andela Jaya.</p>
+              <div class="flex flex-wrap gap-2 text-xs mt-5">
+                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-id-badge mr-1.5 opacity-60"></i>NIK: <span id="DNIK">-</span></span>
+                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-location-dot mr-1.5 opacity-60"></i><span id="DCAB">-</span></span>
+                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-calendar-check mr-1.5 opacity-60"></i>Join: <span id="DJOIN">-</span></span>
+                <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-briefcase mr-1.5 opacity-60"></i><span id="DMAS">-</span></span>
               </div>
             </div>
           </div>
           <!-- Cuti Card -->
           <div class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm border-t-4 border-blue-500 card">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sisa Kuota Cuti</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sisa Kuota Cuti Tahunan</p>
             <div id="DSISA" class="text-6xl font-black text-slate-800 my-2">-</div>
-            <p class="text-sm text-slate-400 font-medium">dari <span id="DJATAH" class="font-bold text-slate-600">-</span> hari jatah tahunan</p>
+            <p class="text-sm text-slate-400 font-medium">dari <span id="DJATAH" class="font-bold text-slate-600">-</span> hari jatah</p>
             <div class="mt-4 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
               <div id="CUTIBAR" class="h-full bg-blue-500 rounded-full transition-all duration-700" style="width:0%"></div>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wide"><i class="fa-solid fa-rotate mr-1 text-blue-400"></i>Real-time dari Master Karyawan</p>
           </div>
         </div>
-
-        <!-- Broadcast + Riwayat -->
+        
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Broadcast Mini List -->
           <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-corpl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-bullhorn text-corp text-sm"></i></div>
+              <div class="w-8 h-8 rounded-xl bg-corpl flex items-center justify-center"><i class="fa-solid fa-bullhorn text-corp text-sm"></i></div>
               <h3 class="font-black text-slate-800 text-sm">Pengumuman Terbaru</h3>
             </div>
             <div id="DBC" class="divide-y divide-slate-50 max-h-72 overflow-y-auto">
               <p class="p-6 text-center text-slate-400 text-sm">Memuat...</p>
             </div>
           </div>
+          <!-- Riwayat Mini List -->
           <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i></div>
+                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i></div>
                 <h3 class="font-black text-slate-800 text-sm">Pengajuan Terakhir</h3>
               </div>
               <button onclick="nav('riwayat')" class="text-xs font-bold text-blue-600 hover:underline">Lihat semua →</button>
@@ -272,37 +241,39 @@ tailwind.config = {
             </div>
           </div>
         </div>
-
-        <!-- Widget Kontrak (HRD) -->
-        <div id="WGT_KB" class="hide bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        
+        <!-- Widget Kontrak HRD & Penilaian -->
+        <div id="WGT_KB" class="hide bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden border-t-4 border-t-orange-500">
           <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-file-contract text-orange-600 text-sm"></i></div>
-            <h3 class="font-black text-slate-800 text-sm">Kontrak Akan / Sudah Habis</h3>
+            <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center"><i class="fa-solid fa-file-contract text-orange-600 text-sm"></i></div>
+            <h3 class="font-black text-slate-800 text-sm">Daftar Kontrak Berakhir (≤ 30 Hari)</h3>
             <span id="WGT_KB_N" class="ml-auto bg-orange-100 text-orange-700 text-xs font-black px-2.5 py-0.5 rounded-full">0</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
-              <thead><tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th class="px-5 py-3 text-left">Karyawan</th>
-                <th class="px-5 py-3 text-left">Jabatan</th>
-                <th class="px-5 py-3 text-left">Cabang</th>
-                <th class="px-5 py-3 text-left">Kontrak Habis</th>
-                <th class="px-5 py-3 text-right">Sisa Hari</th>
-              </tr></thead>
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-5 py-3 text-left">Karyawan</th>
+                  <th class="px-5 py-3 text-left">Jabatan/Cabang</th>
+                  <th class="px-5 py-3 text-left">Tanggal Habis</th>
+                  <th class="px-5 py-3 text-right">Sisa Waktu</th>
+                  <th class="px-5 py-3 text-center">Tindakan</th>
+                </tr>
+              </thead>
               <tbody id="WGT_KB_BODY" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <!-- ══ BUAT PENGAJUAN ══ -->
       <div id="V-pengajuan" class="app-view hide fade max-w-3xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-slate-50 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-xl bg-corpl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-file-signature text-corp"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-corpl flex items-center justify-center">
+              <i class="fa-solid fa-file-signature text-corp"></i>
+            </div>
             <div>
-              <h2 class="font-black text-slate-800">Formulir Pengajuan</h2>
-              <p class="text-xs text-slate-500 font-medium mt-0.5">Pilih jenis form, isi data, dan kirim untuk diproses melalui jalur approval.</p>
+              <h2 class="font-black text-slate-800">Formulir Pengajuan Resmi</h2>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Pilih borang, lengkapi data, dan kirim untuk persetujuan.</p>
             </div>
           </div>
           <div class="p-7 space-y-6">
@@ -312,15 +283,18 @@ tailwind.config = {
                 <option value="">— Memuat form... —</option>
               </select>
             </div>
-            <!-- Kasbon warning -->
+            
             <div id="KBWARN" class="hide bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p class="font-bold text-amber-800 text-sm flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i>Akses Ditolak</p>
-              <p class="text-amber-700 text-xs mt-1.5 leading-relaxed">Pengajuan <strong>Cash Advance / Kasbon</strong> hanya tersedia untuk karyawan dengan masa kerja <strong>minimal 1 tahun</strong>. Masa kerja Anda belum memenuhi syarat.</p>
+              <p class="font-bold text-amber-800 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i>Akses Ditolak
+              </p>
+              <p class="text-amber-700 text-xs mt-1.5">Pengajuan <strong>Cash Advance / Kasbon</strong> hanya dibuka untuk masa kerja minimal 1 tahun.</p>
             </div>
+            
             <form id="DYNFORM" class="hide space-y-5">
               <div id="DYNFIELDS" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
               <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onclick="nav('dashboard')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">Batal</button>
+                <button type="button" onclick="nav('dashboard')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">Batal</button>
                 <button type="submit" id="BTNSUBMIT" class="bcorp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
                   <i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan
                 </button>
@@ -330,66 +304,72 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ RIWAYAT ══ -->
       <div id="V-riwayat" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-clock-rotate-left text-blue-600"></i></div>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+              </div>
               <h2 class="font-black text-slate-800">Rekam Jejak Pengajuan</h2>
             </div>
             <button onclick="loadRiwayat()" class="sm:ml-auto flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 transition">
-              <i class="fa-solid fa-rotate-right"></i>Refresh
+              <i class="fa-solid fa-rotate-right"></i>Segarkan Data
             </button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
-              <thead><tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th class="px-6 py-3 text-left">Formulir</th>
-                <th class="px-6 py-3 text-left">Tanggal Submit</th>
-                <th class="px-6 py-3 text-left">Posisi Approval</th>
-                <th class="px-6 py-3 text-left">Status</th>
-                <th class="px-6 py-3 text-center">Aksi</th>
-              </tr></thead>
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-6 py-3 text-left">Jenis Form</th>
+                  <th class="px-6 py-3 text-left">Tanggal</th>
+                  <th class="px-6 py-3 text-left">Posisi Pengesahan</th>
+                  <th class="px-6 py-3 text-left">Status</th>
+                  <th class="px-6 py-3 text-center">Aksi</th>
+                </tr>
+              </thead>
               <tbody id="RWYTBODY" class="divide-y divide-slate-50 text-slate-700"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ══ APPROVAL ══ -->
       <div id="V-approval" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden border-t-4 border-t-corp">
           <div class="px-7 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-corpl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-list-check text-corp"></i></div>
+              <div class="w-9 h-9 rounded-xl bg-corpl flex items-center justify-center">
+                <i class="fa-solid fa-list-check text-corp"></i>
+              </div>
               <h2 class="font-black text-slate-800">Antrean Persetujuan</h2>
             </div>
             <button onclick="loadApproval()" class="sm:ml-auto flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100 transition">
-              <i class="fa-solid fa-rotate-right"></i>Segarkan
+              <i class="fa-solid fa-rotate-right"></i>Refresh
             </button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
-              <thead><tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th class="px-6 py-3 text-left">Pemohon</th>
-                <th class="px-6 py-3 text-left">Tgl Submit</th>
-                <th class="px-6 py-3 text-left">Jenis Form</th>
-                <th class="px-6 py-3 text-left">Step</th>
-                <th class="px-6 py-3 text-center">Keputusan</th>
-              </tr></thead>
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-6 py-3 text-left">Pemohon</th>
+                  <th class="px-6 py-3 text-left">Tanggal Masuk</th>
+                  <th class="px-6 py-3 text-left">Jenis Form</th>
+                  <th class="px-6 py-3 text-left">Tahap Semasa</th>
+                  <th class="px-6 py-3 text-center">Keputusan</th>
+                </tr>
+              </thead>
               <tbody id="APPRBODY" class="divide-y divide-slate-50 text-slate-700"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ══ DATABASE KARYAWAN ══ -->
+      <!-- 5. DATABASE KARYAWAN -->
       <div id="V-dbkary" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div>
-            <h2 class="font-black text-slate-800">Database Karyawan</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Total: <span id="TOTALKARY" class="font-bold text-corp">0</span> karyawan aktif</p>
+            <h2 class="font-black text-slate-800">Database Manajemen Karyawan</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Total: <span id="TOTALKARY" class="font-bold text-corp">0</span> orang aktif</p>
           </div>
           <div class="sm:ml-auto flex flex-wrap items-center gap-2">
             <select id="FILTCAB" onchange="loadKaryawan()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold bg-slate-50">
@@ -399,124 +379,141 @@ tailwind.config = {
             </select>
             <div class="relative">
               <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input id="SEARCHKARY" type="text" placeholder="Cari nama / NIK / jabatan..." oninput="loadKaryawan()" class="inp pl-8 pr-3 py-2 w-52 text-xs">
+              <input id="SEARCHKARY" type="text" placeholder="Cari nama/NIK..." oninput="loadKaryawan()" class="inp pl-8 pr-3 py-2 w-52 text-xs">
             </div>
           </div>
         </div>
         <div id="KARYGRID" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
       </div>
 
-      <!-- ══ PEMANGGILAN / SP ══ -->
+      <!-- 6. PEMANGGILAN / SP -->
       <div id="V-sp" class="app-view hide fade max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-red-50 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-envelope-open-text text-red-600"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-envelope-open-text text-red-600"></i>
+            </div>
             <div>
-              <h2 class="font-black text-slate-800">Surat Pemanggilan / SP Karyawan</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Email HTML profesional akan dikirim otomatis ke karyawan yang dipilih beserta salinan ke HRD.</p>
+              <h2 class="font-black text-slate-800">Surat Pemanggilan Resmi & SP</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Kirim peringatan disiplin terintegrasi dengan email karyawan.</p>
             </div>
           </div>
           <form id="FMSP" class="p-7 space-y-5">
             <div>
-              <label class="lbl">Nama Karyawan <span class="text-red-500">*</span></label>
-              <select id="SPKARY" class="inp">
-                <option value="">— Pilih Karyawan —</option>
+              <label class="lbl">Pilih Karyawan <span class="text-red-500">*</span></label>
+              <select id="SPKARY" class="inp" required>
+                <option value="">— Memuat data karyawan —</option>
               </select>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label class="lbl">Jenis Peringatan <span class="text-red-500">*</span></label>
+                <label class="lbl">Jenis Surat <span class="text-red-500">*</span></label>
                 <select id="SPJENIS" class="inp">
-                  <option>Surat Panggilan</option>
+                  <option>Surat Panggilan Klarifikasi</option>
                   <option>SP 1 (Surat Peringatan Pertama)</option>
                   <option>SP 2 (Surat Peringatan Kedua)</option>
                   <option>SP 3 (Surat Peringatan Ketiga)</option>
-                  <option>Surat PHK</option>
+                  <option>Surat Pemutusan Hubungan Kerja (PHK)</option>
                 </select>
               </div>
               <div>
                 <label class="lbl">Tanggal Kejadian</label>
-                <input id="SPTGL" type="date" class="inp">
+                <input id="SPTGL" type="date" class="inp" required>
               </div>
             </div>
             <div>
-              <label class="lbl">Alasan / Uraian Pelanggaran <span class="text-red-500">*</span></label>
-              <textarea id="SPALASAN" rows="4" required placeholder="Uraikan secara jelas alasan atau pelanggaran yang dilakukan karyawan..." class="inp resize-none"></textarea>
+              <label class="lbl">Uraian Alasan / Pelanggaran <span class="text-red-500">*</span></label>
+              <textarea id="SPALASAN" rows="4" required class="inp resize-none" placeholder="Deskripsikan kronologi kejadian..."></textarea>
             </div>
             <div>
               <label class="lbl">Catatan Tambahan (Opsional)</label>
-              <textarea id="SPCATAT" rows="2" placeholder="Catatan atau instruksi lebih lanjut..." class="inp resize-none"></textarea>
+              <textarea id="SPCATAT" rows="2" class="inp resize-none" placeholder="Instruksi lebih lanjut..."></textarea>
             </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button type="button" onclick="nav('dashboard')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">Batal</button>
-              <button type="submit" class="bcorp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i>Kirim Surat Sekarang</button>
+              <button type="submit" class="bcorp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i>Proses & Kirim
+              </button>
             </div>
           </form>
         </div>
       </div>
 
-      <!-- ══ FORM BUILDER ══ -->
+      <!-- 7. FORM BUILDER -->
       <div id="V-fbuilder" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-corpl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-sliders text-corp"></i></div>
+              <div class="w-9 h-9 rounded-xl bg-corpl flex items-center justify-center">
+                <i class="fa-solid fa-sliders text-corp"></i>
+              </div>
               <div>
-                <h2 class="font-black text-slate-800">Master Konfigurasi Form ISO</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Kelola approval flow, otorisasi role, dan skema field form dinamis.</p>
+                <h2 class="font-black text-slate-800">Visual Form Builder</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Membangun skema input form tanpa JSON.</p>
               </div>
             </div>
-            <button onclick="openNewForm()" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2 flex-shrink-0"><i class="fa-solid fa-plus"></i>Form Baru</button>
+            <button onclick="openNewForm()" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow">
+              <i class="fa-solid fa-plus mr-1"></i>Form Baru
+            </button>
           </div>
-          <div class="flex flex-col lg:flex-row" style="height:600px;">
-            <!-- List -->
+          <div class="flex flex-col lg:flex-row" style="height:620px;">
             <div class="w-full lg:w-1/3 border-r border-slate-100 overflow-y-auto flex-shrink-0">
               <ul id="FBLIST" class="divide-y divide-slate-50">
                 <li class="p-5 text-center text-sm text-slate-400">Memuat form...</li>
               </ul>
             </div>
-            <!-- Editor -->
-            <div class="flex-1 p-7 overflow-y-auto">
+            <div class="flex-1 p-7 overflow-y-auto bg-slate-50/50">
               <div id="FBEMPTY" class="h-full flex flex-col items-center justify-center text-slate-300">
-                <i class="fa-solid fa-hand-pointer text-5xl mb-3"></i>
-                <p class="font-bold text-slate-400 text-sm">Pilih form dari kiri untuk mengedit</p>
+                <i class="fa-solid fa-square-plus text-5xl mb-3 text-slate-200"></i>
+                <p class="font-bold text-slate-400 text-sm">Pilih form atau klik 'Form Baru'</p>
               </div>
               <div id="FBEDIT" class="hide space-y-5">
                 <input type="hidden" id="FBID">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div><label class="lbl">Nama Form</label><input id="FBNAMA" type="text" class="inp" placeholder="Permohonan Cuti Tahunan"></div>
-                  <div><label class="lbl">Otorisasi Role (ALL / SALES,SPV)</label><input id="FBROLES" type="text" class="inp" placeholder="ALL"></div>
+                  <div>
+                    <label class="lbl">Nama Form</label>
+                    <input id="FBNAMA" type="text" class="inp" placeholder="Contoh: Form Klaim">
+                  </div>
+                  <div>
+                    <label class="lbl">Hak Akses Role</label>
+                    <input id="FBROLES" type="text" class="inp" placeholder="ALL">
+                  </div>
                 </div>
                 <div>
-                  <label class="lbl">Approval Flow (JSON Array)</label>
-                  <input id="FBFLOW" type="text" class="inp font-mono text-xs" placeholder='["SPV","HRD","GM"]'>
-                  <p class="text-xs text-slate-400 mt-1.5">Gunakan <code class="bg-slate-100 px-1 rounded font-bold">ATASAN</code> untuk auto-routing ke atasan pemohon.</p>
+                  <label class="lbl">Jalur Kelulusan (JSON Array)</label>
+                  <input id="FBFLOW" type="text" class="inp font-mono text-xs" placeholder='["SPV","HRD"]'>
                 </div>
-                <div>
-                  <label class="lbl">Skema Fields (JSON Array)</label>
-                  <textarea id="FBFIELDS" rows="10" class="inp font-mono text-xs resize-none" placeholder='[{"name":"alasan","label":"Alasan","type":"textarea","required":true}]'></textarea>
-                  <p class="text-xs text-slate-400 mt-1.5">
-                    Type tersedia: <code class="bg-slate-100 px-1 rounded">text</code> <code class="bg-slate-100 px-1 rounded">textarea</code> <code class="bg-slate-100 px-1 rounded">date</code> <code class="bg-slate-100 px-1 rounded">number</code> <code class="bg-slate-100 px-1 rounded">select</code> <code class="bg-slate-100 px-1 rounded">file</code> <code class="bg-slate-100 px-1 rounded">karyawan</code> <code class="bg-slate-100 px-1 rounded">kendaraan</code> <code class="bg-slate-100 px-1 rounded">inventory</code>
-                  </p>
+                <div class="border border-slate-200 rounded-2xl p-5 bg-white space-y-4">
+                  <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-xs font-black text-slate-500 uppercase">Struktur Input</span>
+                    <button type="button" onclick="addFieldToBuilder()" class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-xl font-bold hover:bg-slate-800 transition">
+                      + Tambah Field
+                    </button>
+                  </div>
+                  <div id="VISUAL_BUILDER_CONTAINER" class="space-y-2 max-h-72 overflow-y-auto p-1"></div>
+                  <textarea id="FBFIELDS" class="hide"></textarea>
                 </div>
                 <div class="flex justify-between items-center pt-4 border-t border-slate-100">
-                  <button onclick="deleteForm()" class="px-4 py-2 text-xs font-bold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition flex items-center gap-2"><i class="fa-solid fa-trash"></i>Hapus Form</button>
-                  <button onclick="saveForm()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i>Simpan Konfigurasi</button>
+                  <button onclick="deleteForm()" class="px-4 py-2 text-xs font-bold text-red-500 border border-red-200 rounded-xl hover:bg-red-50">
+                    <i class="fa-solid fa-trash mr-1"></i>Hapus Form
+                  </button>
+                  <button onclick="saveForm()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i>Simpan Konfigurasi
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- ══ BROADCAST ══ -->
+      <!-- 8. BROADCAST -->
       <div id="V-broadcast" class="app-view hide fade max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="px-7 py-5 border-b border-slate-100 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-bullhorn text-blue-600"></i></div>
+          <div class="px-7 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-bullhorn text-blue-600"></i>
+            </div>
             <div>
               <h2 class="font-black text-slate-800">Broadcast Pengumuman</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Kirim pengumuman atau memo massal langsung via email ke seluruh atau sebagian karyawan.</p>
             </div>
           </div>
           <form id="FMBC" class="p-7 space-y-5">
@@ -525,945 +522,602 @@ tailwind.config = {
                 <label class="lbl">Target Penerima</label>
                 <select id="BCTYPE" onchange="bcToggleTarget()" class="inp">
                   <option value="GENERAL">Semua Karyawan</option>
-                  <option value="DIVISI">Spesifik Divisi / Posisi</option>
-                  <option value="NIK">Spesifik Karyawan (NIK)</option>
+                  <option value="DIVISI">Spesifik Divisi</option>
+                  <option value="NIK">Spesifik Karyawan (Pilih Nama)</option>
                 </select>
               </div>
               <div id="BCTARGETWRAP" class="hide">
                 <label id="BCTARGETLBL" class="lbl">Nilai Target</label>
-                <input id="BCTARGET" type="text" class="inp" placeholder="SALES / 1062503910">
+                <div id="BC_INPUT_CONTAINER"></div>
               </div>
             </div>
-            <div><label class="lbl">Judul Pengumuman <span class="text-red-500">*</span></label><input id="BCJUDUL" type="text" required class="inp" placeholder="Judul singkat dan jelas"></div>
-            <div><label class="lbl">Isi Pesan <span class="text-red-500">*</span></label><textarea id="BCISI" rows="5" required class="inp resize-none" placeholder="Detail pengumuman, instruksi, atau informasi penting..."></textarea></div>
             <div>
-              <label class="lbl">Lampiran (Opsional, maks 2MB)</label>
-              <input id="BCFILE" type="file" class="inp p-2 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-corpl file:text-corp cursor-pointer">
+              <label class="lbl">Judul Pengumuman <span class="text-red-500">*</span></label>
+              <input id="BCJUDUL" type="text" required class="inp">
+            </div>
+            <div>
+              <label class="lbl">Isi Pengumuman <span class="text-red-500">*</span></label>
+              <textarea id="BCISI" rows="6" required class="inp resize-none"></textarea>
+            </div>
+            <div>
+              <label class="lbl">Lampiran Berkas (Maks 2MB)</label>
+              <input id="BCFILE" type="file" class="inp p-2 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer">
             </div>
             <div class="flex justify-end pt-4 border-t border-slate-100">
-              <button type="submit" class="bcorp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i>Kirim Broadcast</button>
+              <button type="submit" class="bcorp px-7 py-2.5 rounded-xl text-sm font-black shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i>Siarkan Memo
+              </button>
             </div>
           </form>
         </div>
       </div>
 
-      <!-- ══ KENDARAAN ══ -->
+      <!-- 9. KENDARAAN -->
       <div id="V-kendaraan" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex items-center justify-between">
-          <h2 class="font-black text-slate-800">Master Kendaraan</h2>
-          <button onclick="openKendM(null)" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i>Tambah Kendaraan</button>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead><tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th class="px-5 py-3 text-left">No Polisi</th><th class="px-5 py-3 text-left">Merk / Tipe</th><th class="px-5 py-3 text-left">Tahun</th><th class="px-5 py-3 text-left">Status</th><th class="px-5 py-3 text-left">Keterangan</th><th class="px-5 py-3 text-center">Aksi</th>
-              </tr></thead>
-              <tbody id="KENDBODY" class="divide-y divide-slate-50"></tbody>
-            </table>
+          <div>
+            <h2 class="font-black text-slate-800">Master Armada & Log Kendaraan</h2>
           </div>
+          <button onclick="openKendM(null)" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i>Tambah Kendaraan
+          </button>
         </div>
+        <div id="KENDARAAN_GRID" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
       </div>
 
-      <!-- ══ INVENTORY ══ -->
+      <!-- 10. INVENTORY -->
       <div id="V-inventory" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex items-center justify-between">
-          <h2 class="font-black text-slate-800">Master Inventory</h2>
-          <button onclick="openInvM(null)" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i>Tambah Barang</button>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead><tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th class="px-5 py-3 text-left">ID Barang</th><th class="px-5 py-3 text-left">Nama Barang</th><th class="px-5 py-3 text-left">Kategori</th><th class="px-5 py-3 text-right">Stok</th><th class="px-5 py-3 text-left">Satuan</th><th class="px-5 py-3 text-left">Keterangan</th><th class="px-5 py-3 text-center">Aksi</th>
-              </tr></thead>
-              <tbody id="INVBODY" class="divide-y divide-slate-50"></tbody>
-            </table>
+          <div>
+            <h2 class="font-black text-slate-800">Master Inventaris & ATK</h2>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openStockOpname()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+              <i class="fa-solid fa-clipboard-list"></i>Stock Opname
+            </button>
+            <button onclick="openInvM(null)" class="bcorp px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
+              <i class="fa-solid fa-plus"></i>Barang Baru
+            </button>
           </div>
         </div>
+        <div id="INVENTORY_GRID" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
       </div>
-
     </main>
   </div>
 </div>
 
-<!-- ══════════════ MODALS ══════════════ -->
+<!-- ================= MODALS ================= -->
 
-<!-- Modal: Detail Pengajuan / Riwayat -->
 <div id="MDETAIL" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col fade">
     <div class="px-7 py-5 border-b border-slate-100 flex items-start justify-between flex-shrink-0">
-      <div><h3 class="font-black text-slate-800">Detail Pengajuan</h3><p id="MDET_ID" class="text-xs font-mono text-slate-400 mt-0.5"></p></div>
-      <button onclick="closeM('MDETAIL')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 flex-shrink-0 ml-3"><i class="fa-solid fa-xmark text-sm"></i></button>
+      <div>
+        <h3 class="font-black text-slate-800">Detail Pengajuan</h3>
+        <p id="MDET_ID" class="text-xs font-mono text-slate-400 mt-0.5"></p>
+      </div>
+      <button onclick="closeM('MDETAIL')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
     <div class="overflow-y-auto flex-1 p-7 space-y-5 bg-slate-50">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="bg-white rounded-xl p-3 border border-slate-100"><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Pemohon</p><p id="MDET_NAMA" class="font-bold text-slate-800 text-sm mt-1 leading-snug"></p></div>
-        <div class="bg-white rounded-xl p-3 border border-slate-100"><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Form</p><p id="MDET_FORM" class="font-bold text-corp text-sm mt-1 leading-snug"></p></div>
-        <div class="bg-white rounded-xl p-3 border border-slate-100"><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Tanggal</p><p id="MDET_TGL" class="font-bold text-slate-800 text-sm mt-1"></p></div>
-        <div class="bg-white rounded-xl p-3 border border-slate-100"><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Status</p><div id="MDET_ST" class="mt-1"></div></div>
+        <div class="bg-white rounded-xl p-3 border border-slate-100">
+          <p class="text-[10px] text-slate-400 font-black uppercase">Pemohon</p>
+          <p id="MDET_NAMA" class="font-bold text-slate-800 text-sm mt-1"></p>
+        </div>
+        <div class="bg-white rounded-xl p-3 border border-slate-100">
+          <p class="text-[10px] text-slate-400 font-black uppercase">Form</p>
+          <p id="MDET_FORM" class="font-bold text-corp text-sm mt-1"></p>
+        </div>
+        <div class="bg-white rounded-xl p-3 border border-slate-100">
+          <p class="text-[10px] text-slate-400 font-black uppercase">Tanggal</p>
+          <p id="MDET_TGL" class="font-bold text-slate-800 text-sm mt-1"></p>
+        </div>
+        <div class="bg-white rounded-xl p-3 border border-slate-100">
+          <p class="text-[10px] text-slate-400 font-black uppercase">Status</p>
+          <div id="MDET_ST" class="mt-1"></div>
+        </div>
       </div>
       <div id="MDET_CATBOX" class="hide bg-red-50 border border-red-200 rounded-xl p-4">
-        <p class="text-xs font-black text-red-700 uppercase tracking-widest mb-1">Catatan Penolakan</p>
-        <p id="MDET_CAT" class="text-sm text-red-700 font-medium leading-relaxed"></p>
+        <p class="text-xs font-black text-red-700 uppercase mb-1">Catatan Penolakan</p>
+        <p id="MDET_CAT" class="text-sm text-red-700 font-medium"></p>
       </div>
       <div>
-        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Detail Isian Form</p>
+        <p class="text-xs font-black text-slate-400 uppercase mb-3">Isian Form</p>
         <div id="MDET_FIELDS" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
       </div>
       <div>
-        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Jalur Persetujuan</p>
+        <p class="text-xs font-black text-slate-400 uppercase mb-3">Jalur Persetujuan</p>
         <div id="MDET_FLOW" class="space-y-2"></div>
       </div>
     </div>
     <div class="px-7 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
-      <button onclick="closeM('MDETAIL')" class="px-6 py-2.5 bg-slate-100 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-200 transition">Tutup</button>
+      <button onclick="closeM('MDETAIL')" class="px-6 py-2.5 bg-slate-100 rounded-xl text-sm font-bold">Tutup</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Reject -->
 <div id="MREJECT" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade">
     <div class="bg-red-600 px-6 py-5 flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><i class="fa-solid fa-xmark text-white text-lg"></i></div>
+      <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-white"></i>
+      </div>
       <h3 class="font-black text-white">Konfirmasi Penolakan</h3>
     </div>
     <div class="p-6 space-y-4">
       <input type="hidden" id="RJCTID">
-      <p class="text-sm text-slate-600 font-medium leading-relaxed">Pengajuan akan ditolak dan seluruh siklus approval dihentikan. Status berubah menjadi <strong class="text-red-600">REJECTED</strong>.</p>
+      <p class="text-sm text-slate-600">Siklus pengesahan akan dihentikan.</p>
       <div>
         <label class="lbl">Alasan Penolakan <span class="text-red-500">*</span></label>
-        <textarea id="RJCTALASAN" rows="4" class="inp resize-none" placeholder="Jelaskan alasan penolakan secara spesifik..."></textarea>
+        <textarea id="RJCTALASAN" rows="3" class="inp resize-none"></textarea>
       </div>
     </div>
     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-      <button onclick="closeM('MREJECT')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">Batal</button>
-      <button onclick="submitReject()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl text-sm font-black hover:bg-red-700 transition flex items-center gap-2"><i class="fa-solid fa-xmark"></i>Tolak Pengajuan</button>
+      <button onclick="closeM('MREJECT')" class="px-5 py-2.5 border rounded-xl text-sm font-bold">Batal</button>
+      <button onclick="submitReject()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl text-sm font-black">Tolak Pengajuan</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Detail Karyawan -->
 <div id="MKARY" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col fade">
     <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-      <h3 id="MKARY_TITLE" class="font-black text-slate-800">Detail Karyawan</h3>
-      <button onclick="closeM('MKARY')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+      <h3 id="MKARY_TITLE" class="font-black text-slate-800">Edit Profil</h3>
+      <button onclick="closeM('MKARY')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
     <div id="MKARY_BODY" class="overflow-y-auto flex-1 p-7 bg-slate-50"></div>
-    <div class="px-7 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
-      <button onclick="closeM('MKARY')" class="px-5 py-2.5 bg-slate-100 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-200 transition">Tutup</button>
-    </div>
   </div>
 </div>
 
-<!-- Modal: Kendaraan Form -->
 <div id="MKEND" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade">
     <div class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-      <h3 id="MKEND_T" class="font-black text-slate-800">Tambah Kendaraan</h3>
-      <button onclick="closeM('MKEND')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+      <h3 id="MKEND_T" class="font-black text-slate-800">Form Kendaraan</h3>
+      <button onclick="closeM('MKEND')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
     <div class="p-6 space-y-4">
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="lbl">No Polisi <span class="text-red-500">*</span></label><input id="KF_POL" type="text" class="inp" placeholder="B 1234 XY"></div>
-        <div><label class="lbl">Tahun</label><input id="KF_THN" type="number" class="inp" placeholder="2022"></div>
+        <div><label class="lbl">No Polisi</label><input id="KF_POL" type="text" class="inp"></div>
+        <div><label class="lbl">Tahun</label><input id="KF_THN" type="number" class="inp"></div>
       </div>
-      <div><label class="lbl">Merk / Tipe</label><input id="KF_MERK" type="text" class="inp" placeholder="Toyota Avanza 1.5"></div>
+      <div><label class="lbl">Merk / Tipe</label><input id="KF_MERK" type="text" class="inp"></div>
       <div>
         <label class="lbl">Status</label>
-        <select id="KF_ST" class="inp"><option>TERSEDIA</option><option>DIGUNAKAN</option><option>SERVIS</option><option>RUSAK</option></select>
+        <select id="KF_ST" class="inp">
+          <option>TERSEDIA</option><option>DIGUNAKAN</option><option>SERVIS</option><option>RUSAK</option>
+        </select>
       </div>
-      <div><label class="lbl">Keterangan</label><input id="KF_KET" type="text" class="inp" placeholder="Opsional"></div>
+      <div><label class="lbl">Keterangan</label><input id="KF_KET" type="text" class="inp"></div>
     </div>
     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-      <button onclick="closeM('MKEND')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">Batal</button>
-      <button onclick="saveKend()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i>Simpan</button>
+      <button onclick="closeM('MKEND')" class="px-5 py-2.5 border rounded-xl text-sm font-bold">Batal</button>
+      <button onclick="saveKend()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow">Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Inventory Form -->
+<div id="MKEND_LOG" class="fixed inset-0 z-[105] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col fade max-h-[85vh]">
+    <div class="px-6 py-5 bg-slate-900 text-white flex items-center justify-between">
+      <div>
+        <h3 class="font-black text-base" id="LOG_KEND_TITLE">Log Kendaraan</h3>
+        <p id="LOG_KEND_SUB" class="text-xs text-slate-400"></p>
+      </div>
+      <button onclick="closeM('MKEND_LOG')" class="text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="MKEND_LOG_BODY" class="p-6 overflow-y-auto space-y-4 flex-1 bg-slate-50"></div>
+  </div>
+</div>
 <div id="MINV" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade">
     <div class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-      <h3 id="MINV_T" class="font-black text-slate-800">Tambah Barang</h3>
-      <button onclick="closeM('MINV')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+      <h3 id="MINV_T" class="font-black text-slate-800">Form Barang</h3>
+      <button onclick="closeM('MINV')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
     <div class="p-6 space-y-4">
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="lbl">ID Barang</label><input id="IF_ID" type="text" class="inp" placeholder="Auto-generate"></div>
-        <div><label class="lbl">Kategori</label><input id="IF_KAT" type="text" class="inp" placeholder="ATK / Elektronik"></div>
+        <div><label class="lbl">ID Barang</label><input id="IF_ID" type="text" class="inp" readonly placeholder="Auto-generate"></div>
+        <div><label class="lbl">Kategori</label><input id="IF_KAT" type="text" class="inp"></div>
       </div>
-      <div><label class="lbl">Nama Barang <span class="text-red-500">*</span></label><input id="IF_NAMA" type="text" class="inp" placeholder="Nama barang atau aset"></div>
+      <div><label class="lbl">Nama Barang <span class="text-red-500">*</span></label><input id="IF_NAMA" type="text" class="inp"></div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="lbl">Stok</label><input id="IF_STOK" type="number" min="0" class="inp" placeholder="0"></div>
-        <div><label class="lbl">Satuan</label><input id="IF_SAT" type="text" class="inp" placeholder="pcs / unit / rim"></div>
+        <div><label class="lbl">Stok</label><input id="IF_STOK" type="number" class="inp"></div>
+        <div><label class="lbl">Satuan</label><input id="IF_SAT" type="text" class="inp"></div>
       </div>
-      <div><label class="lbl">Keterangan</label><input id="IF_KET" type="text" class="inp" placeholder="Opsional"></div>
+      <div><label class="lbl">Keterangan</label><input id="IF_KET" type="text" class="inp"></div>
     </div>
     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-      <button onclick="closeM('MINV')" class="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">Batal</button>
-      <button onclick="saveInv()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i>Simpan</button>
+      <button onclick="closeM('MINV')" class="px-5 py-2.5 border rounded-xl text-sm font-bold">Batal</button>
+      <button onclick="saveInv()" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow">Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ SCRIPT ══════════════ -->
+<div id="MINV_ACTION" class="fixed inset-0 z-[105] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col fade">
+    <div class="px-6 py-5 bg-slate-900 text-white flex items-center justify-between">
+      <div>
+        <h3 class="font-black text-base" id="ACTION_INV_TITLE">Pengambilan Inventaris</h3>
+        <p id="ACTION_INV_SUB" class="text-xs text-slate-400"></p>
+      </div>
+      <button onclick="closeM('MINV_ACTION')" class="text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="MINV_ACTION_BODY" class="p-6 space-y-4 bg-slate-50"></div>
+  </div>
+</div>
+
+<div id="MPENILAIAN" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col fade">
+    <div class="px-6 py-5 bg-corp text-white flex items-center justify-between">
+      <div><h3 class="font-black text-base">Evaluasi Kontrak Pekerja</h3></div>
+      <button onclick="closeM('MPENILAIAN')" class="text-white/70 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <form id="FMPENILAIAN_SUBMIT" onsubmit="submitPenilaianKontrak(event)" class="p-6 space-y-4 bg-slate-50">
+      <input type="hidden" id="PK_NAMA">
+      <div><label class="lbl">Nama Pekerja</label><input type="text" id="PK_NAMA_DISP" class="inp bg-slate-100 font-bold" readonly></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="lbl">Skor Kinerja (1-100)</label><input type="number" id="PK_SKOR" min="1" max="100" required class="inp"></div>
+        <div>
+          <label class="lbl">Rekomendasi Lanjutan</label>
+          <select id="PK_REKOMENDASI" class="inp">
+            <option>PERPANJANG KONTRAK</option><option>ANGKAT KARYAWAN TETAP</option><option>PHK</option>
+          </select>
+        </div>
+      </div>
+      <div><label class="lbl">Catatan Evaluasi & Konseling</label><textarea id="PK_CATATAN" rows="3" required class="inp resize-none"></textarea></div>
+      <div class="pt-4 border-t flex justify-end gap-2">
+        <button type="button" onclick="closeM('MPENILAIAN')" class="px-4 py-2 border rounded-xl text-xs font-bold text-slate-700">Batal</button>
+        <button type="submit" class="bcorp px-5 py-2 rounded-xl text-xs font-black shadow">Simpan & Notifikasi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= SCRIPT LOGIK ================= -->
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────
-const API = 'https://script.google.com/macros/s/AKfycbzb5-4nk0c1O8_HJcqCCKQ9Yre-Rky6uRzmrnmZcaZMwVDUhajoZ-AgsfDE-Zr1MCBULw/exec';
+// PASTIKAN MENGGANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA YANG BARU
+const API = 'https://script.google.com/macros/s/AKfycbxq2pf7CkP8SRMFkbp4GZSlxe7IIYfyPi1vmxOxwyy_W3EktipPowW469frtz4S9Hvx/exec';
 
-// ─── STATE ───────────────────────────────────────────────────
-let CU      = null;   // current user
-let FORMS   = [];     // form configs
-let CTX     = [];     // current view data (riwayat / approval)
-let DD_KARY = [];     // dropdown karyawan
-let DD_KEND = [];     // dropdown kendaraan
-let DD_INV  = [];     // dropdown inventory
-
-// ─── UTILS ───────────────────────────────────────────────────
-const $  = id => document.getElementById(id);
-const on = (id, ev, fn) => $(id) && $(id).addEventListener(ev, fn);
+let CU = null; let FORMS = []; let CTX = []; let DD_KARY = []; let DD_KEND = []; let DD_INV = []; let currentVisualFields = [];
+const $ = id => document.getElementById(id); const on = (id, ev, fn) => $(id) && $(id).addEventListener(ev, fn);
 
 function showL(msg='Memproses...') { $('GLDM').textContent=msg; $('GLD').classList.remove('hidden'); $('GLD').classList.add('flex'); }
 function hideL() { $('GLD').classList.add('hidden'); $('GLD').classList.remove('flex'); }
-
-function toast(msg, isErr=false) {
-  const el  = document.createElement('div');
-  const col  = isErr ? 'bg-red-600' : 'bg-emerald-600';
-  const icon = isErr ? 'fa-circle-exclamation' : 'fa-circle-check';
-  el.className = `${col} text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 pointer-events-auto fade border border-white/20`;
-  el.innerHTML = `<i class="fa-solid ${icon} flex-shrink-0"></i><span>${msg}</span>`;
-  $('TBOX').appendChild(el);
-  setTimeout(() => { el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),320); }, 4200);
+function toast(msg, isErr=false) { 
+  const el=document.createElement('div'); const col=isErr?'bg-red-600':'bg-emerald-600'; 
+  el.className=`${col} text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 pointer-events-auto fade border border-white/20`; 
+  el.innerHTML=`<i class="fa-solid ${isErr?'fa-circle-exclamation':'fa-circle-check'}"></i><span>${msg}</span>`; 
+  $('TBOX').appendChild(el); 
+  setTimeout(()=>{el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),320);}, 4200); 
 }
 
-function openM(id) { const el=$(id); if(!el) return; el.classList.remove('hidden'); el.classList.add('flex'); }
-function closeM(id){ const el=$(id); if(!el) return; el.classList.add('hidden'); el.classList.remove('flex'); }
-
-function sbToggle() {
-  const sb = $('sidebar'), ov = $('sbo');
-  if (window.innerWidth < 768) { sb.classList.toggle('open'); ov.classList.toggle('show'); }
-  else { sb.style.width = (sb.offsetWidth < 50 ? '16rem' : '0px'); }
+function openM(id) { const el=$(id); if(el){ el.classList.remove('hidden'); el.classList.add('flex'); } }
+function closeM(id) { const el=$(id); if(el){ el.classList.add('hidden'); el.classList.remove('flex'); } }
+function sbToggle() { 
+  const sb=$('sidebar'), ov=$('sbo'); 
+  if(window.innerWidth<768){sb.classList.toggle('open'); ov.classList.toggle('show');} 
+  else {sb.style.width=(sb.offsetWidth<50?'16rem':'0px');} 
 }
-
-function togglePw() {
-  const f=$('LP'), i=$('PWICO');
-  f.type = f.type==='password' ? 'text' : 'password';
-  i.className = f.type==='password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
-}
-
+function togglePw() { const f=$('LP'), i=$('PWICO'); f.type=f.type==='password'?'text':'password'; i.className=f.type==='password'?'fa-solid fa-eye':'fa-solid fa-eye-slash'; }
 const b64 = f => new Promise((res,rej)=>{ if(!f) return res(null); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
 
-function badge(st) {
-  const s=(st||'').toUpperCase();
-  if(s==='APPROVED FINAL') return `<span class="ba text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-check mr-1"></i>Approved</span>`;
-  if(s==='REJECTED')       return `<span class="br text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i>Rejected</span>`;
-  return `<span class="bp text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i>Proses</span>`;
+function badge(st) { 
+  const s=(st||'').toUpperCase(); 
+  if(s==='APPROVED FINAL') return `<span class="ba text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-check mr-1"></i>Approved</span>`; 
+  if(s==='REJECTED') return `<span class="br text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i>Rejected</span>`; 
+  return `<span class="bp text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wide"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i>Proses</span>`; 
+}
+function fmtDate(d) { if(!d) return '-'; try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d.toString(); } }
+
+async function api(payload, msg=null) { 
+  try { 
+    if(msg) showL(msg); else showL(); 
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); 
+    return await r.json(); 
+  } catch(e) { return {success:false, message:'Koneksi gagal: '+e.message}; } finally { hideL(); } 
 }
 
-function fmtDate(d, opts={day:'numeric',month:'short',year:'numeric'}) {
-  if(!d) return '-';
-  try { return new Date(d).toLocaleDateString('id-ID',opts); } catch(e){ return d.toString(); }
-}
-
-// ─── API CALL ─────────────────────────────────────────────────
-async function api(payload, msg=null) {
-  try {
-    if(msg) showL(msg); else showL();
-    const r = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-    return await r.json();
-  } catch(e) {
-    console.error(e);
-    return { success:false, message:'Koneksi gagal: '+e.message };
-  } finally { hideL(); }
-}
-
-// ─── INIT ─────────────────────────────────────────────────────
 window.onload = async () => {
   $('TDATE').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-
-  // Cek token URL
-  const params = new URLSearchParams(location.search);
-  const token  = params.get('token');
+  const params = new URLSearchParams(location.search); const token = params.get('token');
   if (token) {
-    $('FMLOGIN').classList.add('hide');
-    $('TOKENMSG').classList.remove('hide');
+    $('FMLOGIN').classList.add('hide'); $('TOKENMSG').classList.remove('hide');
     const res = await api({action:'login_token', token});
-    if (res.success && res.user) {
-      CU = res.user;
-      localStorage.setItem('hris_u', JSON.stringify(CU));
-      history.replaceState({}, '', location.pathname);
-      toast('Login via link berhasil. Halo, '+CU.Nama+'!');
-      bootApp();
-    } else {
-      toast(res.message || 'Token tidak valid.', true);
-      $('FMLOGIN').classList.remove('hide');
-      $('TOKENMSG').classList.add('hide');
-    }
+    if (res.success && res.user) { CU=res.user; localStorage.setItem('hris_u', JSON.stringify(CU)); history.replaceState({}, '', location.pathname); bootApp(); } 
+    else { toast(res.message, true); $('FMLOGIN').classList.remove('hide'); $('TOKENMSG').classList.add('hide'); }
     return;
   }
-
-  // Cek session tersimpan
-  const saved = localStorage.getItem('hris_u');
-  if (saved) { try { CU=JSON.parse(saved); bootApp(); return; } catch(e){} }
+  const saved = localStorage.getItem('hris_u'); if (saved) { try { CU=JSON.parse(saved); bootApp(); return; } catch(e){} }
   showLogin();
 };
 
 function showLogin() { $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide'); }
-
-on('FMLOGIN','submit', async e => {
-  e.preventDefault();
-  const btn=$('BTNLOG'); btn.textContent='Memverifikasi...'; btn.disabled=true;
-  const res = await api({action:'login', username:$('LU').value.trim(), password:$('LP').value});
-  if (res.success && res.user) {
-    CU = res.user;
-    localStorage.setItem('hris_u', JSON.stringify(CU));
-    toast('Selamat datang, '+CU.Nama+'!');
-    bootApp();
-  } else {
-    toast(res.message || 'Username / Password salah.', true);
-  }
-  btn.textContent='Masuk ke Portal'; btn.disabled=false;
+on('FMLOGIN','submit', async e => { 
+  e.preventDefault(); const btn=$('BTNLOG'); btn.textContent='Memverifikasi...'; btn.disabled=true; 
+  const res=await api({action:'login', username:$('LU').value.trim(), password:$('LP').value}); 
+  if(res.success && res.user) { CU=res.user; localStorage.setItem('hris_u', JSON.stringify(CU)); bootApp(); } 
+  else { toast(res.message, true); } 
+  btn.textContent='Masuk ke Portal'; btn.disabled=false; 
 });
+function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar sistem.'); }
 
-function doLogout() {
-  localStorage.removeItem('hris_u');
-  CU=null; FORMS=[]; CTX=[];
-  $('PGapp').classList.add('hide');
-  $('PGlogin').classList.remove('hide');
-  $('LU').value=''; $('LP').value='';
-  toast('Berhasil keluar dari sistem.');
-}
-
-// ─── BOOT APP ─────────────────────────────────────────────────
+// --- RBAC & BOOT ---
 function bootApp() {
-  $('PGlogin').classList.add('hide');
-  $('PGapp').classList.remove('hide');
+  $('PGlogin').classList.add('hide'); $('PGapp').classList.remove('hide');
+  $('SAVATAR').textContent=(CU.Nama||'U').charAt(0).toUpperCase(); $('SNAMA').textContent=CU.Nama||'-'; $('SROLE').textContent=CU.Role||'-'; $('SCAB').textContent=CU.Cabang||'-'; $('TNIKV').textContent=CU.NIK||'-'; $('TNIK').classList.remove('hidden');
+  $('DNAME').textContent=(CU.Nama||'').split(' ')[0]; $('DNIK').textContent=CU.NIK; $('DCAB').textContent=CU.Cabang; $('DJOIN').textContent=fmtDate(CU.TanggalJoin); $('DMAS').textContent=CU.MasaKerja;
 
-  // Sidebar info
-  $('SAVATAR').textContent = (CU.Nama||'U').charAt(0).toUpperCase();
-  $('SNAMA').textContent   = CU.Nama   || CU.username || '-';
-  $('SROLE').textContent   = CU.Role   || '-';
-  $('SCAB').textContent    = CU.Cabang || CU.posisi   || '-';
-  $('TNIKV').textContent   = CU.NIK    || '-';
-  $('TNIK').classList.remove('hidden');
+  const role=(CU.Role||'').toUpperCase().trim(); const pos=(CU.posisi||'').toUpperCase().trim();
+  const isHRD=role==='HRD'||role==='MANAGER HRD'||pos.includes('HRD');
+  const isFinance=role==='FINANCE'||role==='ACCOUNTING';
+  const hasBawahan=['SPV','SUPERVISOR','MANAGER','GENERAL MANAGER','DIREKTUR','CHIEF'].some(r=>role.includes(r)||pos.includes(r));
+  const isWHS=['WAREHOUSE','GUDANG','INVENTORY','GENERAL AFFAIR','GA'].some(r=>role.includes(r)||pos.includes(r));
 
-  // Dashboard hero
-  $('DNAME').textContent = (CU.Nama||'').split(' ')[0] || 'User';
-  $('DNIK').textContent  = CU.NIK      || '-';
-  $('DCAB').textContent  = CU.Cabang   || '-';
-  $('DJOIN').textContent = fmtDate(CU.TanggalJoin);
-  $('DMAS').textContent  = CU.MasaKerja || '-';
+  if(isHRD||isFinance||hasBawahan) $('MNUAPPR').classList.remove('hide');
+  if(isHRD) { $('MNUHRD').classList.remove('hide'); $('WGT_KB').classList.remove('hide'); }
+  if(isHRD||isWHS) $('MNUWHS').classList.remove('hide');
 
-  // RBAC menu
-  const role = (CU.Role   || '').toUpperCase();
-  const pos  = (CU.posisi || '').toUpperCase();
-  const isApprover = ['SPV','GM','GENERAL MANAGER','MANAGER','DIREKTUR','HRD','STAFF HRD','FINANCE','ACCOUNTING','CHIEF'].some(r=>role.includes(r)||pos.includes(r));
-  const isHRD      = role.includes('HRD')||role.includes('HR')||pos.includes('HRD');
-  const isWHS      = ['WAREHOUSE','GUDANG','INVENTORY','GENERAL AFFAIR',' GA'].some(r=>role.includes(r)||pos.includes(r));
-
-  if (isApprover||isHRD) $('MNUAPPR').classList.remove('hide');
-  if (isHRD)             $('MNUHRD').classList.remove('hide');
-  if (isHRD||isWHS||isApprover) $('MNUWHS').classList.remove('hide');
-
-  // Prefetch data paralel
-  Promise.all([loadForms(), prefetchDD()]);
-  nav('dashboard');
+  Promise.all([loadForms(), prefetchDD()]); nav('dashboard');
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────
 function nav(viewId) {
-  document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hide'));
-  document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
-
-  const v = $('V-'+viewId);
-  if(v){ v.classList.remove('hide'); v.classList.add('fade'); }
-  const nb = $('NB-'+viewId);
-  if(nb) nb.classList.add('active');
-
-  const titles = {
-    'dashboard':'Dashboard','pengajuan':'Buat Pengajuan','riwayat':'Rekam Jejak',
-    'approval':'Antrean Persetujuan','dbkary':'Database Karyawan','sp':'Pemanggilan / SP',
-    'fbuilder':'Form Builder','broadcast':'Broadcast Pengumuman',
-    'kendaraan':'Master Kendaraan','inventory':'Master Inventory'
-  };
+  document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hide')); document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
+  const v=$('V-'+viewId); if(v){ v.classList.remove('hide'); v.classList.add('fade'); }
+  const nb=$('NB-'+viewId); if(nb) nb.classList.add('active');
+  const titles = {'dashboard':'Dashboard','pengajuan':'Buat Pengajuan','riwayat':'Rekam Jejak','approval':'Antrean Persetujuan','dbkary':'Database Karyawan','sp':'Pemanggilan / SP','fbuilder':'Visual Form Builder','broadcast':'Broadcast Memo','kendaraan':'Master Kendaraan','inventory':'Master Inventory'};
   $('PTITLE').textContent = titles[viewId] || 'Portal HRIS';
-
-  if(viewId==='dashboard')  loadDashboard();
-  if(viewId==='riwayat')    loadRiwayat();
-  if(viewId==='approval')   loadApproval();
-  if(viewId==='dbkary')     loadKaryawan();
-  if(viewId==='fbuilder')   loadFBList();
-  if(viewId==='kendaraan')  loadKend();
-  if(viewId==='inventory')  loadInv();
-  if(viewId==='sp')         fillSPDD();
-
+  if(viewId==='dashboard') loadDashboard(); if(viewId==='riwayat') loadRiwayat(); if(viewId==='approval') loadApproval(); if(viewId==='dbkary') loadKaryawan(); if(viewId==='fbuilder') loadFBList(); if(viewId==='kendaraan') loadKend(); if(viewId==='inventory') loadInv(); if(viewId==='sp') fillSPDD(); if(viewId==='broadcast') bcToggleTarget();
   if(window.innerWidth<768){ $('sidebar').classList.remove('open'); $('sbo').classList.remove('show'); }
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────
 async function loadDashboard() {
-  // Cuti bar
-  const sisa  = CU.SisaCuti      || 0;
-  const jatah = CU.JatahTahunan  || 0;
-  $('DSISA').textContent  = sisa;
-  $('DJATAH').textContent = jatah;
+  const sisa=CU.SisaCuti||0, jatah=CU.JatahTahunan||0; $('DSISA').textContent=sisa; $('DJATAH').textContent=jatah;
   if(jatah>0) setTimeout(()=>{ $('CUTIBAR').style.width=Math.round(sisa/jatah*100)+'%'; },100);
-
-  const res = await api({action:'get_dashboard', user:CU});
-  if(!res.success) return toast(res.message,true);
-
-  // Broadcast
-  const bcEl=$('DBC');
-  if(res.broadcasts && res.broadcasts.length){
-    bcEl.innerHTML=res.broadcasts.map(b=>`
-      <div class="px-6 py-4 hover:bg-slate-50 transition">
-        <div class="flex justify-between items-start gap-2 mb-1">
-          <p class="font-bold text-slate-800 text-sm leading-snug">${b.Judul||''}</p>
-          <span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-0.5 rounded whitespace-nowrap">${fmtDate(b.Tanggal)}</span>
-        </div>
-        <p class="text-xs text-slate-500 leading-relaxed">${(b.Isi||'').substring(0,150)}${(b.Isi||'').length>150?'…':''}</p>
-        ${b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-blue-600 hover:underline"><i class="fa-solid fa-download"></i>Unduh Lampiran</a>`:''}
-      </div>`).join('');
-  } else {
-    bcEl.innerHTML=`<div class="p-6 text-center text-slate-400 text-sm"><i class="fa-regular fa-bell-slash text-3xl block mb-2 text-slate-200"></i>Belum ada pengumuman baru.</div>`;
-  }
-
-  // Riwayat singkat
-  const rwEl=$('DRWYT');
-  if(res.riwayat_singkat && res.riwayat_singkat.length){
-    rwEl.innerHTML=res.riwayat_singkat.map(r=>`
-      <div class="px-6 py-3.5 flex items-center justify-between hover:bg-slate-50 transition">
-        <div><p class="font-bold text-slate-800 text-sm">${r.JenisForm||'-'}</p><p class="text-[10px] font-mono text-slate-400 mt-0.5">${r.ID||''}</p></div>
-        ${badge(r.StatusFinal)}
-      </div>`).join('');
-  } else {
-    rwEl.innerHTML=`<div class="p-6 text-center text-slate-400 text-sm">Belum ada riwayat pengajuan.</div>`;
-  }
-
-  // Alert kontrak
-  if(res.alertKontrak && res.alertKontrak.length){
-    const role=(CU.Role||'').toUpperCase();
-    // Banner personal
-    const mine = res.alertKontrak.find(k=>k.Nama===CU.Nama);
-    if(mine){
-      $('ALERT_KB').classList.remove('hide');
-      $('ALERT_KB_LIST').innerHTML=`<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}. Segera hubungi HRD.</p>`;
-    }
-    // Widget HRD
-    if(role.includes('HRD')||role.includes('HR')||role.includes('MANAGER')||role==='GENERAL MANAGER'){
-      $('WGT_KB').classList.remove('hide');
-      $('WGT_KB_N').textContent=res.alertKontrak.length;
-      $('WGT_KB_BODY').innerHTML=res.alertKontrak.map(k=>{
-        const cls=k.SisaHari<0?'text-red-600 font-black':k.SisaHari<=7?'text-orange-600 font-bold':'text-yellow-600 font-semibold';
-        return `<tr class="hover:bg-orange-50 transition">
-          <td class="px-5 py-3 font-bold text-slate-800">${k.Nama}</td>
-          <td class="px-5 py-3 text-slate-600 text-xs">${k.Jabatan||'-'}</td>
-          <td class="px-5 py-3 text-slate-600 text-xs">${k.Cabang||'-'}</td>
-          <td class="px-5 py-3 text-slate-600 text-xs">${fmtDate(k.KontrakHabis)}</td>
-          <td class="px-5 py-3 text-right text-xs ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hari':k.SisaHari+' hari'}</td>
-        </tr>`;
-      }).join('');
-    }
-  }
-
-  // Badge approval
-  const ar = await api({action:'get_approval_list', user:CU});
-  if(ar.success && ar.data && ar.data.length){
-    $('BAPPR').textContent=ar.data.length; $('BAPPR').classList.remove('hide');
-  } else { $('BAPPR').classList.add('hide'); }
+  
+  const res=await api({action:'get_dashboard', user:CU}); if(!res.success) return;
+  $('DBC').innerHTML = (res.broadcasts||[]).map(b=>`<div class="px-6 py-4 hover:bg-slate-50 transition"><div class="flex justify-between items-start gap-2 mb-1"><p class="font-bold text-slate-800 text-sm">${b.Judul}</p><span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-0.5 rounded">${fmtDate(b.Tanggal)}</span></div><p class="text-xs text-slate-500 leading-relaxed">${b.Isi}</p></div>`).join('') || `<p class="p-6 text-center text-slate-400 text-sm">Belum ada pengumuman.</p>`;
+  $('DRWYT').innerHTML = (res.riwayat_singkat||[]).map(r=>`<div class="px-6 py-3.5 flex items-center justify-between hover:bg-slate-50 transition"><div><p class="font-bold text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono text-slate-400">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join('') || `<p class="p-6 text-center text-slate-400 text-sm">Belum ada riwayat.</p>`;
+  
+  if(res.alertKontrak && res.alertKontrak.length) {
+    $('WGT_KB_N').textContent=res.alertKontrak.length;
+    $('WGT_KB_BODY').innerHTML = res.alertKontrak.map(k=>`<tr class="hover:bg-orange-50/50 transition"><td class="px-5 py-3 font-bold text-slate-800">${k.Nama}</td><td class="px-5 py-3 text-slate-600 text-xs">${k.Jabatan}/${k.Cabang}</td><td class="px-5 py-3 text-slate-600 text-xs">${fmtDate(k.KontrakHabis)}</td><td class="px-5 py-3 text-right text-xs text-orange-600 font-bold">${k.SisaHari} Hari</td><td class="px-5 py-3 text-center"><button onclick="openFormPenilaianKontrak('${k.Nama}')" class="bg-corp text-white text-[10px] px-3 py-1.5 rounded-lg font-black shadow-sm hover:bg-corpd"><i class="fa-solid fa-star-half-stroke mr-1"></i>Penilaian</button></td></tr>`).join('');
+  } else { $('WGT_KB_BODY').innerHTML = `<tr><td colspan="5" class="p-5 text-center text-slate-400 text-xs">Tidak ada kontrak yang akan habis.</td></tr>`; }
 }
 
-// ─── FORM PENGAJUAN DINAMIS ───────────────────────────────────
-async function loadForms() {
-  const res = await api({action:'get_form_configs'});
-  if(!res.success) return;
-  FORMS = res.forms || [];
-  const sel=$('SELFORM');
-  const myRole=(CU.Role||'').toUpperCase();
-  const myPos =(CU.posisi||'').toUpperCase();
-  sel.innerHTML='<option value="">— Pilih Jenis Formulir —</option>';
-  FORMS.forEach(f=>{
-    const allowed=(f.AllowedRoles||'ALL').toUpperCase();
-    if(allowed==='ALL'||allowed.includes(myRole)||allowed.includes(myPos)){
-      sel.innerHTML+=`<option value="${f.FormID}">${f.NamaForm}</option>`;
-    }
-  });
+function openFormPenilaianKontrak(nama) { $('PK_NAMA').value=nama; $('PK_NAMA_DISP').value=nama; $('PK_SKOR').value=''; $('PK_CATATAN').value=''; openM('MPENILAIAN'); }
+async function submitPenilaianKontrak(e) { 
+  e.preventDefault(); 
+  const res=await api({action:'submit_evaluasi_kontrak', user:CU, targetNama:$('PK_NAMA').value, skor:$('PK_SKOR').value, rekomendasi:$('PK_REKOMENDASI').value, catatan:$('PK_CATATAN').value},'Menyimpan evaluasi...'); 
+  if(res.success){toast('Evaluasi disimpan!'); closeM('MPENILAIAN'); loadDashboard();} else toast(res.message,true); 
 }
 
-async function prefetchDD() {
-  const [kr,kd,iv] = await Promise.all([
-    api({action:'get_dropdown_karyawan'}),
-    api({action:'get_dropdown_kendaraan'}),
-    api({action:'get_dropdown_inventory'})
-  ]);
-  if(kr.success) DD_KARY=kr.data||[];
-  if(kd.success) DD_KEND=kd.data||[];
-  if(iv.success) DD_INV =iv.data||[];
+// --- DYNAMIC FORMS ---
+async function loadForms() { 
+  const res=await api({action:'get_form_configs'}); if(!res.success) return; 
+  FORMS=res.forms||[]; const sel=$('SELFORM'); const myRole=(CU.Role||'').toUpperCase(), myPos=(CU.posisi||'').toUpperCase(); 
+  sel.innerHTML='<option value="">— Pilih Jenis Formulir —</option>'; 
+  FORMS.forEach(f=>{ 
+    const al=(f.AllowedRoles||'ALL').toUpperCase(); 
+    if(al==='ALL'||al.includes(myRole)||al.includes(myPos)) sel.innerHTML+=`<option value="${f.FormID}">${f.NamaForm}</option>`; 
+  }); 
 }
+async function prefetchDD() { const [kr,kd,iv]=await Promise.all([api({action:'get_dropdown_karyawan'}),api({action:'get_dropdown_kendaraan'}),api({action:'get_dropdown_inventory'})]); if(kr.success) DD_KARY=kr.data||[]; if(kd.success) DD_KEND=kd.data||[]; if(iv.success) DD_INV=iv.data||[]; }
 
 function renderDynForm() {
-  const fid  = $('SELFORM').value;
-  const df   = $('DYNFORM');
-  const dfld = $('DYNFIELDS');
-  const kw   = $('KBWARN');
-  df.classList.add('hide'); kw.classList.add('hide'); dfld.innerHTML='';
-  if(!fid) return;
-  const cfg = FORMS.find(f=>f.FormID===fid);
-  if(!cfg) return;
-
-  // Validasi kasbon
-  const nm=(cfg.NamaForm||'').toLowerCase();
-  if(nm.includes('kasbon')||nm.includes('cash advance')){
-    if(!CU.TanggalJoin){ kw.classList.remove('hide'); return; }
-    const yrs=(new Date()-new Date(CU.TanggalJoin))/(86400000*365.25);
-    if(yrs<1){ kw.classList.remove('hide'); return; }
+  const fid=$('SELFORM').value, df=$('DYNFORM'), dfld=$('DYNFIELDS'), kw=$('KBWARN'); 
+  df.classList.add('hide'); kw.classList.add('hide'); dfld.innerHTML=''; if(!fid) return;
+  const cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return; const nm=(cfg.NamaForm||'').toLowerCase();
+  
+  if(nm.includes('kasbon')||nm.includes('cash advance')){ 
+    if(!CU.TanggalJoin){kw.classList.remove('hide'); return;} 
+    const yrs=(new Date()-new Date(CU.TanggalJoin))/(86400000*365.25); 
+    if(yrs<1){kw.classList.remove('hide'); return;} 
   }
-
-  let fields=[];
-  try{ fields=JSON.parse(cfg.FieldsJSON||'[]'); }catch(e){
-    dfld.innerHTML='<div class="col-span-full text-red-500 text-sm bg-red-50 p-3 rounded-xl">Skema JSON fields bermasalah. Hubungi HRD.</div>';
-    df.classList.remove('hide'); return;
-  }
-
-  const B='w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium bg-slate-50';
+  
+  let fields=[]; try{ fields=JSON.parse(cfg.FieldsJSON||'[]'); }catch(e){ df.classList.remove('hide'); dfld.innerHTML='Error JSON'; return; }
   fields.forEach(f=>{
-    const req=f.required?'required':'';
-    const star=f.required?'<span class="text-red-500 ml-0.5">*</span>':'';
-    const full=(f.type==='textarea'||f.fullWidth)?'sm:col-span-2':'';
+    const req=f.required?'required':'', star=f.required?'<span class="text-red-500 ml-0.5">*</span>':'', cls="inp";
     let inp='';
-    switch(f.type){
-      case 'textarea':  inp=`<textarea id="DF_${f.name}" rows="3" ${req} placeholder="${f.label}..." class="${B} resize-none"></textarea>`; break;
-      case 'select':
-        const opts=(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih —</option>${opts}</select>`; break;
-      case 'karyawan':
-        const ko=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama} – ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Karyawan —</option>${ko}</select>`; break;
-      case 'kendaraan':
-        const kno=DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} – ${k.merkTipe} [${k.status}]</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Kendaraan —</option>${kno}</select>`; break;
-      case 'inventory':
-        const ino=DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok} ${k.satuan})</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Barang —</option>${ino}</select>`; break;
-      case 'file':
-        inp=`<input type="file" id="DF_${f.name}" ${req} class="${B} p-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-corpl file:text-corp cursor-pointer">`; break;
-      default:
-        inp=`<input type="${f.type||'text'}" id="DF_${f.name}" ${req} placeholder="${f.label}..." class="${B}">`; break;
-    }
-    dfld.insertAdjacentHTML('beforeend',
-      `<div class="${full}"><label class="lbl">${f.label}${star}</label>${inp}</div>`);
-  });
+    if(f.type==='textarea') inp=`<textarea id="DF_${f.name}" rows="3" ${req} class="${cls} resize-none"></textarea>`;
+    else if(f.type==='select') inp=`<select id="DF_${f.name}" ${req} class="${cls}"><option value="">— Pilih —</option>${(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
+    else if(f.type==='karyawan') inp=`<select id="DF_${f.name}" ${req} class="${cls}"><option value="">— Pilih Karyawan —</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select>`;
+    else if(f.type==='kendaraan') inp=`<select id="DF_${f.name}" ${req} class="${cls}"><option value="">— Pilih Kendaraan —</option>${DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi}</option>`).join('')}</select>`;
+    else if(f.type==='inventory') inp=`<select id="DF_${f.name}" ${req} class="${cls}"><option value="">— Pilih Inventory —</option>${DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok})</option>`).join('')}</select>`;
+    else if(f.type==='file') inp=`<input type="file" id="DF_${f.name}" ${req} class="${cls} p-2 file:bg-corpl file:text-corp file:border-0 file:rounded cursor-pointer">`;
+    else inp=`<input type="${f.type||'text'}" id="DF_${f.name}" ${req} class="${cls}">`;
+    
+    dfld.insertAdjacentHTML('beforeend',`<div class="${(f.type==='textarea'||f.fullWidth)?'sm:col-span-2':''}"><label class="lbl">${f.label}${star}</label>${inp}</div>`);
+  }); 
   df.classList.remove('hide');
 }
 
-on('DYNFORM','submit', async e=>{
-  e.preventDefault();
-  const fid=$ ('SELFORM').value;
-  const cfg=FORMS.find(f=>f.FormID===fid);
-  if(!cfg) return;
-  let fields=[]; try{ fields=JSON.parse(cfg.FieldsJSON||'[]'); }catch(e){}
-
-  let det={}, proms=[];
-  for(const f of fields){
-    const el=$('DF_'+f.name); if(!el) continue;
-    if(f.type==='file'){
-      if(el.files.length){
-        const file=el.files[0];
-        if(file.size>2*1024*1024) return toast('File terlalu besar (maks 2MB)',true);
-        proms.push(b64(file).then(d=>{ det[f.name]={name:file.name,data:d}; }));
-      }
-    } else { det[f.name]=el.value; }
+on('DYNFORM','submit', async e=>{ 
+  e.preventDefault(); const fid=$('SELFORM').value, cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return; 
+  let fields=[]; try{fields=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){} let det={}, proms=[];
+  
+  for(const f of fields){ 
+    const el=$('DF_'+f.name); if(!el) continue; 
+    if(f.type==='file'&&el.files.length){ 
+      if(el.files[0].size>2097152) return toast('File maks 2MB',true); 
+      proms.push(b64(el.files[0]).then(d=>{det[f.name]={name:el.files[0].name,data:d};})); 
+    } else {det[f.name]=el.value;} 
   }
+  
   if(proms.length){ showL('Mengunggah file...'); await Promise.all(proms); hideL(); }
-
-  const btn=$('BTNSUBMIT'); btn.disabled=true;
-  const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det},'Mengirim pengajuan...');
-  btn.disabled=false;
-  if(res.success){
-    toast(res.message||'Pengajuan berhasil dikirim!');
-    $('DYNFORM').reset(); $('SELFORM').value='';
-    $('DYNFORM').classList.add('hide'); $('DYNFIELDS').innerHTML='';
-    nav('riwayat');
-  } else { toast(res.message||'Gagal mengirim pengajuan.',true); }
+  const btn=$('BTNSUBMIT'); btn.disabled=true; 
+  const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det},'Mengirim...'); btn.disabled=false;
+  if(res.success){ toast('Pengajuan terkirim!'); $('DYNFORM').reset(); $('SELFORM').value=''; $('DYNFORM').classList.add('hide'); nav('riwayat'); } else toast(res.message,true);
 });
 
-// ─── RIWAYAT ─────────────────────────────────────────────────
-async function loadRiwayat(){
-  $('RWYTBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat riwayat...</td></tr>`;
-  const res=await api({action:'get_riwayat',user:CU});
-  if(!res.success) return toast(res.message,true);
-  CTX=res.data||[];
-  if(!CTX.length){
-    $('RWYTBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-16 text-center text-slate-400"><i class="fa-solid fa-folder-open text-4xl block mb-2 text-slate-200"></i>Belum ada riwayat pengajuan.</td></tr>`;
-    return;
-  }
-  $('RWYTBODY').innerHTML=CTX.map(r=>`
-    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corp">
-      <td class="px-6 py-4"><p class="font-bold text-slate-800">${r.NamaForm||'-'}</p><p class="text-[10px] font-mono text-slate-400 mt-0.5">${r.ID||''}</p></td>
-      <td class="px-6 py-4 text-xs text-slate-500 font-semibold">${fmtDate(r.Tanggal)}</td>
-      <td class="px-6 py-4"><span class="text-xs bg-slate-100 text-slate-600 font-semibold px-3 py-1 rounded-lg"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>${r.PosisiFlow||'-'}</span></td>
-      <td class="px-6 py-4">${badge(r.StatusFinal)}</td>
-      <td class="px-6 py-4 text-center"><button onclick="openDetail('${r.ID}')" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition border border-blue-100">Detail</button></td>
-    </tr>`).join('');
+// --- RIWAYAT & APPROVAL ---
+async function loadRiwayat(){ 
+  $('RWYTBODY').innerHTML=`<tr><td colspan="5" class="p-6 text-center text-slate-400">Memuat...</td></tr>`; 
+  const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return; CTX=res.data||[]; 
+  $('RWYTBODY').innerHTML=CTX.map(r=>`<tr class="hover:bg-slate-50"><td class="px-6 py-4 font-bold text-slate-800">${r.NamaForm}</td><td class="px-6 py-4 text-xs">${fmtDate(r.Tanggal)}</td><td class="px-6 py-4 text-xs"><span class="bg-slate-100 px-2 py-1 rounded">${r.PosisiFlow}</span></td><td class="px-6 py-4">${badge(r.StatusFinal)}</td><td class="px-6 py-4 text-center"><button onclick="openDetail('${r.ID}')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded font-bold">Detail</button></td></tr>`).join('')||`<tr><td colspan="5" class="p-6 text-center text-slate-400">Kosong.</td></tr>`; 
 }
 
-// ─── APPROVAL ─────────────────────────────────────────────────
-async function loadApproval(){
-  $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat antrean...</td></tr>`;
-  const res=await api({action:'get_approval_list',user:CU});
-  if(!res.success) return toast(res.message,true);
-  CTX=res.data||[];
-  const bEl=$('BAPPR');
-  if(CTX.length){ bEl.textContent=CTX.length; bEl.classList.remove('hide'); } else { bEl.classList.add('hide'); }
-  if(!CTX.length){
-    $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-16 text-center text-slate-400"><div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-clipboard-check text-emerald-500 text-2xl"></i></div>Antrean kosong — semua sudah diproses!</td></tr>`;
-    return;
-  }
-  $('APPRBODY').innerHTML=CTX.map(tx=>`
-    <tr class="hover:bg-blue-50 transition border-l-4 border-transparent hover:border-corp">
-      <td class="px-6 py-4"><p class="font-bold text-slate-800">${tx.NamaPemohon||'-'}</p><p class="text-[10px] font-mono text-slate-400 mt-0.5">${tx.NIKPemohon||''}</p></td>
-      <td class="px-6 py-4 text-xs text-slate-500 font-semibold">${fmtDate(tx.Tanggal)}</td>
-      <td class="px-6 py-4 font-bold text-corp text-sm">${tx.NamaForm||'-'}</td>
-      <td class="px-6 py-4"><span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2.5 py-1 rounded-lg">${tx.PosisiFlow||'-'}</span></td>
-      <td class="px-6 py-4">
-        <div class="flex items-center justify-center gap-2">
-          <button onclick="openDetail('${tx.ID}')" title="Lihat Detail" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
-          <button onclick="doApprove('${tx.ID}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-black transition shadow-sm"><i class="fa-solid fa-check mr-1"></i>Setujui</button>
-          <button onclick="openReject('${tx.ID}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-black transition shadow-sm"><i class="fa-solid fa-xmark mr-1"></i>Tolak</button>
-        </div>
-      </td>
-    </tr>`).join('');
+async function loadApproval(){ 
+  $('APPRBODY').innerHTML=`<tr><td colspan="5" class="p-6 text-center text-slate-400">Memuat...</td></tr>`; 
+  const res=await api({action:'get_approval_list',user:CU}); if(!res.success) return; CTX=res.data||[]; 
+  const b=$('BAPPR'); if(CTX.length){b.textContent=CTX.length;b.classList.remove('hide');}else{b.classList.add('hide');} 
+  $('APPRBODY').innerHTML=CTX.map(t=>`<tr class="hover:bg-slate-50"><td class="px-6 py-4 font-bold text-slate-800">${t.NamaPemohon}</td><td class="px-6 py-4 text-xs">${fmtDate(t.Tanggal)}</td><td class="px-6 py-4 font-bold text-corp text-sm">${t.NamaForm}</td><td class="px-6 py-4 text-xs">${t.PosisiFlow}</td><td class="px-6 py-4 text-center"><button onclick="openDetail('${t.ID}')" class="w-8 h-8 rounded bg-slate-100 mr-1"><i class="fa-solid fa-eye text-xs"></i></button><button onclick="doApprove('${t.ID}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-black mr-1">Setujui</button><button onclick="openReject('${t.ID}')" class="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-black">Tolak</button></td></tr>`).join('')||`<tr><td colspan="5" class="p-6 text-center text-slate-400">Antrean kosong.</td></tr>`; 
 }
 
-function openDetail(txId){
-  const tx=CTX.find(t=>t.ID===txId); if(!tx) return;
-  $('MDET_ID').textContent   = tx.ID||'';
-  $('MDET_NAMA').textContent = (tx.NamaPemohon||'-')+(tx.NIKPemohon?' ('+tx.NIKPemohon+')':'');
-  $('MDET_FORM').textContent = tx.NamaForm||'-';
-  $('MDET_TGL').textContent  = tx.Tanggal?new Date(tx.Tanggal).toLocaleString('id-ID'):'-';
-  $('MDET_ST').innerHTML     = badge(tx.StatusFinal);
-  if(tx.StatusFinal==='REJECTED'&&tx.Catatan){
-    $('MDET_CAT').textContent=tx.Catatan; $('MDET_CATBOX').classList.remove('hide');
-  } else { $('MDET_CATBOX').classList.add('hide'); }
+function openDetail(id){ 
+  const t=CTX.find(x=>x.ID===id); if(!t) return; 
+  $('MDET_ID').textContent=t.ID; $('MDET_NAMA').textContent=t.NamaPemohon||CU.Nama; $('MDET_FORM').textContent=t.NamaForm; $('MDET_TGL').textContent=fmtDate(t.Tanggal); $('MDET_ST').innerHTML=badge(t.StatusFinal); 
+  if(t.StatusFinal==='REJECTED'&&t.Catatan){$('MDET_CAT').textContent=t.Catatan;$('MDET_CATBOX').classList.remove('hide');}else $('MDET_CATBOX').classList.add('hide'); 
+  let det={}; try{det=JSON.parse(t.DetailJSON||'{}');}catch(e){} 
+  $('MDET_FIELDS').innerHTML=Object.keys(det).map(k=>{ const lbl=k.replace(/_/g,' ').toUpperCase(); if(det[k]&&det[k].data) return `<div class="bg-white border rounded p-3 sm:col-span-2 flex justify-between"><span><i class="fa-solid fa-paperclip mr-1"></i>${lbl}</span><a href="${det[k].data}" target="_blank" class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-1 rounded">Buka File</a></div>`; return `<div class="bg-white border rounded p-3"><p class="text-[10px] text-slate-400 font-black uppercase">${lbl}</p><p class="text-sm font-semibold whitespace-pre-wrap">${det[k]}</p></div>`; }).join(''); 
+  let fl=[],st=[]; try{fl=JSON.parse(t.ApprovalFlowJson||'[]'); st=JSON.parse(t.ApprovalStepsJSON||'[]');}catch(e){} 
+  $('MDET_FLOW').innerHTML=fl.map((r,i)=>{const s=st[i]||'PENDING', c=s==='APPROVE'?'bg-emerald-50 text-emerald-700':s==='REJECT'?'bg-red-50 text-red-700':'bg-slate-50 text-slate-600'; return `<div class="flex justify-between p-3 border rounded ${c}"><span class="font-bold text-sm">Step ${i+1}: ${r}</span><span class="text-[10px] font-black uppercase bg-white px-2 rounded">${s}</span></div>`;}).join(''); 
+  openM('MDETAIL'); 
+}
+async function doApprove(id){ if(!confirm('Setujui?')) return; const res=await api({action:'process_approval',user:CU,txId:id,decision:'APPROVE',alasan:''},'Memproses...'); if(res.success){toast('Disetujui!'); loadApproval();}else toast(res.message,true); }
+function openReject(id){ $('RJCTID').value=id; $('RJCTALASAN').value=''; openM('MREJECT'); }
+async function submitReject(){ const al=$('RJCTALASAN').value.trim(); if(!al) return toast('Alasan wajib!',true); const res=await api({action:'process_approval',user:CU,txId:$('RJCTID').value,decision:'REJECT',alasan:al},'Memproses...'); if(res.success){toast('Ditolak!'); closeM('MREJECT'); loadApproval();}else toast(res.message,true); }
 
-  let det={}; try{ det=JSON.parse(tx.DetailJSON||'{}'); }catch(e){}
-  $('MDET_FIELDS').innerHTML=Object.keys(det).map(k=>{
-    const lbl=k.replace(/_/g,' ').toUpperCase();
-    if(det[k]&&typeof det[k]==='object'&&det[k].data){
-      return `<div class="bg-white border border-slate-100 rounded-xl p-3 sm:col-span-2 flex items-center justify-between gap-3">
-        <span class="text-xs font-black text-slate-400 uppercase tracking-wide"><i class="fa-solid fa-paperclip mr-1"></i>${lbl}</span>
-        <a href="${det[k].data}" target="_blank" class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition border border-blue-100 flex items-center gap-1.5 flex-shrink-0"><i class="fa-solid fa-download"></i>Buka File</a>
-      </div>`;
-    }
-    return `<div class="bg-white border border-slate-100 rounded-xl p-3">
-      <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">${lbl}</p>
-      <p class="font-semibold text-slate-800 text-sm whitespace-pre-wrap leading-snug">${det[k]||'-'}</p>
-    </div>`;
-  }).join('')||'<p class="text-sm text-slate-400 sm:col-span-2">Tidak ada detail isian.</p>';
-
-  let fl=[],st=[]; try{ fl=JSON.parse(tx.ApprovalFlowJson||'[]'); st=JSON.parse(tx.ApprovalStepsJSON||'[]'); }catch(e){}
-  $('MDET_FLOW').innerHTML=fl.map((r,i)=>{
-    const s=st[i]||'PENDING';
-    const c=s==='APPROVE'?'bg-emerald-50 border-emerald-200 text-emerald-700':s==='REJECT'?'bg-red-50 border-red-200 text-red-700':'bg-slate-50 border-slate-200 text-slate-600';
-    const ic=s==='APPROVE'?'fa-check text-emerald-500':s==='REJECT'?'fa-xmark text-red-500':'fa-clock text-slate-400';
-    return `<div class="flex items-center justify-between p-3 border rounded-xl ${c}">
-      <span class="font-bold text-sm flex items-center gap-2"><i class="fa-solid ${ic}"></i>Step ${i+1}: ${r}</span>
-      <span class="text-[10px] font-black uppercase tracking-widest bg-white px-2 py-0.5 rounded-md shadow-sm">${s}</span>
-    </div>`;
-  }).join('')||'<p class="text-sm text-slate-400">Data flow tidak tersedia.</p>';
-  openM('MDETAIL');
+// --- DB KARYAWAN ---
+async function loadKaryawan(){ 
+  const g=$('KARYGRID'); g.innerHTML='<div class="col-span-full text-center py-10"><i class="fa-solid fa-spinner fa-spin text-xl"></i></div>'; 
+  const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value.trim()}); if(!res.success)return; 
+  $('TOTALKARY').textContent=res.total; 
+  g.innerHTML=(res.data||[]).map(k=>`<div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card flex flex-col justify-between"><div><div class="flex gap-3 mb-4"><div class="w-11 h-11 rounded-xl bg-slate-900 text-white font-black flex items-center justify-center">${k.Nama_Karyawan.charAt(0)}</div><div class="min-w-0 flex-1"><p class="font-black text-sm truncate">${k.Nama_Karyawan}</p><p class="text-[10px] text-slate-400 font-bold uppercase truncate">${k.JABATAN||'-'}</p></div></div><div class="text-xs text-slate-600 mb-4 space-y-1"><p><i class="fa-solid fa-id-badge w-4"></i>${k.NIK_Karyawan}</p><p><i class="fa-solid fa-location-dot w-4"></i>${k.CABANG||'-'}</p></div></div><div class="flex justify-between border-t pt-3"><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">${k['AKTIF/TDK AKTIF']||'AKTIF'}</span><button onclick='openKaryEditDialog(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">Edit</button></div></div>`).join(''); 
+}
+function openKaryEditDialog(k){ 
+  $('MKARY_TITLE').textContent=`Edit Karyawan: ${k.Nama_Karyawan}`; 
+  $('MKARY_BODY').innerHTML=`<form id="FM_EDIT" onsubmit="submitEditKaryawan(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="hidden" name="NIK_Karyawan" value="${k.NIK_Karyawan}"><div><label class="lbl">Nama Karyawan</label><input type="text" name="Nama_Karyawan" value="${k.Nama_Karyawan||''}" class="inp"></div><div><label class="lbl">Jabatan</label><input type="text" name="JABATAN" value="${k.JABATAN||''}" class="inp"></div><div><label class="lbl">Divisi</label><input type="text" name="DIVISI" value="${k.DIVISI||''}" class="inp"></div><div><label class="lbl">Cabang</label><input type="text" name="CABANG" value="${k.CABANG||''}" class="inp"></div><div><label class="lbl">Email</label><input type="email" name="EMAIL" value="${k.EMAIL||''}" class="inp"></div><div class="sm:col-span-2 flex justify-end gap-2 pt-4"><button type="button" onclick="closeM('MKARY')" class="px-4 py-2 border rounded-xl text-xs font-bold">Batal</button><button type="submit" class="bcorp px-6 py-2 rounded-xl text-xs font-black shadow">Simpan</button></div></form>`; 
+  openM('MKARY'); 
+}
+async function submitEditKaryawan(e){ 
+  e.preventDefault(); const updates=Object.fromEntries(new FormData(e.target).entries()); 
+  const res=await api({action:'update_karyawan',user:CU,NIK:updates.NIK_Karyawan,Nama:updates.Nama_Karyawan,updates},'Menyimpan...'); 
+  if(res.success){toast('Diperbarui!'); closeM('MKARY'); loadKaryawan(); prefetchDD();} else toast(res.message,true); 
 }
 
-async function doApprove(txId){
-  if(!confirm('Setujui pengajuan ini?')) return;
-  const res=await api({action:'process_approval',user:CU,txId,decision:'APPROVE',alasan:''},'Memproses persetujuan...');
-  if(res.success){ toast('Pengajuan berhasil disetujui.'); loadApproval(); } else toast(res.message,true);
+// --- SP & BROADCAST ---
+function fillSPDD(){ const sel=$('SPKARY'); sel.innerHTML='<option value="">— Pilih Karyawan —</option>'; DD_KARY.forEach(k=>sel.innerHTML+=`<option value="${k.nama}">${k.nama}</option>`); }
+on('FMSP','submit', async e=>{ e.preventDefault(); const res=await api({action:'send_pemanggilan',user:CU,namaPemohon:$('SPKARY').value,jenisPeringatan:$('SPJENIS').value,alasan:$('SPALASAN').value,tanggalKejadian:$('SPTGL').value,catatanTambahan:$('SPCATAT').value},'Kirim SP...'); if(res.success){toast('SP Terkirim!'); $('FMSP').reset();}else toast(res.message,true); });
+
+function bcToggleTarget() { 
+  const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), c=$('BC_INPUT_CONTAINER'); 
+  if(t==='GENERAL'){w.classList.add('hide');c.innerHTML='';} 
+  else {w.classList.remove('hide'); if(t==='DIVISI') c.innerHTML=`<input id="BCTARGET" type="text" class="inp" required placeholder="Cth: SALES">`; else if(t==='NIK') c.innerHTML=`<select id="BCTARGET" class="inp" required><option value="">- Pilih Karyawan -</option>${DD_KARY.map(k=>`<option value="${k.nik}">${k.nama} [${k.nik}]</option>`).join('')}</select>`;} 
 }
-
-function openReject(txId){ $('RJCTID').value=txId; $('RJCTALASAN').value=''; openM('MREJECT'); }
-
-async function submitReject(){
-  const alasan=$('RJCTALASAN').value.trim();
-  if(!alasan) return toast('Alasan penolakan wajib diisi!',true);
-  const res=await api({action:'process_approval',user:CU,txId:$('RJCTID').value,decision:'REJECT',alasan},'Memproses penolakan...');
-  if(res.success){ toast('Pengajuan ditolak.'); closeM('MREJECT'); loadApproval(); } else toast(res.message,true);
-}
-
-// ─── DATABASE KARYAWAN ────────────────────────────────────────
-async function loadKaryawan(){
-  const grid=$('KARYGRID');
-  grid.innerHTML='<div class="col-span-full text-center py-10 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl"></i></div>';
-  const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value.trim()});
-  if(!res.success) return toast(res.message,true);
-  const data=res.data||[];
-  $('TOTALKARY').textContent=res.total||data.length;
-  if(!data.length){ grid.innerHTML='<div class="col-span-full text-center text-slate-400 py-12 text-sm">Tidak ada data karyawan ditemukan.</div>'; return; }
-  grid.innerHTML=data.map(k=>{
-    const nm=k.Nama_Karyawan||'-';
-    const ini=nm.charAt(0).toUpperCase();
-    const st=(k['AKTIF/TDK AKTIF']||'').toUpperCase();
-    const stC=st==='AKTIF'?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-500';
-    const kh=k['KONTRAK HABIS'];
-    let khBadge='';
-    if(kh){ const sH=Math.ceil((new Date(kh)-new Date())/86400000); if(sH<=30) khBadge=`<span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-md mt-1 block">⚠ Kontrak ${sH<0?'lewat '+Math.abs(sH)+'hr':sH+'hr lagi'}</span>`; }
-    return `<div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-corp text-white font-black text-lg flex items-center justify-center flex-shrink-0 shadow-md">${ini}</div>
-        <div class="flex-1 min-w-0">
-          <p class="font-black text-slate-900 text-sm leading-tight truncate">${nm}</p>
-          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider truncate mt-0.5">${k.JABATAN||'-'}</p>
-          ${khBadge}
-        </div>
-      </div>
-      <div class="space-y-1.5 text-xs text-slate-600 mb-4">
-        <p><i class="fa-solid fa-id-badge w-4 text-slate-300 mr-1"></i>${k.NIK_Karyawan||'-'}</p>
-        <p><i class="fa-solid fa-building w-4 text-slate-300 mr-1"></i>${k.DIVISI||'-'}</p>
-        <p><i class="fa-solid fa-location-dot w-4 text-slate-300 mr-1"></i>${k.CABANG||'-'}</p>
-        <p><i class="fa-solid fa-file-contract w-4 text-slate-300 mr-1"></i>${k['Status Karyawan']||k.Status_Karyawan||'-'}</p>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${stC}">${st||'-'}</span>
-        <button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg transition">Detail</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function openKaryDetail(k){
-  $('MKARY_TITLE').textContent=k.Nama_Karyawan||'Detail Karyawan';
-  const skip=['_rowIndex'];
-  const keys=Object.keys(k).filter(x=>!skip.includes(x)&&k[x]!=='');
-  $('MKARY_BODY').innerHTML=`<div class="grid grid-cols-2 gap-3">${keys.map(kk=>`
-    <div class="bg-white border border-slate-100 rounded-xl p-3">
-      <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">${kk.replace(/_/g,' ')}</p>
-      <p class="text-sm font-semibold text-slate-800 break-words leading-snug">${k[kk]||'-'}</p>
-    </div>`).join('')}</div>`;
-  openM('MKARY');
-}
-
-// ─── PEMANGGILAN / SP ─────────────────────────────────────────
-function fillSPDD(){
-  const sel=$('SPKARY');
-  sel.innerHTML='<option value="">— Pilih Karyawan —</option>';
-  DD_KARY.forEach(k=>{ sel.innerHTML+=`<option value="${k.nama}">${k.nama} – ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`; });
-}
-
-on('FMSP','submit', async e=>{
-  e.preventDefault();
-  const nm=$('SPKARY').value;
-  if(!nm) return toast('Pilih karyawan terlebih dahulu.',true);
-  const res=await api({
-    action:'send_pemanggilan', user:CU,
-    namaPemohon:nm, jenisPeringatan:$('SPJENIS').value,
-    alasan:$('SPALASAN').value.trim(),
-    tanggalKejadian:$('SPTGL').value,
-    catatanTambahan:$('SPCATAT').value.trim()
-  },'Mengirim surat...');
-  if(res.success){ toast(res.message||'Surat berhasil dikirim!'); $('FMSP').reset(); }
-  else toast(res.message,true);
+on('FMBC','submit', async e=>{ 
+  e.preventDefault(); let f64=null,fn=null; const f=$('BCFILE').files[0]; 
+  if(f){if(f.size>2097152) return toast('Maks 2MB',true); f64=await b64(f); fn=f.name;} 
+  const res=await api({action:'send_broadcast',user:CU,targetType:$('BCTYPE').value,targetValue:$('BCTYPE').value==='GENERAL'?'ALL':$('BCTARGET').value,judul:$('BCJUDUL').value,isi:$('BCISI').value,file:f64,fileName:fn},'Menyiarkan...'); 
+  if(res.success){toast('Broadcast terkirim!');$('FMBC').reset();bcToggleTarget();}else toast(res.message,true); 
 });
 
-// ─── FORM BUILDER ─────────────────────────────────────────────
-function loadFBList(){
-  const ul=$('FBLIST');
-  if(!FORMS.length){ ul.innerHTML='<li class="p-5 text-center text-sm text-slate-400">Belum ada form. Klik "+ Form Baru".</li>'; return; }
-  ul.innerHTML=FORMS.map(f=>`
-    <li>
-      <button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left px-5 py-4 hover:bg-corpl hover:text-corp transition group flex items-center justify-between text-slate-600">
-        <div class="min-w-0 flex-1">
-          <p class="font-bold text-sm group-hover:text-corp truncate">${f.NamaForm}</p>
-          <p class="text-[10px] font-mono text-slate-400 mt-0.5 truncate">${f.FormID}</p>
-        </div>
-        <i class="fa-solid fa-chevron-right text-xs opacity-25 group-hover:opacity-100 flex-shrink-0 ml-2"></i>
-      </button>
-    </li>`).join('');
+// --- VISUAL FORM BUILDER ---
+function loadFBList(){ $('FBLIST').innerHTML=FORMS.map(f=>`<li><button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left px-5 py-4 hover:bg-corpl transition group"><div class="font-bold text-sm text-slate-700">${f.NamaForm}</div><div class="text-[10px] font-mono text-slate-400">${f.FormID}</div></button></li>`).join(''); }
+function loadFBEditor(id){ 
+  const cfg=FORMS.find(f=>f.FormID===id); if(!cfg) return; $('FBID').value=id; $('FBNAMA').value=cfg.NamaForm; $('FBROLES').value=cfg.AllowedRoles||'ALL'; 
+  try{$('FBFLOW').value=JSON.stringify(JSON.parse(cfg.ApprovalFlowJson||'[]'));}catch(e){} 
+  try{currentVisualFields=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){currentVisualFields=[];} 
+  $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); renderVisualBuilderItems(); 
+}
+function openNewForm(){ $('FBID').value='FORM-'+Date.now(); $('FBNAMA').value=''; $('FBROLES').value='ALL'; $('FBFLOW').value='["HRD"]'; currentVisualFields=[{name:"alasan",label:"Alasan",type:"textarea",required:true}]; $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); renderVisualBuilderItems(); }
+function addFieldToBuilder(){ currentVisualFields.push({name:'field_'+Date.now(),label:'Label Baru',type:'text',required:true}); renderVisualBuilderItems(); }
+function updateVisualFieldItem(idx,prop,val){ currentVisualFields[idx][prop]=val; if(prop==='label') currentVisualFields[idx].name=val.toLowerCase().replace(/[^a-z0-9]/g,'_'); $('FBFIELDS').value=JSON.stringify(currentVisualFields); }
+function removeVisualFieldItem(idx){ currentVisualFields.splice(idx,1); renderVisualBuilderItems(); }
+function renderVisualBuilderItems(){ 
+  $('VISUAL_BUILDER_CONTAINER').innerHTML=currentVisualFields.map((f,i)=>`<div class="flex flex-wrap sm:flex-nowrap gap-2 items-center bg-slate-50 border p-3 rounded-xl shadow-sm relative"><div class="w-full sm:w-1/3"><label class="text-[9px] font-bold text-slate-400 uppercase">Label</label><input type="text" value="${f.label}" oninput="updateVisualFieldItem(${i},'label',this.value)" class="inp py-1 px-2 text-xs"></div><div class="w-full sm:w-1/3"><label class="text-[9px] font-bold text-slate-400 uppercase">Tipe</label><select onchange="updateVisualFieldItem(${i},'type',this.value)" class="inp py-1 px-2 text-xs"><option value="text" ${f.type==='text'?'selected':''}>Text</option><option value="textarea" ${f.type==='textarea'?'selected':''}>Textarea</option><option value="date" ${f.type==='date'?'selected':''}>Date</option><option value="select" ${f.type==='select'?'selected':''}>Dropdown</option><option value="karyawan" ${f.type==='karyawan'?'selected':''}>Pilih Karyawan</option><option value="kendaraan" ${f.type==='kendaraan'?'selected':''}>Pilih Kendaraan</option><option value="inventory" ${f.type==='inventory'?'selected':''}>Pilih Inventory</option><option value="file" ${f.type==='file'?'selected':''}>Upload File</option></select></div><div class="w-auto flex items-center pt-3"><label class="text-xs font-bold text-slate-500"><input type="checkbox" ${f.required?'checked':''} onchange="updateVisualFieldItem(${i},'required',this.checked)"> Wajib</label></div><button type="button" onclick="removeVisualFieldItem(${i})" class="text-red-500 ml-auto"><i class="fa-solid fa-trash-can"></i></button></div>`).join(''); 
+  $('FBFIELDS').value=JSON.stringify(currentVisualFields); 
+}
+async function saveForm(){ let fl=[]; try{fl=JSON.parse($('FBFLOW').value);}catch(e){fl=$('FBFLOW').value.split(',').map(s=>s.trim());} const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(fl),fieldsJson:$('FBFIELDS').value,allowedRoles:$('FBROLES').value},'Menyimpan...'); if(res.success){toast('Borang disimpan!'); await loadForms(); loadFBList();} else toast(res.message,true); }
+async function deleteForm(){ if(!confirm('Hapus form?')) return; const res=await api({action:'delete_form_config',user:CU,formId:$('FBID').value},'Menghapus...'); if(res.success){toast('Dihapus!'); $('FBEDIT').classList.add('hide'); $('FBEMPTY').classList.remove('hide'); await loadForms(); loadFBList();} else toast(res.message,true); }
+
+// --- KENDARAAN ---
+async function loadKend(){ 
+  const g=$('KENDARAAN_GRID'); g.innerHTML='<div class="col-span-full text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-slate-400"></i></div>'; 
+  const res=await api({action:'get_kendaraan'}); if(!res.success) return; 
+  g.innerHTML=(res.data||[]).map(k=>{ const pol=k['No Polisi'], st=k['Status']||'TERSEDIA'; let col='bg-emerald-100 text-emerald-800'; if(st==='DIGUNAKAN')col='bg-blue-100 text-blue-800'; if(st==='SERVIS')col='bg-amber-100 text-amber-800'; if(st==='RUSAK')col='bg-red-100 text-red-800'; return `<div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card flex flex-col justify-between"><div><div class="flex justify-between mb-3"><div><h3 class="font-black text-slate-900">${pol}</h3><p class="text-xs font-bold text-slate-500">${k['Merk/Tipe']} (${k['Tahun']||'-'})</p></div><span class="text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase ${col}">${st}</span></div><p class="text-xs text-slate-400 italic mb-4">${k['Keterangan']||'-'}</p></div><div class="border-t pt-3 grid grid-cols-3 gap-1.5"><button onclick="openLogArmada('${pol}','FUEL')" class="text-[10px] bg-slate-50 border py-2 rounded-xl font-bold"><i class="fa-solid fa-gas-pump text-emerald-500 block mb-1"></i>Isi BBM</button><button onclick="openLogArmada('${pol}','SERVICE')" class="text-[10px] bg-slate-50 border py-2 rounded-xl font-bold"><i class="fa-solid fa-wrench text-orange-500 block mb-1"></i>Servis</button><button onclick="openLogArmada('${pol}','COMPLIANCE')" class="text-[10px] bg-slate-50 border py-2 rounded-xl font-bold"><i class="fa-solid fa-file-shield text-purple-500 block mb-1"></i>Pajak/KIR</button></div><div class="flex justify-end gap-2 mt-3 pt-2 border-t border-dashed"><button onclick='openKendM(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="text-xs font-bold text-blue-600">Edit</button><button onclick="delKend('${pol}')" class="text-xs font-bold text-red-500">Hapus</button></div></div>`; }).join(''); 
+}
+function openKendM(k){ $('MKEND_T').textContent=k?'Edit Kendaraan':'Tambah Kendaraan'; $('KF_POL').value=k?k['No Polisi']||'':''; $('KF_MERK').value=k?k['Merk/Tipe']||'':''; $('KF_THN').value=k?k['Tahun']||'':''; $('KF_ST').value=k?k['Status']||'TERSEDIA':'TERSEDIA'; $('KF_KET').value=k?k['Keterangan']||'':''; openM('MKEND'); }
+async function saveKend(){ const res=await api({action:'save_kendaraan',user:CU,noPolisi:$('KF_POL').value.trim(),merkTipe:$('KF_MERK').value,tahun:$('KF_THN').value,status:$('KF_ST').value,keterangan:$('KF_KET').value},'Menyimpan...'); if(res.success){toast('Tersimpan!'); closeM('MKEND'); loadKend();}else toast(res.message,true); }
+async function delKend(p){ if(!confirm('Hapus armada?'))return; const res=await api({action:'delete_kendaraan',user:CU,noPolisi:p}); if(res.success){toast('Dihapus!'); loadKend();} }
+
+function openLogArmada(pol, tipe){ 
+  $('LOG_KEND_TITLE').textContent=`Pencatatan Log: ${tipe}`; $('LOG_KEND_SUB').textContent=`No Polisi: ${pol}`; 
+  let html=`<form onsubmit="submitLogArmada(event,'${pol}','${tipe}')" class="space-y-4"><div><label class="lbl">Driver</label><select id="LG_DRIVER" class="inp" required><option value="">- Pilih Driver -</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select></div>`;
+  if(tipe==='FUEL') html+=`<div class="grid grid-cols-2 gap-4"><div><label class="lbl">KM Awal</label><input type="number" id="LG_KMAWAL" class="inp" required></div><div><label class="lbl">KM Akhir</label><input type="number" id="LG_KMAKHIR" class="inp" required></div></div><div class="grid grid-cols-2 gap-4"><div><label class="lbl">Liter</label><input type="number" id="LG_LITER" class="inp" required></div><div><label class="lbl">Jenis BBM</label><input type="text" id="LG_BBM" class="inp" required></div></div>`;
+  else if(tipe==='SERVICE') html+=`<div><label class="lbl">Detail Perbaikan</label><textarea id="LG_PART" rows="2" class="inp resize-none" required></textarea></div><div class="grid grid-cols-2 gap-4"><div><label class="lbl">Bengkel</label><input type="text" id="LG_BENGKEL" class="inp" required></div><div><label class="lbl">Invoice</label><input type="text" id="LG_INVOICE" class="inp" required></div></div>`;
+  else if(tipe==='COMPLIANCE') html+=`<div class="grid grid-cols-2 gap-4"><div><label class="lbl">Jenis Dokumen</label><select id="LG_DOK" class="inp"><option>PAJAK TAHUNAN</option><option>UJI KIR</option></select></div><div><label class="lbl">Berlaku Akhir</label><input type="date" id="LG_EXP" class="inp" required></div></div><div class="grid grid-cols-2 gap-4"><div><label class="lbl">Vendor/Instansi</label><input type="text" id="LG_VENDOR" class="inp" required></div><div><label class="lbl">No Ref</label><input type="text" id="LG_REF" class="inp" required></div></div>`;
+  html+=`<div><label class="lbl">Total Biaya (Rp)</label><input type="number" id="LG_BIAYA" class="inp" required></div><div class="pt-2 flex justify-end gap-2"><button type="button" onclick="closeM('MKEND_LOG')" class="px-4 py-2 border rounded-xl text-xs font-bold">Batal</button><button type="submit" class="bcorp px-5 py-2 rounded-xl text-xs font-black">Simpan Catatan</button></div></form>`; 
+  $('MKEND_LOG_BODY').innerHTML=html; openM('MKEND_LOG'); 
+}
+async function submitLogArmada(e, pol, tipe){ 
+  e.preventDefault(); let det={driver:$('LG_DRIVER').value, totalBiaya:$('LG_BIAYA').value}; 
+  if(tipe==='FUEL'){det.kmAwal=$('LG_KMAWAL').value; det.kmAkhir=$('LG_KMAKHIR').value; det.liter=$('LG_LITER').value; det.jenisBbm=$('LG_BBM').value;} 
+  else if(tipe==='SERVICE'){det.part=$('LG_PART').value; det.bengkel=$('LG_BENGKEL').value; det.invoice=$('LG_INVOICE').value;} 
+  else if(tipe==='COMPLIANCE'){det.jenisDokumen=$('LG_DOK').value; det.masaBerlaku=$('LG_EXP').value; det.vendor=$('LG_VENDOR').value; det.noRef=$('LG_REF').value;}
+  const res=await api({action:'save_log_kendaraan', user:CU, noPolisi:pol, jenisLog:tipe, detail:det},'Menyimpan log...'); 
+  if(res.success){toast('Log armada tersimpan!'); closeM('MKEND_LOG');} else toast(res.message,true); 
 }
 
-function loadFBEditor(fid){
-  const cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return;
-  $('FBID').value    = fid;
-  $('FBNAMA').value  = cfg.NamaForm||'';
-  $('FBROLES').value = cfg.AllowedRoles||'ALL';
-  try{ $('FBFLOW').value=JSON.stringify(JSON.parse(cfg.ApprovalFlowJson||'[]')); }catch(e){ $('FBFLOW').value='["HRD"]'; }
-  try{ $('FBFIELDS').value=JSON.stringify(JSON.parse(cfg.FieldsJSON||'[]'),null,2); }catch(e){ $('FBFIELDS').value='[]'; }
-  $('FBEMPTY').classList.add('hide');
-  $('FBEDIT').classList.remove('hide');
+// --- INVENTORY ---
+async function loadInv(){ 
+  const g=$('INVENTORY_GRID'); g.innerHTML='<div class="col-span-full text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-slate-400"></i></div>'; 
+  const res=await api({action:'get_inventory'}); if(!res.success) return; 
+  g.innerHTML=(res.data||[]).map(iv=>{ const stok=parseInt(iv['Stok'])||0; let stCls='text-slate-800'; if(stok===0)stCls='text-red-600 font-black';else if(stok<=5)stCls='text-orange-600 font-bold'; const idB=iv['ID Barang']; return `<div class="bg-white rounded-2xl p-5 shadow-sm border card flex flex-col justify-between"><div><span class="text-[9px] font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded">${idB}</span><h3 class="font-black text-sm mt-2">${iv['Nama Barang']}</h3><p class="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">${iv['Kategori']}</p><div class="my-3 p-2 bg-slate-50 border rounded-xl text-center"><span class="text-xs text-slate-400 font-bold">Stok:</span> <span class="text-lg ml-1 ${stCls}">${stok}</span> <span class="text-xs text-slate-500 font-semibold">${iv['Satuan']}</span></div></div><div class="space-y-1 pt-2 border-t"><button onclick="openFormRequestATK('${idB}', '${iv['Nama Barang']}')" class="w-full bg-blue-50 text-blue-600 text-xs py-2 rounded-xl font-black"><i class="fa-solid fa-hand-holding-hand"></i> Ambil Barang</button><div class="flex justify-end gap-2 text-xs pt-2"><button onclick='openInvM(${JSON.stringify(iv).replace(/'/g,"&apos;")})' class="text-blue-600"><i class="fa-solid fa-pen"></i> Edit</button><button onclick="delInv('${idB}')" class="text-red-500"><i class="fa-solid fa-trash"></i> Hapus</button></div></div></div>`; }).join(''); 
+}
+function openInvM(iv){ $('MINV_T').textContent=iv?'Edit Barang':'Tambah Barang'; $('IF_ID').value=iv?iv['ID Barang']||'':''; $('IF_NAMA').value=iv?iv['Nama Barang']||'':''; $('IF_KAT').value=iv?iv['Kategori']||'':''; $('IF_STOK').value=iv?iv['Stok']||'0':'0'; $('IF_SAT').value=iv?iv['Satuan']||'':''; $('IF_KET').value=iv?iv['Keterangan']||'':''; openM('MINV'); }
+async function saveInv(){ const res=await api({action:'save_inventory',user:CU,idBarang:$('IF_ID').value,namaBarang:$('IF_NAMA').value,kategori:$('IF_KAT').value,stok:$('IF_STOK').value,satuan:$('IF_SAT').value,keterangan:$('IF_KET').value},'Menyimpan...'); if(res.success){toast('Tersimpan!'); closeM('MINV'); loadInv();}else toast(res.message,true); }
+async function delInv(id){ if(!confirm('Hapus barang?'))return; const res=await api({action:'delete_inventory',user:CU,idBarang:id}); if(res.success){toast('Dihapus!'); loadInv();} }
+
+function openFormRequestATK(id, nm){ 
+  $('ACTION_INV_TITLE').textContent='Form Pengambilan ATK'; $('ACTION_INV_SUB').textContent=`${nm} [${id}]`; 
+  $('MINV_ACTION_BODY').innerHTML=`<form onsubmit="submitRequestATK(event,'${id}')" class="space-y-4"><div><label class="lbl">Pemohon</label><select id="ATK_USER" class="inp" required><option value="">- Pilih -</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select></div><div><label class="lbl">Jumlah Diambil</label><input type="number" id="ATK_QTY" min="1" class="inp" required></div><div><label class="lbl">Keterangan / Tujuan</label><input type="text" id="ATK_KET" class="inp" required></div><div class="pt-2 flex justify-end gap-2"><button type="button" onclick="closeM('MINV_ACTION')" class="px-4 py-2 border rounded-xl text-xs font-bold">Batal</button><button type="submit" class="bcorp px-5 py-2 rounded-xl text-xs font-black">Proses Ambil</button></div></form>`; 
+  openM('MINV_ACTION'); 
+}
+async function submitRequestATK(e, id){ 
+  e.preventDefault(); 
+  const res=await api({action:'process_take_inventory',user:CU,idBarang:id,pemohon:$('ATK_USER').value,qty:$('ATK_QTY').value,keterangan:$('ATK_KET').value},'Memproses stok...'); 
+  if(res.success){toast('Kuantitas stok terpotong!'); closeM('MINV_ACTION'); loadInv();} else toast(res.message,true); 
 }
 
-function openNewForm(){
-  $('FBID').value    = 'FORM-'+Date.now();
-  $('FBNAMA').value  = '';
-  $('FBROLES').value = 'ALL';
-  $('FBFLOW').value  = '["HRD"]';
-  $('FBFIELDS').value= '[\n  {"name":"alasan","label":"Alasan","type":"textarea","required":true}\n]';
-  $('FBEMPTY').classList.add('hide');
-  $('FBEDIT').classList.remove('hide');
+function openStockOpname(){ 
+  $('ACTION_INV_TITLE').textContent='Siklus Stock Opname'; $('ACTION_INV_SUB').textContent='Verifikasi kondisi fisik gudang'; 
+  $('MINV_ACTION_BODY').innerHTML=`<div class="space-y-4"><p class="text-xs text-slate-500">Sistem akan mengekspor data stok terkini ke dalam format CSV untuk diselaraskan dengan cek fisik.</p><button onclick="pullDataStockOpname()" class="w-full bg-slate-900 text-white text-xs py-3 rounded-xl font-black shadow"><i class="fa-solid fa-file-export mr-2"></i>Tarik Data (.CSV)</button></div>`; 
+  openM('MINV_ACTION'); 
+}
+async function pullDataStockOpname(){ 
+  const res=await api({action:'export_data',exportType:'INVENTORY'},'Mengekspor...'); 
+  if(res.success&&res.csvData){ 
+    const blob=new Blob(['\uFEFF'+res.csvData],{type:'text/csv;charset=utf-8;'}); 
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Opname_${new Date().toISOString().split('T')[0]}.csv`; 
+    document.body.appendChild(a); a.click(); a.remove(); toast('File terunduh!'); 
+  } else toast('Gagal',true); 
 }
 
-async function saveForm(){
-  const fv=$('FBFIELDS').value.trim();
-  try{ JSON.parse(fv); }catch(e){ return toast('Struktur JSON Fields tidak valid!',true); }
-  let fl=[]; try{ fl=JSON.parse($('FBFLOW').value); }catch(e){ fl=$('FBFLOW').value.split(',').map(s=>s.trim()).filter(Boolean); }
-  const res=await api({
-    action:'save_form_config', user:CU,
-    formId:$('FBID').value, namaForm:$('FBNAMA').value.trim(),
-    flowJson:JSON.stringify(fl), fieldsJson:fv,
-    allowedRoles:$('FBROLES').value.trim()||'ALL', needFinance:'FALSE'
-  },'Menyimpan...');
-  if(res.success){ toast('Konfigurasi berhasil disimpan!'); await loadForms(); loadFBList(); } else toast(res.message,true);
+async function doExport(t){ 
+  const res=await api({action:'export_data',exportType:t},'Mengekspor...'); 
+  if(res.success&&res.csvData){ 
+    const blob=new Blob(['\uFEFF'+res.csvData],{type:'text/csv;charset=utf-8;'}); 
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Export_${t}.csv`; 
+    document.body.appendChild(a); a.click(); a.remove(); toast('Unduhan berhasil!'); 
+  } else toast(res.message,true); 
 }
 
-async function deleteForm(){
-  const fid=$('FBID').value; if(!fid) return;
-  if(!confirm('Hapus form ini? Tindakan ini tidak dapat dibatalkan.')) return;
-  const res=await api({action:'delete_form_config',user:CU,formId:fid},'Menghapus...');
-  if(res.success){ toast('Form dihapus.'); $('FBEDIT').classList.add('hide'); $('FBEMPTY').classList.remove('hide'); await loadForms(); loadFBList(); } else toast(res.message,true);
-}
-
-// ─── BROADCAST ────────────────────────────────────────────────
-function bcToggleTarget(){
-  const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL');
-  if(t==='GENERAL'){ w.classList.add('hide'); $('BCTARGET').removeAttribute('required'); }
-  else{ w.classList.remove('hide'); $('BCTARGET').setAttribute('required',''); l.textContent=t==='DIVISI'?'Nama Divisi / Posisi':'NIK Karyawan'; }
-}
-
-on('FMBC','submit', async e=>{
-  e.preventDefault();
-  const fi=$('BCFILE'); let f64=null,fn=null;
-  if(fi.files.length){
-    if(fi.files[0].size>2*1024*1024) return toast('File terlalu besar (maks 2MB)',true);
-    showL('Mengunggah lampiran...'); f64=await b64(fi.files[0]); fn=fi.files[0].name; hideL();
-  }
-  const res=await api({
-    action:'send_broadcast', user:CU,
-    targetType:$('BCTYPE').value,
-    targetValue:$('BCTYPE').value==='GENERAL'?'ALL':$('BCTARGET').value.trim(),
-    judul:$('BCJUDUL').value.trim(),
-    isi:$('BCISI').value.trim(),
-    file:f64, fileName:fn
-  },'Mengirim broadcast...');
-  if(res.success){ toast(res.message||'Broadcast berhasil dikirim!'); $('FMBC').reset(); bcToggleTarget(); }
-  else toast(res.message,true);
-});
-
-// ─── KENDARAAN ────────────────────────────────────────────────
-async function loadKend(){
-  $('KENDBODY').innerHTML=`<tr><td colspan="6" class="px-5 py-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat...</td></tr>`;
-  const res=await api({action:'get_kendaraan'});
-  if(!res.success) return toast(res.message,true);
-  const data=res.data||[];
-  if(!data.length){ $('KENDBODY').innerHTML=`<tr><td colspan="6" class="px-5 py-10 text-center text-slate-400 text-sm">Belum ada data kendaraan. Klik "Tambah Kendaraan".</td></tr>`; return; }
-  const stC={'TERSEDIA':'bg-emerald-100 text-emerald-700','DIGUNAKAN':'bg-blue-100 text-blue-700','SERVIS':'bg-yellow-100 text-yellow-700','RUSAK':'bg-red-100 text-red-700'};
-  $('KENDBODY').innerHTML=data.map(k=>`
-    <tr class="hover:bg-slate-50 transition">
-      <td class="px-5 py-3.5 font-black text-slate-900">${k['No Polisi']||'-'}</td>
-      <td class="px-5 py-3.5 font-semibold text-slate-700">${k['Merk/Tipe']||'-'}</td>
-      <td class="px-5 py-3.5 text-slate-500 text-xs">${k['Tahun']||'-'}</td>
-      <td class="px-5 py-3.5"><span class="text-xs font-bold px-2.5 py-1 rounded-lg ${stC[k['Status']]||'bg-slate-100 text-slate-600'}">${k['Status']||'-'}</span></td>
-      <td class="px-5 py-3.5 text-slate-400 text-xs">${k['Keterangan']||'-'}</td>
-      <td class="px-5 py-3.5 text-center">
-        <div class="flex items-center justify-center gap-2">
-          <button onclick='openKendM(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
-          <button onclick="delKend('${k['No Polisi']}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
-        </div>
-      </td>
-    </tr>`).join('');
-}
-
-function openKendM(k){
-  $('MKEND_T').textContent=k?'Edit Kendaraan':'Tambah Kendaraan';
-  $('KF_POL').value  = k?k['No Polisi']||'':'';
-  $('KF_MERK').value = k?k['Merk/Tipe']||'':'';
-  $('KF_THN').value  = k?k['Tahun']||'':'';
-  $('KF_ST').value   = k?k['Status']||'TERSEDIA':'TERSEDIA';
-  $('KF_KET').value  = k?k['Keterangan']||'':'';
-  openM('MKEND');
-}
-async function saveKend(){
-  const pol=$('KF_POL').value.trim(); if(!pol) return toast('No Polisi wajib diisi!',true);
-  const res=await api({action:'save_kendaraan',user:CU,noPolisi:pol,merkTipe:$('KF_MERK').value.trim(),tahun:$('KF_THN').value,status:$('KF_ST').value,keterangan:$('KF_KET').value.trim()},'Menyimpan...');
-  if(res.success){ toast(res.message); closeM('MKEND'); loadKend(); } else toast(res.message,true);
-}
-async function delKend(pol){
-  if(!confirm('Hapus kendaraan '+pol+'?')) return;
-  const res=await api({action:'delete_kendaraan',user:CU,noPolisi:pol},'Menghapus...');
-  if(res.success){ toast(res.message); loadKend(); } else toast(res.message,true);
-}
-
-// ─── INVENTORY ────────────────────────────────────────────────
-async function loadInv(){
-  $('INVBODY').innerHTML=`<tr><td colspan="7" class="px-5 py-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat...</td></tr>`;
-  const res=await api({action:'get_inventory'});
-  if(!res.success) return toast(res.message,true);
-  const data=res.data||[];
-  if(!data.length){ $('INVBODY').innerHTML=`<tr><td colspan="7" class="px-5 py-10 text-center text-slate-400 text-sm">Belum ada data inventory. Klik "Tambah Barang".</td></tr>`; return; }
-  $('INVBODY').innerHTML=data.map(iv=>{
-    const stok=parseInt(iv['Stok'])||0;
-    const stC=stok===0?'text-red-600 font-black':stok<=5?'text-orange-600 font-bold':'text-slate-800 font-semibold';
-    return `<tr class="hover:bg-slate-50 transition">
-      <td class="px-5 py-3.5 text-xs font-mono text-slate-500">${iv['ID Barang']||'-'}</td>
-      <td class="px-5 py-3.5 font-bold text-slate-800">${iv['Nama Barang']||'-'}</td>
-      <td class="px-5 py-3.5 text-slate-600 text-xs">${iv['Kategori']||'-'}</td>
-      <td class="px-5 py-3.5 text-right ${stC}">${stok}</td>
-      <td class="px-5 py-3.5 text-slate-500 text-xs">${iv['Satuan']||'-'}</td>
-      <td class="px-5 py-3.5 text-slate-400 text-xs">${iv['Keterangan']||'-'}</td>
-      <td class="px-5 py-3.5 text-center">
-        <div class="flex items-center justify-center gap-2">
-          <button onclick='openInvM(${JSON.stringify(iv).replace(/'/g,"&apos;")})' class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
-          <button onclick="delInv('${iv['ID Barang']}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function openInvM(iv){
-  $('MINV_T').textContent=iv?'Edit Barang':'Tambah Barang';
-  $('IF_ID').value   = iv?iv['ID Barang']   ||'':'';
-  $('IF_NAMA').value = iv?iv['Nama Barang'] ||'':'';
-  $('IF_KAT').value  = iv?iv['Kategori']    ||'':'';
-  $('IF_STOK').value = iv?iv['Stok']        ||'0':'0';
-  $('IF_SAT').value  = iv?iv['Satuan']      ||'':'';
-  $('IF_KET').value  = iv?iv['Keterangan']  ||'':'';
-  openM('MINV');
-}
-async function saveInv(){
-  const nm=$('IF_NAMA').value.trim(); if(!nm) return toast('Nama Barang wajib diisi!',true);
-  const res=await api({action:'save_inventory',user:CU,idBarang:$('IF_ID').value.trim(),namaBarang:nm,kategori:$('IF_KAT').value.trim(),stok:$('IF_STOK').value,satuan:$('IF_SAT').value.trim(),keterangan:$('IF_KET').value.trim()},'Menyimpan...');
-  if(res.success){ toast(res.message); closeM('MINV'); loadInv(); } else toast(res.message,true);
-}
-async function delInv(id){
-  if(!confirm('Hapus barang '+id+' dari inventory?')) return;
-  const res=await api({action:'delete_inventory',user:CU,idBarang:id},'Menghapus...');
-  if(res.success){ toast(res.message); loadInv(); } else toast(res.message,true);
-}
-
-// ─── EXPORT CSV ───────────────────────────────────────────────
-async function doExport(type){
-  const res=await api({action:'export_data',exportType:type},'Mengekspor data...');
-  if(res.success&&res.csvData){
-    const blob=new Blob(['\uFEFF'+res.csvData],{type:'text/csv;charset=utf-8;'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=res.filename||'export_'+type+'.csv';
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('Data '+type+' berhasil diunduh!');
-  } else { toast(res.message||'Gagal export data.',true); }
-}
-
-// ─── CLOSE MODAL ON BACKDROP ──────────────────────────────────
-['MDETAIL','MREJECT','MKARY','MKEND','MINV'].forEach(id=>{
-  const el=$(id);
-  if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); });
+// Modal Click Outside Handlers
+['MDETAIL','MREJECT','MKARY','MKEND','MINV','MKEND_LOG','MINV_ACTION','MPENILAIAN'].forEach(id=>{
+  const el=$(id); if(el) el.addEventListener('click', function(e){ if(e.target===this) closeM(id); });
 });
 </script>
 </body>
