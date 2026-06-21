@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal HRIS & ERP – CV Andela Jaya</title>
+<title>Portal HRIS & ERP - CV Andela Jaya</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -60,19 +60,19 @@ tailwind.config = {
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen">
 
-<!-- ▌GLOBAL LOADER -->
+<!-- |GLOBAL LOADER -->
 <div id="GLD" class="fixed inset-0 bg-black/60 z-[300] hidden items-center justify-center flex-col backdrop-blur-sm">
   <div class="w-14 h-14 rounded-full border-4 border-slate-500 border-t-corp spin mb-4"></div>
   <p id="GLDM" class="text-white font-bold text-sm tracking-wide">Memproses...</p>
 </div>
 
-<!-- ▌TOAST -->
+<!-- |TOAST -->
 <div id="TBOX" class="fixed top-4 right-4 z-[400] flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
 
-<!-- ▌MOBILE OVERLAY -->
+<!-- |MOBILE OVERLAY -->
 <div id="sbo" onclick="sbToggle()"></div>
 
-<!-- ══════════════ LOGIN PAGE ══════════════ -->
+<!-- ============== LOGIN PAGE ============== -->
 <div id="PGlogin" class="fixed inset-0 bg-gradient-to-br from-slate-900 via-sb to-slate-900 flex items-center justify-center z-50">
   <div class="w-full max-w-sm mx-4 fade">
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -99,22 +99,22 @@ tailwind.config = {
             <label class="lbl">Password</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><i class="fa-solid fa-lock"></i></span>
-              <input id="LP" type="password" required placeholder="••••••••" class="inp pl-10">
+              <input id="LP" type="password" required placeholder="--------" class="inp pl-10">
               <button type="button" onclick="togglePw()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-corp text-sm"><i class="fa-solid fa-eye" id="PWICO"></i></button>
             </div>
           </div>
           <button type="submit" id="BTNLOG" class="bcorp w-full py-3 rounded-xl font-black text-sm mt-1 shadow-md">Masuk ke Portal</button>
         </form>
-        <p class="text-center text-xs text-slate-400 mt-6">© 2026 CV Andela Jaya · Sistem Internal</p>
+        <p class="text-center text-xs text-slate-400 mt-6">(c) 2026 CV Andela Jaya - Sistem Internal</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ MAIN APP ══════════════ -->
+<!-- ============== MAIN APP ============== -->
 <div id="PGapp" class="hide w-full h-screen flex overflow-hidden">
 
-  <!-- ▌SIDEBAR -->
+  <!-- |SIDEBAR -->
   <aside id="sidebar" class="w-64 bg-sb flex flex-col flex-shrink-0 shadow-2xl overflow-y-auto z-50">
     <!-- Logo -->
     <div class="flex items-center px-5 py-5 border-b border-white/5 flex-shrink-0">
@@ -185,7 +185,7 @@ tailwind.config = {
     </div>
   </aside>
 
-  <!-- ▌CONTENT AREA -->
+  <!-- |CONTENT AREA -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
     <!-- Topbar -->
     <header class="bg-white border-b border-slate-100 h-16 flex items-center px-4 md:px-7 gap-3 flex-shrink-0 shadow-sm z-10">
@@ -208,7 +208,7 @@ tailwind.config = {
     <!-- VIEWS -->
     <main id="VIEWPORT" class="flex-1 overflow-y-auto p-4 md:p-7 bg-slate-50">
 
-      <!-- ══ DASHBOARD ══ -->
+      <!-- == DASHBOARD == -->
       <div id="V-dashboard" class="app-view hide fade max-w-7xl mx-auto space-y-5">
         <!-- Alert Kontrak Banner -->
         <div id="ALERT_KB" class="hide bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-5 text-white shadow-lg">
@@ -217,7 +217,7 @@ tailwind.config = {
               <i class="fa-solid fa-triangle-exclamation text-lg"></i>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-black text-sm mb-1">⚠ Peringatan: Kontrak Karyawan Akan Habis</p>
+              <p class="font-black text-sm mb-1">[!] Peringatan: Kontrak Karyawan Akan Habis</p>
               <div id="ALERT_KB_LIST" class="text-sm text-white/85 space-y-0.5"></div>
             </div>
           </div>
@@ -270,7 +270,7 @@ tailwind.config = {
                 <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i></div>
                 <h3 class="font-black text-slate-800 text-sm">Pengajuan Terakhir</h3>
               </div>
-              <button onclick="nav('riwayat')" class="text-xs font-bold text-blue-600 hover:underline">Lihat semua →</button>
+              <button onclick="nav('riwayat')" class="text-xs font-bold text-blue-600 hover:underline">Lihat semua -></button>
             </div>
             <div id="DRWYT" class="divide-y divide-slate-50 max-h-72 overflow-y-auto">
               <p class="p-6 text-center text-slate-400 text-sm">Memuat...</p>
@@ -301,7 +301,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ BUAT PENGAJUAN ══ -->
+      <!-- == BUAT PENGAJUAN == -->
       <div id="V-pengajuan" class="app-view hide fade max-w-3xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-slate-50 flex items-center gap-4">
@@ -315,7 +315,7 @@ tailwind.config = {
             <div>
               <label class="lbl">Jenis Formulir</label>
               <select id="SELFORM" onchange="renderDynForm()" class="inp">
-                <option value="">— Memuat form... —</option>
+                <option value="">- Memuat form... -</option>
               </select>
             </div>
             <!-- Kasbon warning -->
@@ -336,7 +336,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ RIWAYAT ══ -->
+      <!-- == RIWAYAT == -->
       <div id="V-riwayat" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -378,7 +378,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ APPROVAL ══ -->
+      <!-- == APPROVAL == -->
       <div id="V-approval" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden border-t-4 border-t-corp">
           <div class="px-7 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -405,7 +405,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ PENILAIAN KARYAWAN (SPV/GM/Finance/Atasan) ══ -->
+      <!-- == PENILAIAN KARYAWAN (SPV/GM/Finance/Atasan) == -->
       <div id="V-penilaian" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex items-center gap-3 mb-5">
           <div class="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-star text-purple-600"></i></div>
@@ -421,7 +421,7 @@ tailwind.config = {
         <div id="PNL_GRID" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
-      <!-- ══ DATABASE KARYAWAN ══ -->
+      <!-- == DATABASE KARYAWAN == -->
       <div id="V-dbkary" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div>
@@ -443,7 +443,7 @@ tailwind.config = {
         <div id="KARYGRID" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
       </div>
 
-      <!-- ══ PEMANGGILAN / SP ══ -->
+      <!-- == PEMANGGILAN / SP == -->
       <div id="V-sp" class="app-view hide fade max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-red-50 flex items-center gap-4">
@@ -457,7 +457,7 @@ tailwind.config = {
             <div>
               <label class="lbl">Nama Karyawan <span class="text-red-500">*</span></label>
               <select id="SPKARY" class="inp">
-                <option value="">— Pilih Karyawan —</option>
+                <option value="">- Pilih Karyawan -</option>
               </select>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -492,7 +492,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ FORM BUILDER ══ -->
+      <!-- == FORM BUILDER == -->
       <div id="V-fbuilder" class="app-view hide fade">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
@@ -561,7 +561,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ BROADCAST ══ -->
+      <!-- == BROADCAST == -->
       <div id="V-broadcast" class="app-view hide fade max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="px-7 py-5 border-b border-slate-100 flex items-center gap-4">
@@ -600,7 +600,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- ══ KENDARAAN ══ -->
+      <!-- == KENDARAAN == -->
       <div id="V-kendaraan" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex items-center justify-between">
           <div>
@@ -615,7 +615,7 @@ tailwind.config = {
         <div id="KENDGRID" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
-      <!-- ══ INVENTORY ══ -->
+      <!-- == INVENTORY == -->
       <div id="V-inventory" class="app-view hide fade space-y-5">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div>
@@ -667,7 +667,7 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- ══════════════ MODALS ══════════════ -->
+<!-- ============== MODALS ============== -->
 
 <!-- Modal: Detail Pengajuan / Riwayat -->
 <div id="MDETAIL" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -781,7 +781,7 @@ tailwind.config = {
       <div>
         <label class="lbl">Nilai Kinerja <span class="text-red-500">*</span></label>
         <select id="MPNL_NILAI" class="inp">
-          <option value="">— Pilih Nilai —</option>
+          <option value="">- Pilih Nilai -</option>
           <option value="Sangat Baik">Sangat Baik</option>
           <option value="Baik">Baik</option>
           <option value="Cukup">Cukup</option>
@@ -1001,7 +1001,7 @@ tailwind.config = {
       <div id="MID_PANEL_ambil" class="mid-panel hide space-y-4">
         <div id="MID_STOK_INFO" class="bg-slate-50 rounded-xl p-4 text-sm font-bold text-slate-700"></div>
         <div><label class="lbl">Nama Karyawan <span class="text-red-500">*</span></label>
-          <select id="MIDA_KARY" class="inp"><option value="">— Pilih Karyawan —</option></select>
+          <select id="MIDA_KARY" class="inp"><option value="">- Pilih Karyawan -</option></select>
         </div>
         <div><label class="lbl">Jumlah Ambil <span class="text-red-500">*</span></label><input id="MIDA_JUMLAH" type="number" min="1" class="inp"></div>
         <div><label class="lbl">Keperluan</label><textarea id="MIDA_KEPERLUAN" rows="3" class="inp resize-none"></textarea></div>
@@ -1016,12 +1016,12 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- ══════════════ SCRIPT ══════════════ -->
+<!-- ============== SCRIPT ============== -->
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────
+// --- CONFIG --------------------------------------------------
 const API = 'https://script.google.com/macros/s/AKfycbxYxKwqH9XMO6zRMaKhMiCPTPhaMlknyzFx7jXYW-DOD9xWNZynirZbfKqguZzFDkuK4Q/exec';
 
-// ─── STATE ───────────────────────────────────────────────────
+// --- STATE ---------------------------------------------------
 let CU      = null;   // current user
 let FORMS   = [];     // form configs
 let CTX     = [];     // current view data (riwayat / approval)
@@ -1030,7 +1030,7 @@ let WGT_KB_DATA = [];  // data mentah widget Kontrak Akan/Sudah Habis (untuk mod
 let DD_KEND = [];     // dropdown kendaraan
 let DD_INV  = [];     // dropdown inventory
 
-// ─── UTILS ───────────────────────────────────────────────────
+// --- UTILS ---------------------------------------------------
 const $  = id => document.getElementById(id);
 const on = (id, ev, fn) => $(id) && $(id).addEventListener(ev, fn);
 
@@ -1076,7 +1076,7 @@ function fmtDate(d, opts={day:'numeric',month:'short',year:'numeric'}) {
   try { return new Date(d).toLocaleDateString('id-ID',opts); } catch(e){ return d.toString(); }
 }
 
-// ─── API CALL ─────────────────────────────────────────────────
+// --- API CALL -------------------------------------------------
 async function api(payload, msg=null) {
   try {
     if(msg) showL(msg); else showL();
@@ -1092,7 +1092,7 @@ async function api(payload, msg=null) {
   } finally { hideL(); }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────
+// --- INIT -----------------------------------------------------
 window.onload = async () => {
   $('TDATE').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
@@ -1149,7 +1149,7 @@ function doLogout() {
   toast('Berhasil keluar dari sistem.');
 }
 
-// ─── BOOT APP ─────────────────────────────────────────────────
+// --- BOOT APP -------------------------------------------------
 function bootApp() {
   $('PGlogin').classList.add('hide');
   $('PGapp').classList.remove('hide');
@@ -1194,7 +1194,7 @@ function bootApp() {
   nav('dashboard');
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────
+// --- NAVIGATION -----------------------------------------------
 function nav(viewId) {
   document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hide'));
   document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
@@ -1226,7 +1226,7 @@ function nav(viewId) {
   if(window.innerWidth<768){ $('sidebar').classList.remove('open'); $('sbo').classList.remove('show'); }
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────
+// --- DASHBOARD ------------------------------------------------
 async function loadDashboard() {
   // Cuti bar
   const sisa  = CU.SisaCuti      || 0;
@@ -1247,7 +1247,7 @@ async function loadDashboard() {
           <p class="font-bold text-slate-800 text-sm leading-snug">${b.Judul||''}</p>
           <span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-0.5 rounded whitespace-nowrap">${fmtDate(b.Tanggal)}</span>
         </div>
-        <p class="text-xs text-slate-500 leading-relaxed">${(b.Isi||'').substring(0,150)}${(b.Isi||'').length>150?'…':''}</p>
+        <p class="text-xs text-slate-500 leading-relaxed">${(b.Isi||'').substring(0,150)}${(b.Isi||'').length>150?'...':''}</p>
         ${b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-blue-600 hover:underline"><i class="fa-solid fa-download"></i>Unduh Lampiran</a>`:''}
       </div>`).join('');
   } else {
@@ -1273,7 +1273,7 @@ async function loadDashboard() {
     const mine = res.alertKontrak.find(k=>k.Nama===CU.Nama);
     if(mine){
       $('ALERT_KB').classList.remove('hide');
-      $('ALERT_KB_LIST').innerHTML=`<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}. Segera hubungi HRD.</p>`;
+      $('ALERT_KB_LIST').innerHTML=`<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> - ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}. Segera hubungi HRD.</p>`;
     }
     // PATCH: widget ini sebelumnya juga tampil untuk MANAGER/GENERAL MANAGER -
     // sesuai requirement, widget Kontrak Akan/Sudah Habis HARUS eksklusif HRD saja.
@@ -1304,7 +1304,7 @@ async function loadDashboard() {
   } else { $('BAPPR').classList.add('hide'); }
 }
 
-// ─── WIDGET KONTRAK: MODAL TINDAK LANJUT (HRD only) ────────────
+// --- WIDGET KONTRAK: MODAL TINDAK LANJUT (HRD only) ------------
 let MKONTRAK_MODE='penilaian'; // 'penilaian' | 'konseling' | 'dokumen'
 
 const MKONTRAK_DESC_MAP = {
@@ -1321,7 +1321,7 @@ const MKONTRAK_ACTION_MAP = {
 function openKontrakAction(idx){
   const k = WGT_KB_DATA[idx]; if(!k) return;
   $('MKONTRAK_NAMA').textContent = k.Nama;
-  $('MKONTRAK_SUB').textContent  = (k.Jabatan||'-')+' · Kontrak habis '+fmtDate(k.KontrakHabis);
+  $('MKONTRAK_SUB').textContent  = (k.Jabatan||'-')+' - Kontrak habis '+fmtDate(k.KontrakHabis);
   $('MKONTRAK_NIK').value = k.NIK||'-';
   $('MKONTRAK_NAMA_VAL').value = k.Nama;
   $('MKONTRAK_CATATAN').value = '';
@@ -1364,7 +1364,7 @@ async function submitKontrakAction(){
   }
 }
 
-// ─── FORM PENGAJUAN DINAMIS ───────────────────────────────────
+// --- FORM PENGAJUAN DINAMIS -----------------------------------
 async function loadForms() {
   const res = await api({action:'get_form_configs'});
   if(!res.success) return;
@@ -1372,7 +1372,7 @@ async function loadForms() {
   const sel=$('SELFORM');
   const myRole=(CU.Role||'').toUpperCase();
   const myPos =(CU.posisi||'').toUpperCase();
-  sel.innerHTML='<option value="">— Pilih Jenis Formulir —</option>';
+  sel.innerHTML='<option value="">- Pilih Jenis Formulir -</option>';
   FORMS.forEach(f=>{
     const allowed=(f.AllowedRoles||'ALL').toUpperCase();
     if(allowed==='ALL'||allowed.includes(myRole)||allowed.includes(myPos)){
@@ -1427,7 +1427,7 @@ function renderDynForm() {
       case 'select':
       case 'dropdownlist':
         const opts=(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih —</option>${opts}</select>`; break;
+        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">- Pilih -</option>${opts}</select>`; break;
       case 'checklist':
         // Checklist = multi-checkbox, nilainya array (bukan string tunggal seperti tipe lain) -
         // ditangani khusus saat submit (lihat blok 'on DYNFORM submit' di bawah).
@@ -1440,14 +1440,14 @@ function renderDynForm() {
       case 'time':
         inp=`<input type="time" id="DF_${f.name}" ${req} class="${B}">`; break;
       case 'karyawan':
-        const ko=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama} – ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Karyawan —</option>${ko}</select>`; break;
+        const ko=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama} - ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`).join('');
+        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">- Pilih Karyawan -</option>${ko}</select>`; break;
       case 'kendaraan':
-        const kno=DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} – ${k.merkTipe} [${k.status}]</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Kendaraan —</option>${kno}</select>`; break;
+        const kno=DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} - ${k.merkTipe} [${k.status}]</option>`).join('');
+        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">- Pilih Kendaraan -</option>${kno}</select>`; break;
       case 'inventory':
         const ino=DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok} ${k.satuan})</option>`).join('');
-        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">— Pilih Barang —</option>${ino}</select>`; break;
+        inp=`<select id="DF_${f.name}" ${req} class="${B}"><option value="">- Pilih Barang -</option>${ino}</select>`; break;
       case 'file':
         inp=`<input type="file" id="DF_${f.name}" ${req} class="${B} p-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-corpl file:text-corp cursor-pointer">`; break;
       default:
@@ -1498,7 +1498,7 @@ on('DYNFORM','submit', async e=>{
   } else { toast(res.message||'Gagal mengirim pengajuan.',true); }
 });
 
-// ─── RIWAYAT ─────────────────────────────────────────────────
+// --- RIWAYAT -------------------------------------------------
 async function loadRiwayat(){
   $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-6 py-12 text-center text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat riwayat...</td></tr>`;
   const res=await api({action:'get_riwayat',user:CU});
@@ -1541,7 +1541,7 @@ function renderRiwayatTable(){
     </tr>`).join('');
 }
 
-// ─── APPROVAL ─────────────────────────────────────────────────
+// --- APPROVAL -------------------------------------------------
 async function loadApproval(){
   $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat antrean...</td></tr>`;
   const res=await api({action:'get_approval_list',user:CU});
@@ -1550,7 +1550,7 @@ async function loadApproval(){
   const bEl=$('BAPPR');
   if(CTX.length){ bEl.textContent=CTX.length; bEl.classList.remove('hide'); } else { bEl.classList.add('hide'); }
   if(!CTX.length){
-    $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-16 text-center text-slate-400"><div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-clipboard-check text-emerald-500 text-2xl"></i></div>Antrean kosong — semua sudah diproses!</td></tr>`;
+    $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-6 py-16 text-center text-slate-400"><div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-clipboard-check text-emerald-500 text-2xl"></i></div>Antrean kosong - semua sudah diproses!</td></tr>`;
     return;
   }
   $('APPRBODY').innerHTML=CTX.map(tx=>`
@@ -1600,4 +1600,869 @@ function openDetail(txId){
     const s=st[i]||'PENDING';
     const c=s==='APPROVE'?'bg-emerald-50 border-emerald-200 text-emerald-700':s==='REJECT'?'bg-red-50 border-red-200 text-red-700':'bg-slate-50 border-slate-200 text-slate-600';
     const ic=s==='APPROVE'?'fa-check text-emerald-500':s==='REJECT'?'fa-xmark text-red-500':'fa-clock text-slate-400';
-    return `<div class="flex items-center justify-between p-3 bord
+    return `<div class="flex items-center justify-between p-3 border rounded-xl ${c}">
+      <span class="font-bold text-sm flex items-center gap-2"><i class="fa-solid ${ic}"></i>Step ${i+1}: ${r}</span>
+      <span class="text-[10px] font-black uppercase tracking-widest bg-white px-2 py-0.5 rounded-md shadow-sm">${s}</span>
+    </div>`;
+  }).join('')||'<p class="text-sm text-slate-400">Data flow tidak tersedia.</p>';
+  openM('MDETAIL');
+}
+
+async function doApprove(txId){
+  if(!confirm('Setujui pengajuan ini?')) return;
+  const res=await api({action:'process_approval',user:CU,txId,decision:'APPROVE',alasan:''},'Memproses persetujuan...');
+  if(res.success){ toast('Pengajuan berhasil disetujui.'); loadApproval(); } else toast(res.message,true);
+}
+
+function openReject(txId){ $('RJCTID').value=txId; $('RJCTALASAN').value=''; openM('MREJECT'); }
+
+async function submitReject(){
+  const alasan=$('RJCTALASAN').value.trim();
+  if(!alasan) return toast('Alasan penolakan wajib diisi!',true);
+  const res=await api({action:'process_approval',user:CU,txId:$('RJCTID').value,decision:'REJECT',alasan},'Memproses penolakan...');
+  if(res.success){ toast('Pengajuan ditolak.'); closeM('MREJECT'); loadApproval(); } else toast(res.message,true);
+}
+
+// --- PENILAIAN KARYAWAN ---------------------------------------
+let PNL_BAWAHAN_DATA = [];
+
+async function loadPenilaian(){
+  $('PNL_GRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat daftar bawahan...</div>`;
+  $('PNL_EMPTY').classList.add('hide');
+  const res = await api({action:'get_bawahan', user:CU});
+  if(!res.success){ $('PNL_GRID').innerHTML=''; $('PNL_EMPTY').classList.remove('hide'); $('PNL_EMPTY').querySelector('i').nextSibling.textContent=res.message; return; }
+
+  PNL_BAWAHAN_DATA = res.data||[];
+  if(!PNL_BAWAHAN_DATA.length){
+    $('PNL_GRID').innerHTML='';
+    $('PNL_EMPTY').classList.remove('hide');
+    return;
+  }
+
+  $('PNL_GRID').innerHTML = PNL_BAWAHAN_DATA.map((k,idx)=>`
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-11 h-11 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm flex-shrink-0">${(k.Nama||'?').charAt(0).toUpperCase()}</div>
+        <div class="min-w-0">
+          <p class="font-bold text-slate-800 text-sm truncate">${k.Nama}</p>
+          <p class="text-xs text-slate-400 truncate">${k.Jabatan||'-'} - ${k.Divisi||'-'}</p>
+        </div>
+      </div>
+      <p class="text-[10px] font-mono text-slate-300 mb-4">NIK: ${k.NIK||'-'} - ${k.Cabang||'-'}</p>
+      <button onclick="openPenilaianForm(${idx})" class="w-full bg-purple-50 hover:bg-purple-600 hover:text-white text-purple-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-star"></i>Beri Penilaian
+      </button>
+    </div>`).join('');
+}
+
+function openPenilaianForm(idx){
+  const k = PNL_BAWAHAN_DATA[idx]; if(!k) return;
+  $('MPNL_NAMA').textContent = k.Nama;
+  $('MPNL_SUB').textContent  = (k.Jabatan||'-')+' - '+(k.Divisi||'-');
+  $('MPNL_NIK').value = k.NIK||'-';
+  $('MPNL_NAMA_VAL').value = k.Nama;
+  $('MPNL_NILAI').value = '';
+  $('MPNL_CATATAN').value = '';
+  openM('MPENILAIAN');
+}
+
+async function submitPenilaian(){
+  const nilai = $('MPNL_NILAI').value;
+  if(!nilai) return toast('Pilih nilai kinerja terlebih dahulu.',true);
+
+  const btn=$('MPNL_SUBMIT_BTN');
+  const orig=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+
+  const res = await api({
+    action:'simpan_penilaian', user:CU,
+    nik:$('MPNL_NIK').value, namaKaryawan:$('MPNL_NAMA_VAL').value,
+    nilai:nilai, catatan:$('MPNL_CATATAN').value.trim()
+  });
+
+  btn.disabled=false; btn.innerHTML=orig;
+
+  if(res.success){ toast(res.message||'Penilaian berhasil disimpan.'); closeM('MPENILAIAN'); }
+  else toast(res.message||'Gagal menyimpan penilaian.',true);
+}
+
+// --- DATABASE KARYAWAN ----------------------------------------
+async function loadKaryawan(){
+  const grid=$('KARYGRID');
+  grid.innerHTML='<div class="col-span-full text-center py-10 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl"></i></div>';
+  const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value.trim()});
+  if(!res.success) return toast(res.message,true);
+  const data=res.data||[];
+  $('TOTALKARY').textContent=res.total||data.length;
+  if(!data.length){ grid.innerHTML='<div class="col-span-full text-center text-slate-400 py-12 text-sm">Tidak ada data karyawan ditemukan.</div>'; return; }
+  grid.innerHTML=data.map(k=>{
+    const nm=k.Nama_Karyawan||'-';
+    const ini=nm.charAt(0).toUpperCase();
+    const st=(k['AKTIF/TDK AKTIF']||'').toUpperCase();
+    const stC=st==='AKTIF'?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-500';
+    const kh=k['KONTRAK HABIS'];
+    let khBadge='';
+    if(kh){ const sH=Math.ceil((new Date(kh)-new Date())/86400000); if(sH<=30) khBadge=`<span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-md mt-1 block">[!] Kontrak ${sH<0?'lewat '+Math.abs(sH)+'hr':sH+'hr lagi'}</span>`; }
+    return `<div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-corp text-white font-black text-lg flex items-center justify-center flex-shrink-0 shadow-md">${ini}</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-slate-900 text-sm leading-tight truncate">${nm}</p>
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider truncate mt-0.5">${k.JABATAN||'-'}</p>
+          ${khBadge}
+        </div>
+      </div>
+      <div class="space-y-1.5 text-xs text-slate-600 mb-4">
+        <p><i class="fa-solid fa-id-badge w-4 text-slate-300 mr-1"></i>${k.NIK_Karyawan||'-'}</p>
+        <p><i class="fa-solid fa-building w-4 text-slate-300 mr-1"></i>${k.DIVISI||'-'}</p>
+        <p><i class="fa-solid fa-location-dot w-4 text-slate-300 mr-1"></i>${k.CABANG||'-'}</p>
+        <p><i class="fa-solid fa-file-contract w-4 text-slate-300 mr-1"></i>${k['Status Karyawan']||k.Status_Karyawan||'-'}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${stC}">${st||'-'}</span>
+        <button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg transition">Detail</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Field yang TIDAK BOLEH diedit lewat form ini karena dipakai backend sebagai KEY
+// pencarian baris (hUpdateKaryawan mencocokkan berdasarkan Nama_Karyawan/NIK_Karyawan) -
+// mengubah nilai ini lewat form yang sama akan membuat backend gagal menemukan baris yang tepat.
+const KARY_READONLY_FIELDS = ['NIK_Karyawan','Nama_Karyawan','_rowIndex'];
+
+function openKaryDetail(k){
+  $('MKARY_TITLE').textContent=k.Nama_Karyawan||'Edit Karyawan';
+  const skip=['_rowIndex'];
+  const keys=Object.keys(k).filter(x=>!skip.includes(x));
+  $('MKARY_BODY').innerHTML=`<div class="grid grid-cols-2 gap-3">${keys.map(kk=>{
+    const isReadonly = KARY_READONLY_FIELDS.includes(kk);
+    const val = k[kk]!=null ? k[kk] : '';
+    return `
+    <div class="bg-white border border-slate-100 rounded-xl p-3">
+      <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">${kk.replace(/_/g,' ')}</p>
+      ${isReadonly
+        ? `<p class="text-sm font-semibold text-slate-800 break-words leading-snug py-1.5">${val||'-'}</p>`
+        : `<input type="text" class="kary-edit-field w-full text-sm font-semibold text-slate-800 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-corp focus:border-corp outline-none" data-field="${kk}" value="${val.toString().replace(/"/g,'&quot;')}">`
+      }
+    </div>`;
+  }).join('')}</div>`;
+  // Simpan identitas baris (Nama & NIK) di dataset modal supaya saveKaryawanEdit tahu
+  // baris mana yang harus diupdate, tanpa bergantung pada field yang mungkin sudah diubah user.
+  $('MKARY').dataset.editNama = k.Nama_Karyawan || '';
+  $('MKARY').dataset.editNik  = k.NIK_Karyawan  || '';
+  openM('MKARY');
+}
+
+async function saveKaryawanEdit(){
+  const nama = $('MKARY').dataset.editNama;
+  const nik  = $('MKARY').dataset.editNik;
+  if(!nama && !nik) return toast('Identitas karyawan tidak ditemukan, coba buka ulang detailnya.',true);
+
+  const updates = {};
+  document.querySelectorAll('.kary-edit-field').forEach(el=>{
+    updates[el.dataset.field] = el.value;
+  });
+
+  const btn=$('MKARY_SAVE');
+  const orig=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+
+  const res = await api({action:'update_karyawan', user:CU, Nama:nama, NIK:nik, updates:updates});
+
+  btn.disabled=false; btn.innerHTML=orig;
+
+  if(res.success){
+    toast('Data karyawan berhasil diperbarui.');
+    closeM('MKARY');
+    loadKaryawan(); // refresh grid supaya perubahan langsung terlihat
+  } else {
+    toast(res.message||'Gagal menyimpan perubahan.',true);
+  }
+}
+
+// --- PEMANGGILAN / SP -----------------------------------------
+function fillSPDD(){
+  const sel=$('SPKARY');
+  sel.innerHTML='<option value="">- Pilih Karyawan -</option>';
+  DD_KARY.forEach(k=>{ sel.innerHTML+=`<option value="${k.nama}">${k.nama} - ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`; });
+}
+
+on('FMSP','submit', async e=>{
+  e.preventDefault();
+  const nm=$('SPKARY').value;
+  if(!nm) return toast('Pilih karyawan terlebih dahulu.',true);
+  const res=await api({
+    action:'send_pemanggilan', user:CU,
+    namaPemohon:nm, jenisPeringatan:$('SPJENIS').value,
+    alasan:$('SPALASAN').value.trim(),
+    tanggalKejadian:$('SPTGL').value,
+    catatanTambahan:$('SPCATAT').value.trim()
+  },'Mengirim surat...');
+  if(res.success){ toast(res.message||'Surat berhasil dikirim!'); $('FMSP').reset(); }
+  else toast(res.message,true);
+});
+
+// --- FORM BUILDER (Visual Drag & Drop) -------------------------
+// FB_STATE menampung working state sementara saat HRD mengedit form di builder -
+// hanya di-serialize jadi JSON string (flowJson/fieldsJson) tepat sebelum dikirim
+// ke backend lewat saveForm(). Format yang disimpan ke backend TIDAK berubah,
+// supaya Code.gs (hSaveForm/hSubmit) tidak perlu diubah sama sekali.
+let FB_STATE = { flow: [], fields: [] };
+let fbFieldIdCounter = 0; // id unik internal per field card, untuk keperluan drag-reorder saja (bukan disimpan ke backend)
+
+// 12 tipe field sesuai requirement, dengan label & ikon untuk ditampilkan di builder
+const FB_FIELD_TYPES = [
+  {type:'text',         label:'Teks Singkat',      icon:'fa-font'},
+  {type:'textarea',     label:'Teks Panjang',       icon:'fa-align-left'},
+  {type:'date',         label:'Tanggal',            icon:'fa-calendar-day'},
+  {type:'time',         label:'Jam',                icon:'fa-clock'},
+  {type:'number',       label:'Angka',              icon:'fa-hashtag'},
+  {type:'select',       label:'Dropdown (Select)',  icon:'fa-caret-down'},
+  {type:'dropdownlist', label:'Dropdown List',      icon:'fa-list'},
+  {type:'checklist',    label:'Checklist (Multi)',  icon:'fa-square-check'},
+  {type:'file',         label:'Upload File',        icon:'fa-paperclip'},
+  {type:'karyawan',     label:'Pilih Karyawan',     icon:'fa-user'},
+  {type:'kendaraan',    label:'Pilih Kendaraan',    icon:'fa-car'},
+  {type:'inventory',    label:'Pilih Barang/Inventory', icon:'fa-box'}
+];
+// Tipe yang butuh daftar opsi manual diatur HRD (option list dipisah baris)
+const FB_TYPES_WITH_OPTIONS = ['select','dropdownlist','checklist'];
+
+function loadFBList(){
+  const ul=$('FBLIST');
+  if(!FORMS.length){ ul.innerHTML='<li class="p-5 text-center text-sm text-slate-400">Belum ada form. Klik "+ Form Baru".</li>'; return; }
+  ul.innerHTML=FORMS.map(f=>`
+    <li>
+      <button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left px-5 py-4 hover:bg-corpl hover:text-corp transition group flex items-center justify-between text-slate-600">
+        <div class="min-w-0 flex-1">
+          <p class="font-bold text-sm group-hover:text-corp truncate">${f.NamaForm}</p>
+          <p class="text-[10px] font-mono text-slate-400 mt-0.5 truncate">${f.FormID}</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-xs opacity-25 group-hover:opacity-100 flex-shrink-0 ml-2"></i>
+      </button>
+    </li>`).join('');
+}
+
+function loadFBEditor(fid){
+  const cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return;
+  $('FBID').value    = fid;
+  $('FBNAMA').value  = cfg.NamaForm||'';
+  $('FBROLES').value = cfg.AllowedRoles||'ALL';
+
+  try{ FB_STATE.flow = JSON.parse(cfg.ApprovalFlowJson||'[]'); }catch(e){ FB_STATE.flow = ['HRD']; }
+  try{
+    const parsedFields = JSON.parse(cfg.FieldsJSON||'[]');
+    FB_STATE.fields = parsedFields.map(f=>({ ...f, _fbId: 'fb-'+(fbFieldIdCounter++) }));
+  }catch(e){ FB_STATE.fields = []; }
+
+  fbRenderFlowChips();
+  fbRenderFieldsList();
+  $('FBEMPTY').classList.add('hide');
+  $('FBEDIT').classList.remove('hide');
+}
+
+function openNewForm(){
+  $('FBID').value    = 'FORM-'+Date.now();
+  $('FBNAMA').value  = '';
+  $('FBROLES').value = 'ALL';
+  FB_STATE.flow   = ['HRD'];
+  FB_STATE.fields = [{ name:'alasan', label:'Alasan', type:'textarea', required:true, _fbId:'fb-'+(fbFieldIdCounter++) }];
+  fbRenderFlowChips();
+  fbRenderFieldsList();
+  $('FBEMPTY').classList.add('hide');
+  $('FBEDIT').classList.remove('hide');
+}
+
+// -- Approval Flow: render chip + drag reorder --
+function fbRenderFlowChips(){
+  const c=$('FB_FLOW_CHIPS');
+  if(!FB_STATE.flow.length){ c.innerHTML='<p class="text-xs text-slate-400 px-2">Belum ada approver. Tambahkan minimal 1 role.</p>'; return; }
+  c.innerHTML=FB_STATE.flow.map((role,idx)=>`
+    <span draggable="true" data-idx="${idx}" ondragstart="fbFlowDragStart(event)" ondragover="fbFlowDragOver(event)" ondrop="fbFlowDrop(event)" ondragend="fbFlowDragEnd(event)"
+      class="fb-flow-chip inline-flex items-center gap-2 bg-corpl text-corp text-xs font-black px-3 py-1.5 rounded-full border border-red-100 cursor-move select-none">
+      <i class="fa-solid fa-grip-vertical text-[10px] opacity-40"></i>
+      ${idx+1}. ${role}
+      <button type="button" onclick="fbRemoveFlowRole(${idx})" class="hover:text-red-900"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+    </span>`).join('');
+}
+
+function fbAddFlowRole(){
+  const role=$('FB_FLOW_ADD_ROLE').value;
+  FB_STATE.flow.push(role);
+  fbRenderFlowChips();
+}
+
+function fbRemoveFlowRole(idx){
+  FB_STATE.flow.splice(idx,1);
+  fbRenderFlowChips();
+}
+
+let fbFlowDragIdx=null;
+function fbFlowDragStart(e){ fbFlowDragIdx=parseInt(e.currentTarget.dataset.idx,10); e.currentTarget.classList.add('opacity-40'); }
+function fbFlowDragOver(e){ e.preventDefault(); }
+function fbFlowDrop(e){
+  e.preventDefault();
+  const dropIdx=parseInt(e.currentTarget.dataset.idx,10);
+  if(fbFlowDragIdx===null||fbFlowDragIdx===dropIdx) return;
+  const moved=FB_STATE.flow.splice(fbFlowDragIdx,1)[0];
+  FB_STATE.flow.splice(dropIdx,0,moved);
+  fbRenderFlowChips();
+}
+function fbFlowDragEnd(e){ e.currentTarget.classList.remove('opacity-40'); fbFlowDragIdx=null; }
+
+// -- Fields: render card list + drag reorder + kontrol kontekstual --
+function fbRenderFieldsList(){
+  const c=$('FB_FIELDS_LIST');
+  if(!FB_STATE.fields.length){ c.innerHTML='<p class="text-xs text-slate-400 p-3 bg-slate-50 rounded-xl text-center">Belum ada field. Klik "Tambah Field" di atas.</p>'; return; }
+
+  const typeOptions=(currentType)=>FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===currentType?'selected':''}>${t.label}</option>`).join('');
+
+  c.innerHTML=FB_STATE.fields.map((f,idx)=>{
+    const showOptions=FB_TYPES_WITH_OPTIONS.includes(f.type);
+    const optionsValue=(f.options||[]).join('\n');
+    return `
+    <div class="fb-field-card bg-white border border-slate-200 rounded-xl p-3.5" draggable="true" data-idx="${idx}"
+         ondragstart="fbFieldDragStart(event)" ondragover="fbFieldDragOver(event)" ondrop="fbFieldDrop(event)" ondragend="fbFieldDragEnd(event)">
+      <div class="flex items-start gap-2.5">
+        <div class="cursor-move text-slate-300 hover:text-slate-500 pt-2.5 flex-shrink-0"><i class="fa-solid fa-grip-vertical"></i></div>
+        <div class="flex-1 min-w-0 space-y-2">
+          <div class="grid grid-cols-12 gap-2">
+            <input type="text" class="fb-fld-label inp !py-2 col-span-6 text-sm" placeholder="Label Field (mis. Tanggal Mulai)" value="${(f.label||'').replace(/"/g,'&quot;')}" data-idx="${idx}">
+            <select class="fb-fld-type inp !py-2 col-span-4 text-sm" data-idx="${idx}">${typeOptions(f.type)}</select>
+            <button type="button" onclick="fbRemoveField(${idx})" class="col-span-2 text-slate-300 hover:text-red-600 flex items-center justify-center"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-500"><input type="checkbox" class="fb-fld-required w-3.5 h-3.5 rounded border-slate-300 text-corp" data-idx="${idx}" ${f.required?'checked':''}> Wajib diisi</label>
+            <span class="text-[10px] font-mono text-slate-300">name: ${f.name||'-'}</span>
+          </div>
+          <div class="fb-fld-options-wrap ${showOptions?'':'hide'}">
+            <textarea class="fb-fld-options inp !py-2 text-xs font-mono resize-none" rows="3" placeholder="Satu opsi per baris&#10;Contoh:&#10;Opsi A&#10;Opsi B" data-idx="${idx}">${optionsValue}</textarea>
+            <p class="text-[10px] text-slate-400 mt-1">Satu opsi per baris.</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Pasang listener untuk semua kontrol di dalam card (re-pasang setiap render karena innerHTML baru)
+  c.querySelectorAll('.fb-fld-label').forEach(el=>el.addEventListener('input',fbOnFieldLabelChange));
+  c.querySelectorAll('.fb-fld-type').forEach(el=>el.addEventListener('change',fbOnFieldTypeChange));
+  c.querySelectorAll('.fb-fld-required').forEach(el=>el.addEventListener('change',fbOnFieldRequiredChange));
+  c.querySelectorAll('.fb-fld-options').forEach(el=>el.addEventListener('input',fbOnFieldOptionsChange));
+}
+
+// Slug otomatis dari label -> field.name (technical key), supaya HRD tidak perlu
+// memikirkan/mengetik nama variabel sendiri seperti sebelumnya di textarea JSON.
+function fbSlugify(label){
+  return label.toLowerCase().trim().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,'_') || ('field_'+Date.now());
+}
+
+function fbOnFieldLabelChange(e){
+  const idx=parseInt(e.target.dataset.idx,10);
+  FB_STATE.fields[idx].label = e.target.value;
+  FB_STATE.fields[idx].name  = fbSlugify(e.target.value);
+  // Update tampilan "name:" tanpa render ulang seluruh list (supaya fokus input tidak hilang saat mengetik)
+  const card=e.target.closest('.fb-field-card');
+  const nameLabel=card.querySelector('span.font-mono');
+  if(nameLabel) nameLabel.textContent='name: '+FB_STATE.fields[idx].name;
+}
+
+function fbOnFieldTypeChange(e){
+  const idx=parseInt(e.target.dataset.idx,10);
+  FB_STATE.fields[idx].type = e.target.value;
+  if(FB_TYPES_WITH_OPTIONS.includes(e.target.value) && !FB_STATE.fields[idx].options){
+    FB_STATE.fields[idx].options=[];
+  }
+  fbRenderFieldsList(); // re-render penuh supaya area opsi muncul/hilang sesuai tipe baru
+}
+
+function fbOnFieldRequiredChange(e){
+  const idx=parseInt(e.target.dataset.idx,10);
+  FB_STATE.fields[idx].required = e.target.checked;
+}
+
+function fbOnFieldOptionsChange(e){
+  const idx=parseInt(e.target.dataset.idx,10);
+  FB_STATE.fields[idx].options = e.target.value.split('\n').map(s=>s.trim()).filter(Boolean);
+}
+
+function fbAddField(){
+  FB_STATE.fields.push({ name:'field_baru_'+Date.now(), label:'', type:'text', required:false, _fbId:'fb-'+(fbFieldIdCounter++) });
+  fbRenderFieldsList();
+}
+
+function fbRemoveField(idx){
+  FB_STATE.fields.splice(idx,1);
+  fbRenderFieldsList();
+}
+
+let fbFieldDragIdx=null;
+function fbFieldDragStart(e){ fbFieldDragIdx=parseInt(e.currentTarget.dataset.idx,10); e.currentTarget.classList.add('opacity-40'); }
+function fbFieldDragOver(e){ e.preventDefault(); }
+function fbFieldDrop(e){
+  e.preventDefault();
+  const dropIdx=parseInt(e.currentTarget.dataset.idx,10);
+  if(fbFieldDragIdx===null||fbFieldDragIdx===dropIdx) return;
+  const moved=FB_STATE.fields.splice(fbFieldDragIdx,1)[0];
+  FB_STATE.fields.splice(dropIdx,0,moved);
+  fbRenderFieldsList();
+}
+function fbFieldDragEnd(e){ e.currentTarget.classList.remove('opacity-40'); fbFieldDragIdx=null; }
+
+async function saveForm(){
+  if(!FB_STATE.flow.length) return toast('Urutan Persetujuan minimal harus ada 1 role.',true);
+  if(!FB_STATE.fields.length) return toast('Form minimal harus punya 1 field.',true);
+  const emptyLabel=FB_STATE.fields.find(f=>!f.label||!f.label.trim());
+  if(emptyLabel) return toast('Ada field dengan Label kosong, lengkapi dahulu.',true);
+
+  // Bersihkan _fbId (properti internal builder) sebelum dikirim ke backend -
+  // backend hanya perlu name/label/type/required/options seperti format lama.
+  const cleanFields=FB_STATE.fields.map(({_fbId, ...rest})=>rest);
+
+  const res=await api({
+    action:'save_form_config', user:CU,
+    formId:$('FBID').value, namaForm:$('FBNAMA').value.trim(),
+    flowJson:JSON.stringify(FB_STATE.flow), fieldsJson:JSON.stringify(cleanFields),
+    allowedRoles:$('FBROLES').value.trim()||'ALL', needFinance:'FALSE'
+  },'Menyimpan...');
+  if(res.success){ toast('Konfigurasi berhasil disimpan!'); await loadForms(); loadFBList(); } else toast(res.message,true);
+}
+
+async function deleteForm(){
+  const fid=$('FBID').value; if(!fid) return;
+  if(!confirm('Hapus form ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  const res=await api({action:'delete_form_config',user:CU,formId:fid},'Menghapus...');
+  if(res.success){ toast('Form dihapus.'); $('FBEDIT').classList.add('hide'); $('FBEMPTY').classList.remove('hide'); await loadForms(); loadFBList(); } else toast(res.message,true);
+}
+
+// --- BROADCAST ------------------------------------------------
+function bcToggleTarget(){
+  const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL');
+  const txt=$('BCTARGET_TEXT'), sel=$('BCTARGET_SELECT');
+  if(t==='GENERAL'){
+    w.classList.add('hide');
+    txt.removeAttribute('required'); sel.removeAttribute('required');
+  } else if(t==='NIK'){
+    w.classList.remove('hide'); l.textContent='Pilih Karyawan';
+    txt.classList.add('hide'); txt.removeAttribute('required');
+    sel.classList.remove('hide'); sel.setAttribute('required','');
+    // Dropdown otomatis dari DD_KARY (data master karyawan yang sudah di-prefetch),
+    // pengganti input NIK manual yang sebelumnya rawan typo / NIK tidak ditemukan.
+    if(!sel.dataset.loaded){
+      sel.innerHTML='<option value="">- Pilih Karyawan -</option>'+
+        DD_KARY.map(k=>`<option value="${k.nama}">${k.nama} - ${k.jabatan}${k.cabang?' ('+k.cabang+')':''}</option>`).join('');
+      sel.dataset.loaded='1';
+    }
+  } else { // DIVISI
+    w.classList.remove('hide'); l.textContent='Nama Divisi / Posisi';
+    sel.classList.add('hide'); sel.removeAttribute('required');
+    txt.classList.remove('hide'); txt.setAttribute('required','');
+  }
+}
+
+on('FMBC','submit', async e=>{
+  e.preventDefault();
+  const fi=$('BCFILE'); let f64=null,fn=null;
+  if(fi.files.length){
+    if(fi.files[0].size>2*1024*1024) return toast('File terlalu besar (maks 2MB)',true);
+    showL('Mengunggah lampiran...'); f64=await b64(fi.files[0]); fn=fi.files[0].name; hideL();
+  }
+  const bcType=$('BCTYPE').value;
+  // PATCH: targetValue sekarang dibaca dari elemen yang sesuai tipe -
+  // NIK pakai dropdown (BCTARGET_SELECT, otomatis berisi NAMA karyawan terpilih),
+  // DIVISI tetap input text bebas (BCTARGET_TEXT).
+  let targetValue='ALL';
+  if(bcType==='NIK')   targetValue=$('BCTARGET_SELECT').value;
+  if(bcType==='DIVISI')targetValue=$('BCTARGET_TEXT').value.trim();
+  if(bcType!=='GENERAL' && !targetValue) return toast('Pilih/isi target penerima terlebih dahulu.',true);
+
+  const res=await api({
+    action:'send_broadcast', user:CU,
+    targetType:bcType,
+    targetValue:targetValue,
+    judul:$('BCJUDUL').value.trim(),
+    isi:$('BCISI').value.trim(),
+    file:f64, fileName:fn
+  },'Mengirim broadcast...');
+  if(res.success){ toast(res.message||'Broadcast berhasil dikirim!'); $('FMBC').reset(); bcToggleTarget(); }
+  else toast(res.message,true);
+});
+
+// --- KENDARAAN ------------------------------------------------
+let KEND_DATA = []; // cache data kendaraan untuk dipakai modal detail tanpa fetch ulang
+
+async function loadKend(){
+  $('KENDGRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat...</div>`;
+  $('KEND_EMPTY').classList.add('hide');
+  const res=await api({action:'get_kendaraan'});
+  if(!res.success) return toast(res.message,true);
+  KEND_DATA=res.data||[];
+  if(!KEND_DATA.length){ $('KENDGRID').innerHTML=''; $('KEND_EMPTY').classList.remove('hide'); return; }
+
+  const stC={'TERSEDIA':'bg-emerald-100 text-emerald-700','DIGUNAKAN':'bg-blue-100 text-blue-700','SERVIS':'bg-yellow-100 text-yellow-700','RUSAK':'bg-red-100 text-red-700'};
+  const stIcon={'TERSEDIA':'fa-circle-check','DIGUNAKAN':'fa-road','SERVIS':'fa-screwdriver-wrench','RUSAK':'fa-triangle-exclamation'};
+  $('KENDGRID').innerHTML=KEND_DATA.map((k,idx)=>{
+    const st=k['Status']||'TERSEDIA';
+    return `
+    <div onclick="openKendDetail(${idx})" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition cursor-pointer">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-car text-slate-400"></i></div>
+        <span class="text-[10px] font-black px-2.5 py-1 rounded-lg ${stC[st]||'bg-slate-100 text-slate-600'}"><i class="fa-solid ${stIcon[st]||'fa-circle'} mr-1"></i>${st}</span>
+      </div>
+      <p class="font-black text-slate-900 text-base">${k['No Polisi']||'-'}</p>
+      <p class="text-xs text-slate-500 mt-0.5">${k['Merk/Tipe']||'-'} ${k['Tahun']?'- '+k['Tahun']:''}</p>
+      ${k['Keterangan']?`<p class="text-xs text-slate-400 mt-2 truncate">${k['Keterangan']}</p>`:''}
+      <p class="text-[10px] font-bold text-corp mt-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Klik untuk kelola</p>
+    </div>`;
+  }).join('');
+}
+
+function openKendM(k){
+  $('MKEND_T').textContent=k?'Edit Kendaraan':'Tambah Kendaraan';
+  $('KF_POL').value  = k?k['No Polisi']||'':'';
+  $('KF_MERK').value = k?k['Merk/Tipe']||'':'';
+  $('KF_THN').value  = k?k['Tahun']||'':'';
+  $('KF_ST').value   = k?k['Status']||'TERSEDIA':'TERSEDIA';
+  $('KF_KET').value  = k?k['Keterangan']||'':'';
+  openM('MKEND');
+}
+async function saveKend(){
+  const pol=$('KF_POL').value.trim(); if(!pol) return toast('No Polisi wajib diisi!',true);
+  const res=await api({action:'save_kendaraan',user:CU,noPolisi:pol,merkTipe:$('KF_MERK').value.trim(),tahun:$('KF_THN').value,status:$('KF_ST').value,keterangan:$('KF_KET').value.trim()},'Menyimpan...');
+  if(res.success){ toast(res.message); closeM('MKEND'); loadKend(); } else toast(res.message,true);
+}
+async function delKend(pol){
+  if(!confirm('Hapus kendaraan '+pol+'?')) return;
+  const res=await api({action:'delete_kendaraan',user:CU,noPolisi:pol},'Menghapus...');
+  if(res.success){ toast(res.message); loadKend(); } else toast(res.message,true);
+}
+
+// --- MODAL DETAIL KENDARAAN (Info + Log Fuel/Service/Compliance + Riwayat) --
+function openKendDetail(idx){
+  const k=KEND_DATA[idx]; if(!k) return;
+  $('MKD_NOPOL').textContent = k['No Polisi']||'-';
+  $('MKD_MERK').textContent  = (k['Merk/Tipe']||'-')+(k['Tahun']?' - '+k['Tahun']:'');
+  $('MKD_NOPOL_VAL').value   = k['No Polisi']||'';
+
+  $('MKD_F_POL').value  = k['No Polisi']||'';
+  $('MKD_F_THN').value  = k['Tahun']||'';
+  $('MKD_F_MERK').value = k['Merk/Tipe']||'';
+  $('MKD_F_ST').value   = k['Status']||'TERSEDIA';
+  $('MKD_F_KET').value  = k['Keterangan']||'';
+
+  // Reset form log ke kosong setiap buka detail baru
+  ['MKDF_DRIVER','MKDF_KMAWAL','MKDF_KMAKHIR','MKDF_LITER','MKDF_BIAYA'].forEach(id=>$(id).value='');
+  $('MKDF_TGL').value = new Date().toISOString().slice(0,10);
+  ['MKDS_DRIVER','MKDS_DETAIL','MKDS_BENGKEL','MKDS_INVOICE','MKDS_BIAYA'].forEach(id=>$(id).value='');
+  $('MKDS_TGL').value = new Date().toISOString().slice(0,10);
+  ['MKDC_DRIVER','MKDC_VENDOR','MKDC_REF','MKDC_BIAYA'].forEach(id=>$(id).value='');
+
+  mkdSetTab('info');
+  openM('MKEND_DETAIL');
+}
+
+function mkdSetTab(tab){
+  ['info','fuel','service','compliance','riwayat'].forEach(t=>{
+    const tabEl=$('MKD_TAB_'+t), panelEl=$('MKD_PANEL_'+t);
+    if(t===tab){ tabEl.className='mkd-tab px-4 py-3 text-xs font-black border-b-2 border-corp text-corp transition whitespace-nowrap'; panelEl.classList.remove('hide'); }
+    else { tabEl.className='mkd-tab px-4 py-3 text-xs font-black border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition whitespace-nowrap'; panelEl.classList.add('hide'); }
+  });
+  if(tab==='riwayat') loadKendRiwayat();
+}
+
+async function saveKendDetail(){
+  const res=await api({action:'save_kendaraan',user:CU,noPolisi:$('MKD_F_POL').value,merkTipe:$('MKD_F_MERK').value.trim(),tahun:$('MKD_F_THN').value,status:$('MKD_F_ST').value,keterangan:$('MKD_F_KET').value.trim()},'Menyimpan...');
+  if(res.success){ toast(res.message); loadKend(); } else toast(res.message,true);
+}
+
+async function submitLogFuel(){
+  const driver=$('MKDF_DRIVER').value.trim();
+  if(!driver) return toast('Nama Driver wajib diisi.',true);
+  const btn=$('MKDF_BTN'); const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+  const res=await api({
+    action:'log_kendaraan_fuel', user:CU, noPolisi:$('MKD_NOPOL_VAL').value,
+    tanggal:$('MKDF_TGL').value, namaDriver:driver,
+    kmAwal:$('MKDF_KMAWAL').value, kmAkhir:$('MKDF_KMAKHIR').value,
+    liter:$('MKDF_LITER').value, jenisBBM:$('MKDF_JENISBBM').value, totalBiaya:$('MKDF_BIAYA').value
+  });
+  btn.disabled=false; btn.innerHTML=orig;
+  if(res.success){ toast(res.message); ['MKDF_DRIVER','MKDF_KMAWAL','MKDF_KMAKHIR','MKDF_LITER','MKDF_BIAYA'].forEach(id=>$(id).value=''); }
+  else toast(res.message,true);
+}
+
+async function submitLogService(){
+  const driver=$('MKDS_DRIVER').value.trim();
+  if(!driver) return toast('Nama Driver wajib diisi.',true);
+  const btn=$('MKDS_BTN'); const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+  const res=await api({
+    action:'log_kendaraan_service', user:CU, noPolisi:$('MKD_NOPOL_VAL').value,
+    tanggal:$('MKDS_TGL').value, namaDriver:driver,
+    detailPerbaikan:$('MKDS_DETAIL').value.trim(), bengkel:$('MKDS_BENGKEL').value.trim(),
+    noInvoice:$('MKDS_INVOICE').value.trim(), totalBiaya:$('MKDS_BIAYA').value
+  });
+  btn.disabled=false; btn.innerHTML=orig;
+  if(res.success){ toast(res.message); ['MKDS_DRIVER','MKDS_DETAIL','MKDS_BENGKEL','MKDS_INVOICE','MKDS_BIAYA'].forEach(id=>$(id).value=''); }
+  else toast(res.message,true);
+}
+
+async function submitLogCompliance(){
+  const driver=$('MKDC_DRIVER').value.trim();
+  if(!driver) return toast('Nama Driver wajib diisi.',true);
+  const btn=$('MKDC_BTN'); const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+  const res=await api({
+    action:'log_kendaraan_compliance', user:CU, noPolisi:$('MKD_NOPOL_VAL').value,
+    namaDriver:driver, jenisDokumen:$('MKDC_JENIS').value, masaBerlaku:$('MKDC_MASA').value,
+    vendor:$('MKDC_VENDOR').value.trim(), noReferensi:$('MKDC_REF').value.trim(), totalBiaya:$('MKDC_BIAYA').value
+  });
+  btn.disabled=false; btn.innerHTML=orig;
+  if(res.success){ toast(res.message); ['MKDC_DRIVER','MKDC_VENDOR','MKDC_REF','MKDC_BIAYA'].forEach(id=>$(id).value=''); }
+  else toast(res.message,true);
+}
+
+async function loadKendRiwayat(){
+  $('MKD_RIWAYAT_LIST').innerHTML=`<p class="text-center text-slate-400 text-sm py-6"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat riwayat...</p>`;
+  const res=await api({action:'get_riwayat_kendaraan', noPolisi:$('MKD_NOPOL_VAL').value});
+  if(!res.success){ $('MKD_RIWAYAT_LIST').innerHTML=`<p class="text-center text-red-500 text-sm py-6">${res.message}</p>`; return; }
+  const data=res.data||[];
+  if(!data.length){ $('MKD_RIWAYAT_LIST').innerHTML=`<p class="text-center text-slate-400 text-sm py-6">Belum ada riwayat transaksi untuk kendaraan ini.</p>`; return; }
+
+  const catColor={'Fuel':'bg-blue-50 text-blue-700','Service':'bg-amber-50 text-amber-700','Compliance':'bg-purple-50 text-purple-700'};
+  const catIcon={'Fuel':'fa-gas-pump','Service':'fa-wrench','Compliance':'fa-file-shield'};
+  $('MKD_RIWAYAT_LIST').innerHTML=data.map(r=>`
+    <div class="flex items-center gap-3 p-3.5 bg-slate-50 rounded-xl">
+      <div class="w-9 h-9 rounded-lg ${catColor[r.Kategori]||'bg-slate-100 text-slate-600'} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${catIcon[r.Kategori]||'fa-circle'} text-xs"></i></div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold text-slate-800 truncate">${r.Ringkasan||'-'}</p>
+        <p class="text-xs text-slate-400">${r.Driver||'-'} - ${fmtDate(r.Tanggal)}</p>
+      </div>
+      <p class="text-sm font-black text-slate-700 flex-shrink-0">Rp${Number(r.TotalBiaya||0).toLocaleString('id-ID')}</p>
+    </div>`).join('');
+}
+
+// --- INVENTORY ------------------------------------------------
+let INV_DATA = []; // cache data inventory untuk dipakai modal detail & stock opname tanpa fetch ulang
+
+async function loadInv(){
+  $('INVGRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-spinner fa-spin text-corp text-2xl block mb-3"></i>Memuat...</div>`;
+  $('INV_EMPTY').classList.add('hide');
+  const res=await api({action:'get_inventory'});
+  if(!res.success) return toast(res.message,true);
+  INV_DATA=res.data||[];
+  if(!INV_DATA.length){ $('INVGRID').innerHTML=''; $('INV_EMPTY').classList.remove('hide'); return; }
+
+  $('INVGRID').innerHTML=INV_DATA.map((iv,idx)=>{
+    const stok=parseInt(iv['Stok'])||0;
+    const stC=stok===0?'bg-red-100 text-red-700':stok<=5?'bg-orange-100 text-orange-700':'bg-emerald-100 text-emerald-700';
+    return `
+    <div onclick="openInvDetail(${idx})" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition cursor-pointer">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-box text-slate-400"></i></div>
+        <span class="text-[10px] font-black px-2.5 py-1 rounded-lg ${stC}">${stok} ${iv['Satuan']||''}</span>
+      </div>
+      <p class="font-black text-slate-900 text-sm truncate">${iv['Nama Barang']||'-'}</p>
+      <p class="text-xs text-slate-500 mt-0.5">${iv['Kategori']||'-'}</p>
+      <p class="text-[10px] font-mono text-slate-300 mt-2">${iv['ID Barang']||'-'}</p>
+      <p class="text-[10px] font-bold text-corp mt-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Klik untuk kelola</p>
+    </div>`;
+  }).join('');
+}
+
+function openInvM(iv){
+  $('MINV_T').textContent=iv?'Edit Barang':'Tambah Barang';
+  $('IF_ID').value   = iv?iv['ID Barang']   ||'':'';
+  $('IF_NAMA').value = iv?iv['Nama Barang'] ||'':'';
+  $('IF_KAT').value  = iv?iv['Kategori']    ||'':'';
+  $('IF_STOK').value = iv?iv['Stok']        ||'0':'0';
+  $('IF_SAT').value  = iv?iv['Satuan']      ||'':'';
+  $('IF_KET').value  = iv?iv['Keterangan']  ||'':'';
+  openM('MINV');
+}
+async function saveInv(){
+  const nm=$('IF_NAMA').value.trim(); if(!nm) return toast('Nama Barang wajib diisi!',true);
+  const res=await api({action:'save_inventory',user:CU,idBarang:$('IF_ID').value.trim(),namaBarang:nm,kategori:$('IF_KAT').value.trim(),stok:$('IF_STOK').value,satuan:$('IF_SAT').value.trim(),keterangan:$('IF_KET').value.trim()},'Menyimpan...');
+  if(res.success){ toast(res.message); closeM('MINV'); loadInv(); } else toast(res.message,true);
+}
+async function delInv(id){
+  if(!confirm('Hapus barang '+id+' dari inventory?')) return;
+  const res=await api({action:'delete_inventory',user:CU,idBarang:id},'Menghapus...');
+  if(res.success){ toast(res.message); loadInv(); } else toast(res.message,true);
+}
+
+// --- MODAL DETAIL INVENTORY (Info + Ambil Barang + Riwayat) --
+function openInvDetail(idx){
+  const iv=INV_DATA[idx]; if(!iv) return;
+  $('MID_NAMA').textContent = iv['Nama Barang']||'-';
+  $('MID_SUB').textContent  = (iv['Kategori']||'-')+' - Stok: '+(iv['Stok']||0)+' '+(iv['Satuan']||'');
+  $('MID_IDBARANG').value   = iv['ID Barang']||'';
+
+  $('MID_F_ID').value   = iv['ID Barang']||'';
+  $('MID_F_KAT').value  = iv['Kategori']||'';
+  $('MID_F_NAMA').value = iv['Nama Barang']||'';
+  $('MID_F_STOK').value = iv['Stok']||0;
+  $('MID_F_SAT').value  = iv['Satuan']||'';
+  $('MID_F_KET').value  = iv['Keterangan']||'';
+
+  $('MID_STOK_INFO').innerHTML = `Stok tersedia saat ini: <span class="text-corp">${iv['Stok']||0} ${iv['Satuan']||''}</span>`;
+  // Dropdown karyawan untuk form Ambil Barang - pakai DD_KARY yang sudah di-prefetch
+  $('MIDA_KARY').innerHTML = '<option value="">- Pilih Karyawan -</option>' + DD_KARY.map(k=>`<option value="${k.nama}">${k.nama} - ${k.jabatan}</option>`).join('');
+  $('MIDA_JUMLAH').value = '';
+  $('MIDA_KEPERLUAN').value = '';
+
+  midSetTab('info');
+  openM('MINV_DETAIL');
+}
+
+function midSetTab(tab){
+  ['info','ambil','riwayat'].forEach(t=>{
+    const tabEl=$('MID_TAB_'+t), panelEl=$('MID_PANEL_'+t);
+    if(t===tab){ tabEl.className='mid-tab px-4 py-3 text-xs font-black border-b-2 border-corp text-corp transition'; panelEl.classList.remove('hide'); }
+    else { tabEl.className='mid-tab px-4 py-3 text-xs font-black border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition'; panelEl.classList.add('hide'); }
+  });
+  if(tab==='riwayat') loadInvRiwayat();
+}
+
+async function saveInvDetail(){
+  const res=await api({action:'save_inventory',user:CU,idBarang:$('MID_F_ID').value,namaBarang:$('MID_F_NAMA').value.trim(),kategori:$('MID_F_KAT').value.trim(),stok:$('MID_F_STOK').value,satuan:$('MID_F_SAT').value.trim(),keterangan:$('MID_F_KET').value.trim()},'Menyimpan...');
+  if(res.success){ toast(res.message); loadInv(); } else toast(res.message,true);
+}
+
+async function submitAmbilInventory(){
+  const karyawan=$('MIDA_KARY').value;
+  if(!karyawan) return toast('Pilih karyawan terlebih dahulu.',true);
+  const jumlah=$('MIDA_JUMLAH').value;
+  if(!jumlah||jumlah<=0) return toast('Jumlah ambil harus lebih dari 0.',true);
+
+  const btn=$('MIDA_BTN'); const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Memproses...';
+  const res=await api({
+    action:'ambil_inventory', user:CU, idBarang:$('MID_IDBARANG').value,
+    namaKaryawan:karyawan, jumlahAmbil:jumlah, keperluan:$('MIDA_KEPERLUAN').value.trim()
+  });
+  btn.disabled=false; btn.innerHTML=orig;
+
+  if(res.success){
+    toast(res.message);
+    $('MIDA_JUMLAH').value=''; $('MIDA_KEPERLUAN').value='';
+    loadInv(); // refresh grid supaya stok ter-update di kartu
+  } else toast(res.message,true);
+}
+
+async function loadInvRiwayat(){
+  $('MID_RIWAYAT_LIST').innerHTML=`<p class="text-center text-slate-400 text-sm py-6"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat riwayat...</p>`;
+  const res=await api({action:'get_riwayat_inventory', idBarang:$('MID_IDBARANG').value});
+  if(!res.success){ $('MID_RIWAYAT_LIST').innerHTML=`<p class="text-center text-red-500 text-sm py-6">${res.message}</p>`; return; }
+  const data=res.data||[];
+  if(!data.length){ $('MID_RIWAYAT_LIST').innerHTML=`<p class="text-center text-slate-400 text-sm py-6">Belum ada riwayat pengambilan untuk barang ini.</p>`; return; }
+  $('MID_RIWAYAT_LIST').innerHTML=data.map(r=>`
+    <div class="flex items-center gap-3 p-3.5 bg-slate-50 rounded-xl">
+      <div class="w-9 h-9 rounded-lg bg-cyan-50 text-cyan-700 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-hand-holding-box text-xs"></i></div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold text-slate-800 truncate">${r.Nama_Karyawan||'-'} mengambil ${r.Jumlah_Ambil||0}</p>
+        <p class="text-xs text-slate-400 truncate">${r.Keperluan||'-'} - ${fmtDate(r.Tanggal)}</p>
+      </div>
+    </div>`).join('');
+}
+
+// --- STOCK OPNAME ---------------------------------------------
+function invSetTab(tab){
+  ['list','opname'].forEach(t=>{
+    const tabEl=$('INV_TAB_'+t), panelEl=$('INV_PANEL_'+t);
+    if(t===tab){ tabEl.className='px-4 py-2 rounded-xl text-xs font-black bg-corp text-white transition'; panelEl.classList.remove('hide'); }
+    else { tabEl.className='px-4 py-2 rounded-xl text-xs font-black bg-slate-100 text-slate-600 hover:bg-slate-200 transition'; panelEl.classList.add('hide'); }
+  });
+  if(tab==='opname') loadOpnameHistory();
+}
+
+// Tarik stok sistem terkini untuk SEMUA barang ke dalam tabel draft opname,
+// supaya HRD/Admin tinggal isi kolom Stok Fisik hasil hitung manual di gudang.
+function loadOpnameDraft(){
+  if(!INV_DATA.length){ toast('Data inventory belum dimuat, buka tab Daftar Barang dulu.',true); return; }
+  $('OPNAME_BODY').innerHTML = INV_DATA.map((iv,idx)=>`
+    <tr class="hover:bg-slate-50">
+      <td class="px-5 py-3">
+        <p class="font-bold text-slate-800 text-sm">${iv['Nama Barang']||'-'}</p>
+        <p class="text-[10px] font-mono text-slate-400">${iv['ID Barang']||'-'}</p>
+      </td>
+      <td class="px-5 py-3 text-right font-bold text-slate-600">${iv['Stok']||0}</td>
+      <td class="px-5 py-3 text-right">
+        <input type="number" class="opname-fisik inp !py-1.5 !text-right w-24" data-idx="${idx}" value="${iv['Stok']||0}" onchange="recalcSelisih(${idx})">
+      </td>
+      <td class="px-5 py-3 text-right font-black" id="OPNAME_SELISIH_${idx}">0</td>
+      <td class="px-5 py-3"><input type="text" class="opname-catatan inp !py-1.5" data-idx="${idx}" placeholder="Opsional"></td>
+    </tr>`).join('');
+}
+
+function recalcSelisih(idx){
+  const sistem = parseFloat(INV_DATA[idx]['Stok']) || 0;
+  const fisikInput = document.querySelector(`.opname-fisik[data-idx="${idx}"]`);
+  const fisik = parseFloat(fisikInput.value) || 0;
+  const selisih = fisik - sistem;
+  const el = $('OPNAME_SELISIH_'+idx);
+  el.textContent = (selisih>0?'+':'')+selisih;
+  el.className = selisih===0 ? 'px-5 py-3 text-right font-black text-slate-400' : (selisih>0 ? 'px-5 py-3 text-right font-black text-emerald-600' : 'px-5 py-3 text-right font-black text-red-600');
+}
+
+async function submitOpname(){
+  const fisikInputs = document.querySelectorAll('.opname-fisik');
+  if(!fisikInputs.length) return toast('Tarik data stok sistem terlebih dahulu.',true);
+
+  const items = Array.from(fisikInputs).map(input=>{
+    const idx = parseInt(input.dataset.idx,10);
+    const iv = INV_DATA[idx];
+    const catatanEl = document.querySelector(`.opname-catatan[data-idx="${idx}"]`);
+    return {
+      idBarang: iv['ID Barang'], namaBarang: iv['Nama Barang'],
+      stokSistem: iv['Stok']||0, stokFisik: input.value,
+      catatan: catatanEl?catatanEl.value.trim():''
+    };
+  });
+
+  if(!confirm('Simpan hasil stock opname untuk '+items.length+' item?')) return;
+
+  const btn=$('OPNAME_SUBMIT_BTN'); const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Menyimpan...';
+  const res=await api({action:'submit_stock_opname', user:CU, items:items});
+  btn.disabled=false; btn.innerHTML=orig;
+
+  if(res.success){ toast(res.message); loadOpnameHistory(); } else toast(res.message,true);
+}
+
+async function loadOpnameHistory(){
+  $('OPNAME_HISTORY').innerHTML=`<p class="p-6 text-center text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat riwayat opname...</p>`;
+  const res=await api({action:'get_stock_opname_history'});
+  if(!res.success){ $('OPNAME_HISTORY').innerHTML=`<p class="p-6 text-center text-red-500 text-sm">${res.message}</p>`; return; }
+  const data=(res.data||[]).filter(d=>parseFloat(d.Selisih)!==0); // hanya tampilkan yang ada selisihnya, supaya riwayat tidak penuh noise "0"
+  if(!data.length){ $('OPNAME_HISTORY').innerHTML=`<p class="p-6 text-center text-slate-400 text-sm">Belum ada riwayat opname dengan selisih.</p>`; return; }
+  $('OPNAME_HISTORY').innerHTML=data.slice(0,30).map(d=>{
+    const sel=parseFloat(d.Selisih)||0;
+    return `<div class="px-6 py-3 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-bold text-slate-800">${d.Nama_Barang||'-'}</p>
+        <p class="text-xs text-slate-400">${fmtDate(d.Tanggal)} - oleh ${d.Dilakukan_Oleh||'-'}${d.Catatan?' - '+d.Catatan:''}</p>
+      </div>
+      <span class="text-sm font-black ${sel>0?'text-emerald-600':'text-red-600'}">${sel>0?'+':''}${sel}</span>
+    </div>`;
+  }).join('');
+}
+
+// --- EXPORT CSV -----------------------------------------------
+async function doExport(type){
+  const res=await api({action:'export_data',exportType:type},'Mengekspor data...');
+  if(res.success&&res.csvData){
+    const blob=new Blob(['\uFEFF'+res.csvData],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=res.filename||'export_'+type+'.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('Data '+type+' berhasil diunduh!');
+  } else { toast(res.message||'Gagal export data.',true); }
+}
+
+// --- CLOSE MODAL ON BACKDROP ----------------------------------
+['MDETAIL','MREJECT','MKARY','MKEND','MKEND_DETAIL','MINV','MINV_DETAIL','MKONTRAK','MPENILAIAN'].forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); });
+});
+</script>
+</body>
+</html>
