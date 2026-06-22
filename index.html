@@ -7,7 +7,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- SheetJS untuk Export Data -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- TinyMCE (Versi cdnjs untuk memotong API warning) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js"></script>
 
 <script>
@@ -37,12 +39,14 @@ tailwind.config = {
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased h-screen flex flex-col">
 
+<!-- TOAST & LOADING -->
 <div id="TBOX" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 <div id="GLD" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] hidden items-center justify-center flex-col">
   <div class="w-12 h-12 border-4 border-slate-200 border-t-corp rounded-full animate-spin mb-4"></div>
   <p id="GLDM" class="text-sm font-bold text-slate-600 animate-pulse">Memuat sistem...</p>
 </div>
 
+<!-- Modal: Pengaturan Export Data -->
 <div id="MEXPORT" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-emerald-500">
     <div class="px-8 py-6 flex items-center justify-between border-b border-slate-100 bg-emerald-50/50">
@@ -76,6 +80,7 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- Modal: Detail Broadcast / Pengumuman -->
 <div id="MBC_DETAIL" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden fade border-t-8 border-t-blue-600">
     <div class="px-8 py-6 flex items-center justify-between border-b border-slate-100 bg-blue-50/50 flex-shrink-0">
@@ -97,6 +102,7 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- HALAMAN LOGIN -->
 <div id="PGlogin" class="min-h-screen flex items-center justify-center p-5 relative overflow-hidden bg-slate-900">
   <div class="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-corp via-slate-900 to-slate-900"></div>
   <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden z-10">
@@ -123,11 +129,13 @@ tailwind.config = {
     </div>
   </div>
 </div>
-
-  <div id="PGapp" class="hide h-screen flex overflow-hidden">
+<!-- HALAMAN APLIKASI UTAMA -->
+<div id="PGapp" class="hide h-screen flex overflow-hidden">
   
+  <!-- MOBILE SIDEBAR OVERLAY -->
   <div id="sbo" onclick="sbToggle()" class="fixed inset-0 bg-slate-900/50 z-40 md:hidden hidden opacity-0 transition-opacity"></div>
   
+  <!-- SIDEBAR NAVIGATION -->
   <aside id="sidebar" class="bg-sb w-64 flex-shrink-0 flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
     <div class="h-16 flex items-center px-6 border-b border-white/5 justify-between flex-shrink-0">
       <div class="flex items-center gap-3">
@@ -148,20 +156,24 @@ tailwind.config = {
       </div>
     </div>
 
+    <!-- DINAMIC RBAC NAVIGATION -->
     <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
       
+      <!-- MENU UNIVERSAL -->
       <button id="NB-dashboard" onclick="nav('dashboard')" class="nitem active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-grid-2 w-5 text-center"></i>Dashboard</button>
       <button id="NB-pengajuan" onclick="nav('pengajuan')" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-file-pen w-5 text-center"></i>Buat Pengajuan</button>
       <button id="NB-riwayat" onclick="nav('riwayat')" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>Rekam Jejak 360</button>
       
+      <!-- MENU MANAJERIAL & APPROVAL -->
       <div id="MNU_LEADER" class="hide pt-4">
         <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Manajerial & Approval</p>
         <button id="NB-approval" onclick="nav('approval')" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition relative"><i class="fa-solid fa-list-check w-5 text-center"></i>Antrean Persetujuan <span id="BAPPR" class="hide ml-auto bg-corp text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm"></span></button>
-        <button id="NB-kontrak" onclick="nav('kontrak')" class="nitem hide w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-file-signature w-5 text-center"></i>Manajemen Kontrak</button>
+        <button id="NB-kontrak" onclick="nav('kontrak')" class="nitem hide w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-star-half-stroke w-5 text-center"></i>Penilaian KPI & Kontrak</button>
         <button id="NB-cuti" onclick="nav('cuti')" class="nitem hide w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-umbrella-beach w-5 text-center"></i>Manajemen Cuti</button>
         <button id="NB-broadcast" onclick="nav('broadcast')" class="nitem hide w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-bullhorn w-5 text-center"></i>Broadcast Memo</button>
       </div>
 
+      <!-- MENU KHUSUS HRD -->
       <div id="MNU_HRD" class="hide pt-4">
         <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Human Resources</p>
         <button id="NB-dbkary" onclick="nav('dbkary')" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-users w-5 text-center"></i>Database Karyawan</button>
@@ -170,6 +182,7 @@ tailwind.config = {
         <button onclick="openExportModal()" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-file-export w-5 text-center text-emerald-400"></i>Export Data</button>
       </div>
 
+      <!-- MENU ASET & GUDANG -->
       <div id="MNU_ASSETS" class="hide pt-4 pb-10">
         <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Aset & Gudang</p>
         <button id="NB-kendaraan" onclick="nav('kendaraan')" class="nitem w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-truck w-5 text-center"></i>Master Kendaraan</button>
@@ -182,8 +195,10 @@ tailwind.config = {
     </div>
   </aside>
 
+  <!-- MAIN CONTENT AREA -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/50">
     
+    <!-- TOP HEADER -->
     <header class="h-16 bg-white border-b border-slate-100 flex items-center px-4 md:px-8 justify-between flex-shrink-0 z-10 sticky top-0 shadow-sm">
       <div class="flex items-center gap-4">
         <button onclick="sbToggle()" class="md:hidden w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-corp hover:text-white transition"><i class="fa-solid fa-bars"></i></button>
@@ -201,6 +216,7 @@ tailwind.config = {
       </div>
     </header>
 
+    <!-- VIEWPORT CONTENT -->
     <main id="VIEWPORT" class="flex-1 overflow-y-auto p-4 md:p-8 relative">
       <!-- ================== DASHBOARD VIEW ================== -->
       <div id="V-dashboard" class="app-view hide fade max-w-7xl mx-auto space-y-6">
@@ -421,7 +437,7 @@ tailwind.config = {
                   <option value="">Semua Kategori</option>
                   <option value="Pengajuan Form">Pengajuan Form / Dokumen</option>
                   <option value="Surat Peringatan">Surat Peringatan (SP)</option>
-                  <option value="Penilaian Kontrak">Penilaian Kontrak</option>
+                  <option value="Penilaian Kontrak">Penilaian Kontrak (KPI)</option>
                   <option value="Konseling">Sesi Konseling</option>
                   <option value="Dokumen Kontrak">Dokumen Kontrak</option>
                   <option value="Pengambilan Inventory">Pengambilan Barang & ATK</option>
@@ -482,10 +498,10 @@ tailwind.config = {
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
           <div class="px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-purple-50/30 border-b border-slate-100 flex-shrink-0">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0 shadow-inner"><i class="fa-solid fa-file-signature text-purple-600 text-xl"></i></div>
+              <div class="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0 shadow-inner"><i class="fa-solid fa-star-half-stroke text-purple-600 text-xl"></i></div>
               <div>
-                <h2 class="text-lg font-black text-slate-800 tracking-tight">Kontrak & Penilaian Kinerja</h2>
-                <p class="text-xs text-slate-500 font-medium mt-1">Daftar karyawan yang menjadi tanggung jawab Anda untuk dievaluasi kinerjanya (KPI).</p>
+                <h2 class="text-lg font-black text-slate-800 tracking-tight">Penilaian Kinerja (KPI) & Kontrak</h2>
+                <p class="text-xs text-slate-500 font-medium mt-1">Daftar karyawan yang menjadi tanggung jawab Anda untuk dievaluasi kinerjanya secara berkala.</p>
               </div>
             </div>
             <button onclick="loadPenilaian()" class="flex items-center justify-center gap-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 px-5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-purple-600 transition shadow-sm">
@@ -950,15 +966,14 @@ tailwind.config = {
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden fade border-t-8 border-t-orange-500">
     <div class="px-8 py-6 flex items-center gap-4 bg-orange-50/30 border-b border-slate-100"><div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center shadow-inner flex-shrink-0"><i class="fa-solid fa-file-contract text-orange-600 text-2xl"></i></div><div><h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3><p id="MKONTRAK_NAMA" class="text-sm font-bold text-orange-700 mt-1"></p></div></div>
     <div class="p-8 space-y-6"><input type="hidden" id="MKONTRAK_NIK"><input type="hidden" id="MKONTRAK_NAMA_VAL">
-      <div><label class="lbl">Pilih Tindakan Email</label><div class="grid grid-cols-3 gap-3">
-        <button type="button" onclick="mkontrakSetMode('penilaian')" id="MKONTRAK_TAB_penilaian" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-star text-xl mb-1"></i>Penilaian</button>
-        <button type="button" onclick="mkontrakSetMode('konseling')" id="MKONTRAK_TAB_konseling" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-comments text-xl mb-1"></i>Konseling</button>
+      <div><label class="lbl">Pilih Tindakan Email</label><div class="grid grid-cols-2 gap-3">
+        <button type="button" onclick="mkontrakSetMode('konseling')" id="MKONTRAK_TAB_konseling" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-comments text-xl mb-1"></i>Konseling Akhir</button>
         <button type="button" onclick="mkontrakSetMode('dokumen')" id="MKONTRAK_TAB_dokumen" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-file-signature text-xl mb-1"></i>Tanda Tangan</button>
       </div></div>
       <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 items-start shadow-sm"><i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i><p id="MKONTRAK_DESC" class="text-xs text-blue-800 leading-relaxed font-medium"></p></div>
       <div id="MKONTRAK_CATATAN_WRAP"><label class="lbl">Catatan Tambahan (Masuk ke Email)</label><textarea id="MKONTRAK_CATATAN" rows="3" class="inp resize-none !text-sm" placeholder="Instruksi khusus..."></textarea></div>
     </div>
-    <div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50"><button onclick="closeM('MKONTRAK')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600">Batal</button><button onclick="submitKontrakAction()" id="MKONTRAK_SUBMIT_BTN" class="px-6 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim</button></div>
+    <div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50"><button onclick="closeM('MKONTRAK')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600">Batal</button><button onclick="submitKontrakAction()" id="MKONTRAK_SUBMIT_BTN" class="px-6 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim Notifikasi</button></div>
   </div>
 </div>
 
@@ -974,21 +989,21 @@ tailwind.config = {
       </div>
     </div>
     <div class="p-8 flex-1 overflow-y-auto space-y-6">
-      <input type="hidden" id="MPNL_NIK"><input type="hidden" id="MPNL_NAMA_VAL"><input type="hidden" id="MPNL_JABATAN">
+      <input type="hidden" id="MPNL_NIK"><input type="hidden" id="MPNL_NAMA_VAL"><input type="hidden" id="MPNL_JABATAN"><input type="hidden" id="MPNL_TEMPLATE">
       
       <!-- Container untuk Pertanyaan KPI -->
       <div>
         <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Indikator Penilaian Standar</h4>
         <div id="MPNL_KPI_WRAP" class="space-y-4">
            <!-- Form dinamis akan dirender di sini -->
-           <p class="text-center text-slate-400 py-4 font-medium"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat form KPI...</p>
+           <p class="text-center text-slate-400 py-4 font-medium"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat form KPI dari server...</p>
         </div>
       </div>
       
       <div class="bg-purple-50 border border-purple-100 p-5 rounded-2xl flex items-center justify-between shadow-sm">
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-purple-500 mb-1">Total Skor Keseluruhan</p>
-          <p class="text-xs font-bold text-purple-800">Berdasarkan kalkulasi bobot</p>
+          <p class="text-xs font-bold text-purple-800">Berdasarkan kalkulasi bobot (Maks 100)</p>
         </div>
         <span id="MPNL_TOTAL_SKOR" class="text-4xl font-black text-purple-700 tracking-tighter">0.00</span>
       </div>
@@ -998,21 +1013,21 @@ tailwind.config = {
           <label class="lbl">Keputusan Rekomendasi <span class="text-red-500">*</span></label>
           <select id="MPNL_NILAI" class="inp !py-3 font-bold text-slate-700 shadow-sm" required>
             <option value="">— Pilih Keputusan / Rekomendasi —</option>
-            <option value="Sangat Baik (A)">Sangat Baik (A) - Perpanjang / Angkat Tetap</option>
-            <option value="Baik (B)">Baik (B) - Perpanjang</option>
-            <option value="Cukup (C)">Cukup (C) - Konseling HRD</option>
-            <option value="Kurang (D)">Kurang (D) - Putus Kontrak</option>
+            <option value="Sangat Baik (A) - Perpanjang / Angkat Tetap">Sangat Baik (A) - Perpanjang / Angkat Tetap</option>
+            <option value="Baik (B) - Perpanjang">Baik (B) - Perpanjang</option>
+            <option value="Cukup (C) - Konseling HRD">Cukup (C) - Konseling HRD</option>
+            <option value="Kurang (D) - Putus Kontrak">Kurang (D) - Putus Kontrak</option>
           </select>
         </div>
         <div class="sm:col-span-2">
           <label class="lbl">Ulasan Kinerja Lengkap</label>
-          <textarea id="MPNL_CATATAN" rows="3" class="inp resize-none !text-sm shadow-sm" placeholder="Uraikan evaluasi kinerja, rekomendasi perbaikan, atau masukan..."></textarea>
+          <textarea id="MPNL_CATATAN" rows="3" class="inp resize-none !text-sm shadow-sm" placeholder="Uraikan evaluasi kinerja, rekomendasi perbaikan, atau masukan (akan dikirim ke karyawan)..."></textarea>
         </div>
       </div>
     </div>
     <div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 flex-shrink-0">
       <button onclick="closeM('MPENILAIAN')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 transition shadow-sm">Batal</button>
-      <button onclick="submitPenilaian()" id="MPNL_SUBMIT_BTN" class="px-6 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-floppy-disk"></i>Simpan KPI</button>
+      <button onclick="submitPenilaian()" id="MPNL_SUBMIT_BTN" class="px-6 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-floppy-disk"></i>Simpan KPI & Kirim Email</button>
     </div>
   </div>
 </div>
@@ -1027,7 +1042,7 @@ tailwind.config = {
 <!-- ========================================================================= -->
 <script>
 // ─── CONFIG ──────────────────────
-const API = 'https://script.google.com/macros/s/AKfycbxzAg1Mlg3oALNal3AGtaa4BqthGZ6DI3XZnJPSe5VwXMD6kuvNsVNQ6G9FwPHME2ZVVQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyO352Ai8SwZIGkSKtivbdYotW1ypLFFdLgSo71cUeTAht0L8IAvxZhkR1xr_D71S5yPw/exec';
 
 // ─── STATE GLOBALS ───────────────
 let CU = null, FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [];
@@ -1117,108 +1132,63 @@ on('DYNFORM','submit',async e=>{ e.preventDefault(); const fid=$('SELFORM').valu
 async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
 function kategoriBadge(k){ const m={'Pengajuan Form':'bg-blue-100 text-blue-800','Surat Peringatan':'bg-red-100 text-red-800','Penilaian Kontrak':'bg-purple-100 text-purple-800','Konseling':'bg-amber-100 text-amber-800','Dokumen Kontrak':'bg-emerald-100 text-emerald-800','Pengambilan Inventory':'bg-cyan-100 text-cyan-800'}; return `<span class="text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm ${m[k]||'bg-slate-200 text-slate-700'}">${k||'Lainnya'}</span>`; }
 function renderRiwayatTable(){ const f=$('RWYTFILTER').value, rows=f?CTX.filter(r=>r.Kategori===f):CTX; if(!rows.length){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-20 text-center text-slate-400">Kosong.</td></tr>`; return; } $('RWYTBODY').innerHTML=rows.map(r=>`<tr class="hover:bg-slate-50 border-l-4 border-transparent hover:border-corp"><td class="px-8 py-5">${kategoriBadge(r.Kategori)}</td><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${r.NamaForm||'-'}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-1">${r.ID||''}</p></td><td class="px-8 py-5 text-xs text-slate-500 font-semibold">${fmtDate(r.Tanggal)}</td><td class="px-8 py-5"><span class="text-[10px] uppercase bg-slate-100 text-slate-600 font-black px-3 py-1.5 rounded-lg border border-slate-200">${r.PosisiFlow||'-'}</span></td><td class="px-8 py-5">${badge(r.StatusFinal)}</td><td class="px-8 py-5 text-center"><button onclick="openDetail('${r.ID}')" class="text-xs font-black text-blue-600 bg-white hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl border border-blue-200">Detail</button></td></tr>`).join(''); }
-function openDetail(id){ const t=CTX.find(x=>x.ID===id); if(!t)return; $('MDET_ID').textContent=t.ID; $('MDET_NAMA').textContent=(t.NamaPemohon||'-'); $('MDET_FORM').textContent=t.NamaForm; $('MDET_TGL').textContent=fmtDate(t.Tanggal); $('MDET_ST').innerHTML=badge(t.StatusFinal); if(t.StatusFinal==='REJECTED'&&t.Catatan){$('MDET_CAT').textContent=t.Catatan;$('MDET_CATBOX').classList.remove('hide');}else $('MDET_CATBOX').classList.add('hide'); let d={}; try{d=JSON.parse(t.DetailJSON||'{}');}catch(e){} $('MDET_FIELDS').innerHTML=Object.keys(d).map(k=>{ const l=k.replace(/_/g,' ').toUpperCase(); if(d[k]&&d[k].data) return `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:col-span-2 flex justify-between items-center"><div class="flex items-center gap-3"><i class="fa-solid fa-file-pdf text-blue-500 text-2xl"></i><div><span class="text-[10px] font-black text-blue-500">${l}</span><span class="text-sm font-bold text-blue-900 block">${d[k].name}</span></div></div><a href="${d[k].data}" target="_blank" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black">Unduh PDF</a></div>`; return `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4"><p class="text-[10px] text-slate-400 font-black mb-1.5">${l}</p><p class="font-bold text-slate-800 text-sm whitespace-pre-wrap">${d[k]||'-'}</p></div>`; }).join('')||'<p>Kosong.</p>'; let fl=[],st=[]; try{fl=JSON.parse(t.ApprovalFlowJson||'[]');st=JSON.parse(t.ApprovalStepsJSON||'[]');}catch(e){} $('MDET_FLOW').innerHTML=fl.map((r,i)=>{ const s=st[i]||'PENDING', c=s==='APPROVE'?'bg-emerald-50 text-emerald-700':s==='REJECT'?'bg-red-50 text-red-700':'bg-white text-slate-600'; return `<div class="flex items-center justify-between p-4 border rounded-2xl ${c}"><span class="font-black text-sm">Tahap ${i+1}: ${r}</span><span class="text-[10px] font-black px-3 py-1 rounded-lg bg-white">${s}</span></div>`; }).join('')||'<p>Kosong.</p>'; openM('MDETAIL'); }
+function openDetail(id){ const t=CTX.find(x=>x.ID===id); if(!t)return; $('MDET_ID').textContent=t.ID; $('MDET_NAMA').textContent=(t.NamaPemohon||'-'); $('MDET_FORM').textContent=t.NamaForm; $('MDET_TGL').textContent=fmtDate(t.Tanggal); $('MDET_ST').innerHTML=badge(t.StatusFinal); if(t.StatusFinal==='REJECTED'&&t.Catatan){$('MDET_CAT').textContent=t.Catatan;$('MDET_CATBOX').classList.remove('hide');}else $('MDET_CATBOX').classList.add('hide'); let d={}; try{d=JSON.parse(t.DetailJSON||'{}');}catch(e){} $('MDET_FIELDS').innerHTML=Object.keys(d).map(k=>{ const l=k.replace(/_/g,' ').toUpperCase(); if(d[k]&&d[k].data) return `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:col-span-2 flex justify-between items-center"><div class="flex items-center gap-3"><i class="fa-solid fa-file-pdf text-blue-500 text-2xl"></i><div><span class="text-[10px] font-black text-blue-500">${l}</span><span class="text-sm font-bold text-blue-900 block">${d[k].name}</span></div></div><a href="${d[k].data}" target="_blank" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black">Unduh PDF</a></div>`; if(k==='DetailKPI') { try{ const pnl=JSON.parse(d[k]); return `<div class="sm:col-span-2 border rounded-xl overflow-hidden mt-2"><table class="w-full text-xs text-left"><thead class="bg-purple-50 text-purple-700"><tr><th class="p-2 border">Aspek</th><th class="p-2 border">Indikator</th><th class="p-2 border text-center">Bobot</th><th class="p-2 border text-center">Skor</th></tr></thead><tbody>${pnl.map(x=>`<tr><td class="p-2 border">${x.aspek}</td><td class="p-2 border font-bold">${x.indikator}</td><td class="p-2 border text-center">${x.bobot}%</td><td class="p-2 border text-center font-black text-purple-700">${x.skor}</td></tr>`).join('')}</tbody></table></div>`; }catch(e){} } return `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4"><p class="text-[10px] text-slate-400 font-black mb-1.5">${l}</p><p class="font-bold text-slate-800 text-sm whitespace-pre-wrap">${d[k]||'-'}</p></div>`; }).join('')||'<p>Kosong.</p>'; let fl=[],st=[]; try{fl=JSON.parse(t.ApprovalFlowJson||'[]');st=JSON.parse(t.ApprovalStepsJSON||'[]');}catch(e){} $('MDET_FLOW').innerHTML=fl.map((r,i)=>{ const s=st[i]||'PENDING', c=s==='APPROVE'?'bg-emerald-50 text-emerald-700':s==='REJECT'?'bg-red-50 text-red-700':'bg-white text-slate-600'; return `<div class="flex items-center justify-between p-4 border rounded-2xl ${c}"><span class="font-black text-sm">Tahap ${i+1}: ${r}</span><span class="text-[10px] font-black px-3 py-1 rounded-lg bg-white">${s}</span></div>`; }).join('')||'<p>Tidak ada Flow (Auto).</p>'; openM('MDETAIL'); }
 
 async function loadApproval(){ $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_approval_list',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; const b=$('BAPPR'); if(CTX.length){b.textContent=CTX.length;b.classList.remove('hide');}else b.classList.add('hide'); if(!CTX.length){$('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-20 text-center font-bold text-slate-400">Antrean Kosong.</td></tr>`;return;} $('APPRBODY').innerHTML=CTX.map(t=>`<tr class="hover:bg-slate-50"><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${t.NamaPemohon}</p></td><td class="px-8 py-5 text-xs">${fmtDate(t.Tanggal)}</td><td class="px-8 py-5 font-black text-corp text-sm">${t.NamaForm}</td><td class="px-8 py-5"><span class="text-[10px] bg-slate-100 font-black px-3 py-1.5 rounded-lg">${t.PosisiFlow}</span></td><td class="px-8 py-5 text-center"><button onclick="openDetail('${t.ID}')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600"><i class="fa-solid fa-eye"></i></button> <button onclick="doApprove('${t.ID}')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black">Setuju</button> <button onclick="openReject('${t.ID}')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black">Tolak</button></td></tr>`).join(''); }
 async function doApprove(id){ if(!confirm('Setujui?'))return; const res=await api({action:'process_approval',user:CU,txId:id,decision:'APPROVE',alasan:''}); if(res.success){toast('Disetujui.');loadApproval();checkApprovalStatus();}else toast(res.message,true); }
 function openReject(id){ $('RJCTID').value=id; $('RJCTALASAN').value=''; openM('MREJECT'); }
 async function submitReject(){ const a=$('RJCTALASAN').value; if(!a)return toast('Alasan wajib!',true); const res=await api({action:'process_approval',user:CU,txId:$('RJCTID').value,decision:'REJECT',alasan:a}); if(res.success){toast('Ditolak.');closeM('MREJECT');loadApproval();checkApprovalStatus();}else toast(res.message,true); }
 
-// ─── KONTRAK & PENILAIAN ──────────
-async function loadPenilaian(){ $('PNL_GRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; $('PNL_EMPTY').classList.add('hide'); const res=await api({action:'get_bawahan',user:CU}); if(!res.success){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} PNL_BAWAHAN_DATA=res.data||[]; if(!PNL_BAWAHAN_DATA.length){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} $('PNL_GRID').innerHTML=PNL_BAWAHAN_DATA.map((k,i)=>`<div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col"><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl">${k.Nama.charAt(0)}</div><div><p class="font-black text-slate-800 text-base">${k.Nama}</p><p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${k.Jabatan}</p></div></div><button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white">Beri Penilaian</button></div>`).join(''); }
-let MKONTRAK_MODE='penilaian', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_penilaian',konseling:'kontrak_kirim_konseling',dokumen:'kontrak_request_dokumen'};
-function openKontrakAction(i){ const k=WGT_KB_DATA[i]; if(!k)return; $('MKONTRAK_NAMA').textContent=k.Nama; $('MKONTRAK_NIK').value=k.NIK||''; $('MKONTRAK_NAMA_VAL').value=k.Nama; mkontrakSetMode('penilaian'); openM('MKONTRAK'); }
-function mkontrakSetMode(m){ MKONTRAK_MODE=m; ['penilaian','konseling','dokumen'].forEach(x=>{ const tab=$('MKONTRAK_TAB_'+x); if(x===m) tab.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; else tab.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'; }); $('MKONTRAK_DESC').textContent=m==='penilaian'?'Kirim email ke atasan untuk menilai.':m==='konseling'?'Kirim email konseling HRD.':'Kirim email TTD Dokumen.'; $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; }
+// ─── KONTRAK & PENILAIAN KPI DINAMIS ──────────
+async function loadPenilaian(){ $('PNL_GRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; $('PNL_EMPTY').classList.add('hide'); const res=await api({action:'get_bawahan',user:CU}); if(!res.success){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} PNL_BAWAHAN_DATA=res.data||[]; if(!PNL_BAWAHAN_DATA.length){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} $('PNL_GRID').innerHTML=PNL_BAWAHAN_DATA.map((k,i)=>`<div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col"><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl">${k.Nama.charAt(0)}</div><div><p class="font-black text-slate-800 text-base">${k.Nama}</p><p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${k.Jabatan}</p></div></div><p class="text-[10px] font-bold text-slate-400 mb-4">Template KPI: <span class="text-slate-600">${k.TemplateKPI||'Default (General)'}</span></p><button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white transition shadow-sm"><i class="fa-solid fa-star mr-1"></i>Beri Penilaian</button></div>`).join(''); }
+function openKontrakAction(i){ const k=WGT_KB_DATA[i]; if(!k)return; $('MKONTRAK_NAMA').textContent=k.Nama; $('MKONTRAK_NIK').value=k.NIK||''; $('MKONTRAK_NAMA_VAL').value=k.Nama; mkontrakSetMode('konseling'); openM('MKONTRAK'); }
+function mkontrakSetMode(m){ MKONTRAK_MODE=m; ['konseling','dokumen'].forEach(x=>{ const tab=$('MKONTRAK_TAB_'+x); if(x===m) tab.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; else tab.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'; }); $('MKONTRAK_DESC').textContent=m==='konseling'?'Kirim email jadwal konseling HRD.':'Kirim email TTD Dokumen Kontrak Baru.'; $('MKONTRAK_CATATAN_WRAP').style.display='block'; }
 async function submitKontrakAction(){ const b=$('MKONTRAK_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Kirim...'; const res=await api({action:MKONTRAK_ACTION_MAP[MKONTRAK_MODE],user:CU,nik:$('MKONTRAK_NIK').value,namaKaryawan:$('MKONTRAK_NAMA_VAL').value,catatan:$('MKONTRAK_CATATAN').value}); b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);closeM('MKONTRAK');}else toast(res.message,true); }
 
-// Fitur Penilaian KPI Dinamis
 let KPI_CURRENT_QUESTIONS = [];
 async function openPenilaianForm(i){ 
   const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
   $('MPNL_NAMA').textContent=k.Nama; $('MPNL_SUB').textContent=k.Jabatan+' — '+k.Divisi; 
-  $('MPNL_NIK').value=k.NIK||''; $('MPNL_NAMA_VAL').value=k.Nama; $('MPNL_JABATAN').value=k.Jabatan||'';
+  $('MPNL_NIK').value=k.NIK||''; $('MPNL_NAMA_VAL').value=k.Nama; $('MPNL_JABATAN').value=k.Jabatan||''; $('MPNL_TEMPLATE').value=k.TemplateKPI||'';
   $('MPNL_NILAI').value=''; $('MPNL_CATATAN').value=''; $('MPNL_TOTAL_SKOR').textContent='0.00';
-  $('MPNL_KPI_WRAP').innerHTML=`<p class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencari Indikator Penilaian...</p>`;
+  $('MPNL_KPI_WRAP').innerHTML=`<p class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencari Indikator Penilaian...</p>`;
   openM('MPENILAIAN'); 
 
-  // Ambil soal berdasarkan jabatan
-  const res = await api({action: 'get_kpi_questions', jabatan: k.Jabatan});
+  const res = await api({action: 'get_kpi_questions', templateKpi: k.TemplateKPI, jabatan: k.Jabatan});
   KPI_CURRENT_QUESTIONS = res.data || [];
   
-  if(!KPI_CURRENT_QUESTIONS.length) {
-    $('MPNL_KPI_WRAP').innerHTML=`<div class="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center">Master Soal KPI untuk jabatan ini kosong. Hubungi HRD.</div>`;
-    return;
-  }
+  if(!KPI_CURRENT_QUESTIONS.length) { $('MPNL_KPI_WRAP').innerHTML=`<div class="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center">Master Soal KPI untuk jabatan/template ini kosong. Hubungi HRD.</div>`; return; }
 
-  // Render KPI Fields
   $('MPNL_KPI_WRAP').innerHTML = KPI_CURRENT_QUESTIONS.map((q, idx) => {
-    return `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <div class="flex justify-between items-start mb-2">
-            <div><span class="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-2 py-1 rounded">${q.ASPEK||'UMUM'}</span></div>
-            <span class="text-xs font-bold text-slate-400">Bobot: ${q.BOBOT||0}%</span>
-        </div>
-        <p class="font-bold text-slate-800 text-sm mb-3">${q.INDIKATOR||'-'}</p>
-        <div class="flex items-center gap-3">
-           <label class="text-xs font-bold text-slate-500">Skor (1-100):</label>
-           <input type="number" min="0" max="100" class="kpi-score-input inp !py-2 !px-3 w-24 text-center font-black text-purple-700 shadow-inner bg-slate-50" data-idx="${idx}" placeholder="0" oninput="calcKPIScore()">
-        </div>
-    </div>`;
+    return `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"><div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-2 py-1 rounded border border-purple-100">${q.ASPEK||'UMUM'}</span></div><span class="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded">Bobot: ${q.BOBOT||0}%</span></div><p class="font-bold text-slate-800 text-sm mb-4 leading-snug">${q.INDIKATOR||'-'}</p><div class="flex items-center justify-between border-t border-slate-50 pt-3"><label class="text-xs font-bold text-slate-500">Skor Anda (1 - 100):</label><input type="number" min="0" max="100" class="kpi-score-input border-2 border-slate-200 py-1.5 px-3 w-20 text-center font-black text-purple-700 shadow-inner bg-slate-50 rounded-lg outline-none focus:border-purple-500" data-idx="${idx}" placeholder="0" oninput="calcKPIScore()"></div></div>`;
   }).join('');
 }
-
 function calcKPIScore() {
   let total = 0;
   document.querySelectorAll('.kpi-score-input').forEach(el => {
-    const idx = parseInt(el.dataset.idx, 10);
-    const score = parseFloat(el.value) || 0;
-    const bobot = parseFloat(KPI_CURRENT_QUESTIONS[idx].BOBOT) || 0;
+    const idx = parseInt(el.dataset.idx, 10); const score = parseFloat(el.value) || 0; const bobot = parseFloat(KPI_CURRENT_QUESTIONS[idx].BOBOT) || 0;
     total += (score * (bobot / 100));
   });
   $('MPNL_TOTAL_SKOR').textContent = total.toFixed(2);
 }
-
 async function submitPenilaian(){ 
-  const nilai=$('MPNL_NILAI').value; if(!nilai) return toast('Pilih keputusan!',true); 
-  
-  let kpiData = [];
+  const nilai=$('MPNL_NILAI').value; if(!nilai) return toast('Pilih keputusan rekomendasi!',true); 
+  let kpiData = [], err=false;
   document.querySelectorAll('.kpi-score-input').forEach(el => {
-    const idx = parseInt(el.dataset.idx, 10);
-    kpiData.push({
-       aspek: KPI_CURRENT_QUESTIONS[idx].ASPEK,
-       indikator: KPI_CURRENT_QUESTIONS[idx].INDIKATOR,
-       bobot: KPI_CURRENT_QUESTIONS[idx].BOBOT,
-       skor: parseFloat(el.value) || 0
-    });
+    const idx = parseInt(el.dataset.idx, 10), skor = parseFloat(el.value);
+    if(isNaN(skor) || skor < 0 || skor > 100) err=true;
+    kpiData.push({ aspek: KPI_CURRENT_QUESTIONS[idx].ASPEK, indikator: KPI_CURRENT_QUESTIONS[idx].INDIKATOR, bobot: KPI_CURRENT_QUESTIONS[idx].BOBOT, skor: skor||0 });
   });
+  if(err) return toast('Harap isi semua skor KPI dengan angka 0 - 100.', true);
+  if(!confirm('Anda yakin ingin mem-finalisasi nilai KPI ini? Hasil akan otomatis terkirim ke Karyawan via Email.')) return;
 
-  const b=$('MPNL_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Simpan...'; 
+  const b=$('MPNL_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan & Mengirim Email...'; 
   const res=await api({action:'simpan_penilaian',user:CU,nik:$('MPNL_NIK').value,namaKaryawan:$('MPNL_NAMA_VAL').value,totalSkor:$('MPNL_TOTAL_SKOR').textContent,keputusan:nilai,catatan:$('MPNL_CATATAN').value, kpiData:kpiData}); 
   b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);closeM('MPENILAIAN');}else toast(res.message,true); 
 }
 
 // ─── MANAJEMEN CUTI (HRD/GM/ATASAN) ─
-async function loadCuti() {
-  $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center"><i class="fa-solid fa-spinner fa-spin text-blue-500 text-3xl"></i></td></tr>`;
-  const res = await api({action: 'get_manajemen_cuti'});
-  if(!res.success) { $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-red-500">${res.message}</td></tr>`; return; }
-  const data = res.data || [];
-  if(!data.length) { $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; }
-  
-  $('CUTIBODY').innerHTML = data.map(c => {
-    const p = parseFloat(c['Potong Jatah']) || 0;
-    const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
-    return `<tr class="hover:bg-blue-50/50">
-       <td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c['Tanggal'])}</td>
-       <td class="px-6 py-4 font-black text-sm text-slate-800">${c['Nama_Karyawan']||'-'}</td>
-       <td class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">${c['CABANG']||'-'} / ${c['JABATAN']||'-'}</td>
-       <td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||'-'}</span></td>
-       <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||'-'}</td>
-       <td class="px-6 py-4 text-center">${pB}</td>
-       <td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||'-'}</td>
-       <td class="px-6 py-4 text-center">${c['FORM'] ? `<a href="${c['FORM']}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white shadow-sm mx-auto transition"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td>
-    </tr>`;
-  }).join('');
-}
+async function loadCuti() { $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center"><i class="fa-solid fa-spinner fa-spin text-blue-500 text-3xl"></i></td></tr>`; const res = await api({action: 'get_manajemen_cuti'}); if(!res.success) { $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-red-500">${res.message}</td></tr>`; return; } const data = res.data || []; if(!data.length) { $('CUTIBODY').innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; } $('CUTIBODY').innerHTML = data.map(c => { const p = parseFloat(c['Potong Jatah']) || 0; const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`; return `<tr class="hover:bg-blue-50/50"><td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c['Tanggal'])}</td><td class="px-6 py-4 font-black text-sm text-slate-800">${c['Nama_Karyawan']||'-'}</td><td class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">${c['CABANG']||'-'} / ${c['JABATAN']||'-'}</td><td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||'-'}</span></td><td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||'-'}</td><td class="px-6 py-4 text-center">${pB}</td><td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||'-'}</td><td class="px-6 py-4 text-center">${c['FORM'] ? `<a href="${c['FORM']}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white shadow-sm mx-auto transition"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td></tr>`; }).join(''); }
 
 // ─── MASTER KARYAWAN ──────────────
 async function loadKaryawan(){ $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>'; const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value}); if(!res.success)return; const d=res.data||[]; $('TOTALKARY').textContent=res.total||d.length; if(!d.length){$('KARYGRID').innerHTML='<div class="col-span-full text-center">Kosong.</div>';return;} $('KARYGRID').innerHTML=d.map(k=>`<div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100"><div class="flex items-start gap-4 mb-5"><div class="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center font-black">${k.Nama_Karyawan.charAt(0)}</div><div><p class="font-black text-slate-900">${k.Nama_Karyawan}</p><p class="text-[10px] font-black text-slate-400 uppercase">${k.JABATAN}</p></div></div><button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="w-full text-xs font-black text-corp bg-corpl py-2.5 rounded-xl">Detail Karyawan</button></div>`).join(''); }
