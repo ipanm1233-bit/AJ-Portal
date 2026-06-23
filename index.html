@@ -1109,7 +1109,8 @@ tailwind.config = {
 <!-- ================== SCRIPT JAVASCRIPT UTAMA (FAST-LOAD) ================== -->
 <!-- ========================================================================= -->
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzTW0geTBQJYZCI0yHWjZF7DCwwTx-Jh4BQZwASOdu9s_4a1_NyQJ2RlMVzsJwSG3DeSQ/exec'; // GANTI DENGAN URL WEB APP ANDA!
+// ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
+const API = 'https://script.google.com/macros/s/AKfycbyVm-eu8TpsZJafVOgubZUBl655kCFanXlxVyKC0OpK5BpPhjDxaWJR4DJ5XTfZmB0FEA/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1124,11 +1125,23 @@ const b64=f=>new Promise((r,j)=>{if(!f)return r(null);const rd=new FileReader();
 function fmtDate(d,o={day:'numeric',month:'short',year:'numeric'}){if(!d)return'-';try{return new Date(d).toLocaleDateString('id-ID',o);}catch(e){return d.toString();}}
 function badge(s){s=(s||'').toUpperCase();if(s==='APPROVED FINAL')return`<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-check mr-1"></i>Approved</span>`;if(s==='REJECTED')return`<span class="bg-red-100 text-red-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-xmark mr-1"></i>Rejected</span>`;if(s==='SELESAI')return`<span class="bg-cyan-100 text-cyan-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-check-double mr-1"></i>Selesai</span>`;return`<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i>Proses</span>`;}
 
-// --- SMART KEY READER UNTUK INVENTORY (Anti Undefined) ---
+// Fungsi Badge Kategori Baru yang Hilang
+function kategoriBadge(k){ const m={'Pengajuan Form':'bg-blue-100 text-blue-800','Surat Peringatan':'bg-red-100 text-red-800','Penilaian Kontrak':'bg-purple-100 text-purple-800','Konseling':'bg-amber-100 text-amber-800','Dokumen Kontrak':'bg-emerald-100 text-emerald-800','Pengambilan Inventory':'bg-cyan-100 text-cyan-800'}; return `<span class="text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm ${m[k]||'bg-slate-200 text-slate-700'}">${k||'Lainnya'}</span>`; }
+
+// Smart Key Reader Inventory
 const getV = (obj, keys) => { if(!obj) return undefined; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return obj[k]; } } return undefined; };
 const exactKey = (obj, keys) => { if(!obj) return keys[0]; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return k; } } return keys[0]; };
 
-async function api(payload, msg=null) { try { if(msg) showL(msg); else showL(); const r = await fetch(API, {method:'POST',body:JSON.stringify(payload)}); return await r.json(); } catch(e) { return {success:false,message:'Koneksi gagal'}; } finally { hideL(); } }
+async function api(payload, msg=null) { 
+  try { 
+    if(msg) showL(msg); else showL(); 
+    const r = await fetch(API, {method:'POST',body:JSON.stringify(payload)}); 
+    const text = await r.text();
+    // Anti-Crash jika Google Script return 404 HTML
+    if(text.includes('<html')) { hideL(); return {success:false, message:'Koneksi ke server gagal (404). Pastikan Web App URL di index.html sudah benar!'}; }
+    return JSON.parse(text);
+  } catch(e) { return {success:false,message:'Koneksi terputus: ' + e.message}; } finally { hideL(); } 
+}
 
 window.onload = async () => {
   $('TDATE').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -1181,6 +1194,9 @@ function nav(vId) {
 }
 
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
+
+// Fungsi Dropdown SP yang Hilang
+function fillSPDD(){ if($('SPKARY')) $('SPKARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); }
 
 // ─── DASHBOARD ───────────────────
 async function loadDashboard() {
@@ -1478,14 +1494,31 @@ async function submitBatchAmbil(){
   showL('Sedang memotong stok...'); for(const x of items) { await api({action:'ambil_inventory',user:CU,...x}); } hideL(); toast('Transaksi log pengambilan berhasil terekam.'); $('BATCH_TBODY').innerHTML=''; addBatchRow(); loadInv(); 
 }
 
+// ─── PERBAIKAN LOG INVENTORY UNDEFINED ───
 async function loadInvRiwayat(){ 
   const res=await api({action:'get_riwayat_inventory'}); LOG_INV_DATA = res.data||[]; 
-  $('TBODY_LOG_INV').innerHTML=LOG_INV_DATA.map((r,idx)=>`<tr><td class="px-6 py-4">${fmtDate(r.Tanggal)}</td><td class="px-6 py-4 font-mono font-bold">${r.ID_Barang}</td><td class="px-6 py-4 font-black">${r.Nama_Barang}</td><td class="px-6 py-4 text-center font-black text-cyan-600">${r.Jumlah_Ambil}</td><td class="px-6 py-4 font-bold">${r.Nama_Karyawan}</td><td class="px-6 py-4 text-xs max-w-[200px] truncate">${r.Keperluan}</td><td class="px-6 py-4 text-center"><button onclick="openEditLogInv(${idx})" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-blue-600 border hover:bg-blue-50">Edit</button> <button onclick="deleteLogInv('${r.ID_Log}')" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-red-600 border hover:bg-red-50 ml-1">Hapus</button></td></tr>`).join('') || '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada log pengambilan.</td></tr>'; 
+  $('TBODY_LOG_INV').innerHTML=LOG_INV_DATA.map((r,idx)=>{
+     const idB = getV(r, ['ID_Barang', 'IDBarang', 'ID Item', 'ID_Item']) || '-';
+     const qtyB = getV(r, ['Jumlah_Ambil', 'JumlahAmbil', 'Qty', 'Jumlah']) || 0;
+     const nmB = getV(r, ['Nama_Barang', 'NamaBarang']) || '-';
+     const nmK = getV(r, ['Nama_Karyawan', 'NamaKaryawan']) || '-';
+     const kep = getV(r, ['Keperluan']) || '-';
+     
+     return `<tr><td class="px-6 py-4">${fmtDate(r.Tanggal)}</td><td class="px-6 py-4 font-mono font-bold">${idB}</td><td class="px-6 py-4 font-black">${nmB}</td><td class="px-6 py-4 text-center font-black text-cyan-600">${qtyB}</td><td class="px-6 py-4 font-bold">${nmK}</td><td class="px-6 py-4 text-xs max-w-[200px] truncate">${kep}</td><td class="px-6 py-4 text-center"><button onclick="openEditLogInv(${idx})" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-blue-600 border hover:bg-blue-50">Edit</button> <button onclick="deleteLogInv('${r.ID_Log}')" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-red-600 border hover:bg-red-50 ml-1">Hapus</button></td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada log pengambilan.</td></tr>'; 
 }
+
 function openEditLogInv(idx) {
-  const r = LOG_INV_DATA[idx]; $('ELI_ID').value = r.ID_Log; $('ELI_TGL').value = r.Tanggal ? r.Tanggal.split('T')[0] : '';
-  $('ELI_KARY').innerHTML = DD_KARY.map(k=>`<option value="${k.nama}" ${k.nama===r.Nama_Karyawan?'selected':''}>${k.nama}</option>`).join('');
-  $('ELI_QTY').value = r.Jumlah_Ambil; $('ELI_KEP').value = r.Keperluan; openM('MEDIT_LOG_INV');
+  const r = LOG_INV_DATA[idx]; 
+  $('ELI_ID').value = r.ID_Log; 
+  $('ELI_TGL').value = r.Tanggal ? r.Tanggal.split('T')[0] : '';
+  
+  const nmK = getV(r, ['Nama_Karyawan', 'NamaKaryawan']);
+  $('ELI_KARY').innerHTML = DD_KARY.map(k=>`<option value="${k.nama}" ${k.nama===nmK?'selected':''}>${k.nama}</option>`).join('');
+  
+  $('ELI_QTY').value = getV(r, ['Jumlah_Ambil', 'JumlahAmbil', 'Qty', 'Jumlah']); 
+  $('ELI_KEP').value = getV(r, ['Keperluan']); 
+  openM('MEDIT_LOG_INV');
 }
 async function submitUpdateLogInv() {
   const res = await api({action:'update_log_inventory', user:CU, idLog:$('ELI_ID').value, tanggalBaru:$('ELI_TGL').value, karyawanBaru:$('ELI_KARY').value, jumlahBaru:$('ELI_QTY').value, keperluanBaru:$('ELI_KEP').value});
