@@ -1242,7 +1242,22 @@ window.onload = async () => {
 };
 function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar.'); }
 
-const MENU_OPTS = [ { val: 'DASHBOARD', label: 'Dashboard Utama', el: 'NB-dashboard' }, { val: 'PENGAJUAN', label: 'Buat Pengajuan Dokumen', el: 'NB-pengajuan' }, { val: 'RIWAYAT', label: 'Rekam Jejak 360', el: 'NB-riwayat' }, { val: 'APPROVAL', label: 'Antrean Approval Form', el: 'NB-approval' }, { val: 'KONTRAK', label: 'Penilaian KPI & Evaluasi Kontrak', el: 'NB-kontrak' }, { val: 'CUTI', label: 'Manajemen Cuti & Izin', el: 'NB-cuti' }, { val: 'BROADCAST', label: 'Broadcast / Pengumuman', el: 'NB-broadcast' }, { val: 'DBKARY', label: 'Database Karyawan (HR)', el: 'NB-dbkary' }, { val: 'SP', label: 'Pemanggilan & SP (HR)', el: 'NB-sp' }, { val: 'FBUILDER', label: 'Form Builder (HR)', el: 'NB-fbuilder' }, { val: 'EXPORT', label: 'Export Data Database (HR)', el: 'NB-export' }, { val: 'KENDARAAN', label: 'Master Kendaraan & Log BBM', el: 'NB-kendaraan' }, { val: 'INVENTORY', label: 'Master Inventory & Stok Opname', el: 'NB-inventory' }, { val: 'LIFECYCLE', label: 'On/Offboarding Karyawan (HR)', el: 'NB-lifecycle' } ];
+const MENU_OPTS = [ 
+  { val: 'DASHBOARD', label: 'Dashboard Utama', el: 'NB-dashboard' }, 
+  { val: 'PENGAJUAN', label: 'Buat Pengajuan Dokumen', el: 'NB-pengajuan' }, 
+  { val: 'RIWAYAT', label: 'Rekam Jejak 360', el: 'NB-riwayat' }, 
+  { val: 'APPROVAL', label: 'Antrean Approval Form', el: 'NB-approval' }, 
+  { val: 'KONTRAK', label: 'Penilaian KPI & Evaluasi Kontrak', el: 'NB-kontrak' }, 
+  { val: 'CUTI', label: 'Manajemen Cuti & Izin', el: 'NB-cuti' }, 
+  { val: 'BROADCAST', label: 'Broadcast / Pengumuman', el: 'NB-broadcast' }, 
+  { val: 'DBKARY', label: 'Database Karyawan (HR)', el: 'NB-dbkary' }, 
+  { val: 'SP', label: 'Pemanggilan & SP (HR)', el: 'NB-sp' }, 
+  { val: 'FBUILDER', label: 'Form Builder (HR)', el: 'NB-fbuilder' }, 
+  { val: 'EXPORT', label: 'Export Data Database (HR)', el: 'NB-export' }, 
+  { val: 'KENDARAAN', label: 'Master Kendaraan & Log BBM', el: 'NB-kendaraan' }, 
+  { val: 'INVENTORY', label: 'Master Inventory & Stok Opname', el: 'NB-inventory' }, 
+  { val: 'LIFECYCLE', label: 'On/Offboarding Karyawan (HR)', el: 'NB-lifecycle' } 
+];
 
 function bootApp() {
   $('PGlogin').classList.add('hide'); $('PGapp').classList.remove('hide');
@@ -1936,9 +1951,6 @@ on('FM_REQ_PROFIL', 'submit', async e => {
   b.disabled = false; b.innerHTML = o;
   if(res.success){ toast(res.message); closeM('MREQ_PROFILE'); } else toast(res.message, true);
 });
-
-// Update Title Nav
-const titles = {'dashboard':'Dashboard','pengajuan':'Buat Pengajuan','riwayat':'Rekam Jejak 360','approval':'Antrean Persetujuan','dbkary':'Database Karyawan','sp':'Pemanggilan / SP','fbuilder':'Form Builder','broadcast':'Broadcast Memo','kendaraan':'Master Kendaraan','inventory':'Master Inventory','kontrak':'Penilaian KPI & Kontrak','cuti':'Manajemen Cuti', 'lifecycle':'Onboarding & Offboarding'};
 </script>
 </body>
 </html>
