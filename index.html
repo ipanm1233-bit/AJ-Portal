@@ -615,53 +615,70 @@ tailwind.config = {
           </div>
         </div>
       </div>
-      <!-- ================== PEMANGGILAN / SP ================== -->
-      <div id="V-sp" class="app-view hide fade max-w-3xl mx-auto space-y-6 pb-4">
+      <!-- ================== TINDAKAN INDISIPLINER & OFFBOARDING ================== -->
+      <div id="V-sp" class="app-view hide fade max-w-4xl mx-auto space-y-6 pb-4">
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="px-8 py-6 border-b border-slate-100 bg-red-50/30 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0 shadow-inner"><i class="fa-solid fa-envelope-open-text text-red-600 text-xl"></i></div>
+          <div class="px-8 py-6 border-b border-slate-100 bg-red-50/50 flex flex-col sm:flex-row sm:items-center gap-4 flex-shrink-0">
+            <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0 shadow-inner"><i class="fa-solid fa-scale-balanced text-red-600 text-xl"></i></div>
             <div>
-              <h2 class="text-lg font-black text-slate-800 tracking-tight">Surat Peringatan & Pemanggilan</h2>
-              <p class="text-xs text-slate-500 font-medium mt-1">Sistem akan mengirimkan email notifikasi berformat resmi ke karyawan yang bersangkutan.</p>
+              <h2 class="text-lg font-black text-slate-800 tracking-tight">Tindakan Indisipliner & Terminasi (Offboarding)</h2>
+              <p class="text-xs text-slate-500 font-medium mt-1">Kirim Surat Peringatan (SP) atau proses karyawan keluar (Resign/PHK) sesuai regulasi.</p>
+            </div>
+            <div class="sm:ml-auto flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+              <button type="button" onclick="hrSpSetTab('sp')" id="TAB_BTN_SP" class="px-5 py-2 text-xs font-black rounded-lg bg-red-600 text-white transition">Surat Peringatan</button>
+              <button type="button" onclick="hrSpSetTab('term')" id="TAB_BTN_TERM" class="px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition">Terminasi / Resign</button>
             </div>
           </div>
+          
+          <!-- TAB 1: SURAT PERINGATAN (LAMA) -->
           <form id="FMSP" class="p-8 space-y-6">
             <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-5">
+              <div><label class="lbl">Nama Karyawan Pelanggar <span class="text-red-500">*</span></label><select id="SPKARY" class="inp !py-3 !text-sm font-bold shadow-sm" required></select></div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div><label class="lbl">Jenis Tindakan <span class="text-red-500">*</span></label><select id="SPJENIS" class="inp !py-3 !text-sm font-bold shadow-sm" required><option>Surat Panggilan</option><option>SP 1 (Peringatan Pertama)</option><option>SP 2 (Peringatan Kedua)</option><option>SP 3 (Peringatan Ketiga)</option></select></div>
+                <div><label class="lbl">Tanggal Kejadian</label><input id="SPTGL" type="date" class="inp !py-3 !text-sm font-bold shadow-sm"></div>
+              </div>
+              <div><label class="lbl">Uraian / Kronologi Pelanggaran <span class="text-red-500">*</span></label><textarea id="SPALASAN" rows="4" required class="inp resize-none !text-sm shadow-sm"></textarea></div>
+              <div><label class="lbl">Catatan Tambahan (Opsional)</label><textarea id="SPCATAT" rows="2" class="inp resize-none !text-sm shadow-sm"></textarea></div>
+            </div>
+            <div class="flex justify-end pt-2"><button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-red-600/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim Surat Peringatan</button></div>
+          </form>
+
+          <!-- TAB 2: OFFBOARDING / TERMINASI (BARU) -->
+          <form id="FM_TERMINASI" class="p-8 space-y-6 hide">
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-2 flex items-start gap-4 shadow-sm">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5"></i>
+              <div><h4 class="font-black text-amber-800 text-sm mb-1">Peringatan Tindakan Kritis</h4><p class="text-xs text-amber-700 font-medium leading-relaxed">Mengeksekusi form ini akan mengubah status karyawan menjadi <b>NONAKTIF</b> di database. Sistem akan otomatis menyurati Karyawan, Atasan, GA (Untuk Aset), dan Finance (Perhitungan Pesangon sesuai PP 35/2021).</p></div>
+            </div>
+            
+            <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div><label class="lbl">Nama Karyawan Keluar <span class="text-red-500">*</span></label><select id="TERM_KARY" class="inp !py-3 !text-sm font-bold shadow-sm" required></select></div>
+                <div><label class="lbl">Tgl Hari Terakhir Bekerja (Efektif) <span class="text-red-500">*</span></label><input id="TERM_TGL" type="date" class="inp !py-3 !text-sm font-bold text-red-600 shadow-sm" required></div>
+              </div>
               <div>
-                <label class="lbl">Nama Karyawan Pelanggar <span class="text-red-500">*</span></label>
-                <select id="SPKARY" class="inp !py-3 !text-sm font-bold text-slate-700 shadow-sm" required>
-                  <option value="">— Memuat daftar karyawan... —</option>
+                <label class="lbl">Klasifikasi Terminasi (Pilih Sesuai UU Cipta Kerja) <span class="text-red-500">*</span></label>
+                <select id="TERM_JENIS" onchange="hrUpdateLegalHint()" class="inp !py-3 !text-sm font-black text-slate-800 shadow-sm border-2 border-slate-200 focus:border-red-500" required>
+                  <option value="">— Pilih Dasar Terminasi —</option>
+                  <option value="Resign Sukarela">Resign / Mengundurkan Diri Sukarela</option>
+                  <option value="PHK - Efisiensi / Kerugian">PHK - Efisiensi / Perusahaan Merugi / Tutup</option>
+                  <option value="PHK - Pelanggaran Berat">PHK - Pelanggaran Bersifat Mendesak / Berat</option>
+                  <option value="Habis Kontrak (PKWT)">Berakhirnya Masa Kontrak (PKWT)</option>
+                  <option value="Pensiun">Mencapai Usia Pensiun</option>
+                  <option value="Meninggal Dunia">Meninggal Dunia</option>
                 </select>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label class="lbl">Jenis Tindakan <span class="text-red-500">*</span></label>
-                  <select id="SPJENIS" class="inp !py-3 !text-sm font-bold text-slate-700 shadow-sm" required>
-                    <option>Surat Panggilan</option>
-                    <option>SP 1 (Peringatan Pertama)</option>
-                    <option>SP 2 (Peringatan Kedua)</option>
-                    <option>SP 3 (Peringatan Ketiga)</option>
-                    <option>Surat PHK</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="lbl">Tanggal Kejadian</label>
-                  <input id="SPTGL" type="date" class="inp !py-3 !text-sm font-bold text-slate-700 shadow-sm">
-                </div>
+              
+              <!-- Smart Legal Hint Box -->
+              <div id="TERM_LEGAL_BOX" class="hide bg-white border-2 border-dashed border-red-200 p-5 rounded-xl shadow-sm">
+                <p class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2"><i class="fa-solid fa-book-open mr-1.5"></i>Hak Normatif Menurut PP No. 35 Tahun 2021</p>
+                <p id="TERM_LEGAL_TEXT" class="text-sm font-bold text-slate-700 leading-relaxed"></p>
               </div>
-              <div>
-                <label class="lbl">Uraian / Kronologi Pelanggaran <span class="text-red-500">*</span></label>
-                <textarea id="SPALASAN" rows="4" required placeholder="Jelaskan secara rinci pelanggaran yang dilakukan..." class="inp resize-none !text-sm font-medium leading-relaxed shadow-sm"></textarea>
-              </div>
-              <div>
-                <label class="lbl">Catatan Tambahan (Opsional)</label>
-                <textarea id="SPCATAT" rows="2" placeholder="Instruksi tambahan untuk karyawan..." class="inp resize-none !text-sm font-medium shadow-sm"></textarea>
-              </div>
+
+              <div><label class="lbl">Keterangan / Kronologi Singkat <span class="text-red-500">*</span></label><textarea id="TERM_ALASAN" rows="3" required placeholder="Jelaskan alasan pengunduran diri / PHK secara ringkas..." class="inp resize-none !text-sm shadow-sm"></textarea></div>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-              <button type="button" onclick="nav('dashboard')" class="px-6 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition shadow-sm">Batal</button>
-              <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-red-600/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim Surat Peringatan</button>
-            </div>
+            
+            <div class="flex justify-end pt-2"><button type="submit" id="BTN_TERM_SUBMIT" class="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-slate-900/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-power-off"></i>Eksekusi Proses Offboarding</button></div>
           </form>
         </div>
       </div>
@@ -1038,20 +1055,33 @@ tailwind.config = {
 <!-- Modal: Tindak Lanjut Kontrak & Pengingat Penilaian -->
 <div id="MKONTRAK" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden fade border-t-8 border-t-orange-500">
-    <div class="px-8 py-6 flex items-center gap-4 bg-orange-50/30 border-b border-slate-100"><div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center shadow-inner flex-shrink-0"><i class="fa-solid fa-file-contract text-orange-600 text-2xl"></i></div><div><h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3><p id="MKONTRAK_NAMA" class="text-sm font-bold text-orange-700 mt-1"></p></div></div>
-    <div class="p-8 space-y-6"><input type="hidden" id="MKONTRAK_NIK"><input type="hidden" id="MKONTRAK_NAMA_VAL">
-      <div><label class="lbl">Pilih Tindakan Email</label><div class="grid grid-cols-3 gap-3">
-        <button type="button" onclick="mkontrakSetMode('penilaian')" id="MKONTRAK_TAB_penilaian" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-star text-xl mb-1"></i>Minta Penilaian</button>
-        <button type="button" onclick="mkontrakSetMode('konseling')" id="MKONTRAK_TAB_konseling" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-comments text-xl mb-1"></i>Jadwal Konseling</button>
-        <button type="button" onclick="mkontrakSetMode('dokumen')" id="MKONTRAK_TAB_dokumen" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-file-signature text-xl mb-1"></i>Tanda Tangan</button>
-      </div></div>
-      <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 items-start shadow-sm"><i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i><p id="MKONTRAK_DESC" class="text-xs text-blue-800 leading-relaxed font-medium"></p></div>
+    <div class="px-8 py-6 flex items-center gap-4 bg-orange-50/30 border-b border-slate-100">
+      <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center shadow-inner flex-shrink-0"><i class="fa-solid fa-file-contract text-orange-600 text-2xl"></i></div>
+      <div><h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3><p id="MKONTRAK_NAMA" class="text-sm font-bold text-orange-700 mt-1"></p></div>
+    </div>
+    <div class="p-8 space-y-6">
+      <input type="hidden" id="MKONTRAK_NIK"><input type="hidden" id="MKONTRAK_NAMA_VAL">
+      <div>
+        <label class="lbl">Pilih Tindakan Email</label>
+        <div class="grid grid-cols-3 gap-3">
+          <button type="button" onclick="mkontrakSetMode('penilaian')" id="MKONTRAK_TAB_penilaian" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-star text-xl mb-1"></i>Minta Penilaian</button>
+          <button type="button" onclick="mkontrakSetMode('konseling')" id="MKONTRAK_TAB_konseling" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-comments text-xl mb-1"></i>Jadwal Konseling</button>
+          <button type="button" onclick="mkontrakSetMode('dokumen')" id="MKONTRAK_TAB_dokumen" class="mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 transition flex flex-col items-center gap-2 text-center"><i class="fa-solid fa-file-signature text-xl mb-1"></i>Tanda Tangan</button>
+        </div>
+      </div>
+      
+      <div id="MKONTRAK_FILE_WRAP" class="hide bg-orange-50 p-4 rounded-xl border border-orange-200">
+        <label class="lbl">Upload Draft Kontrak Baru (Wajib PDF) <span class="text-red-500">*</span></label>
+        <input type="file" id="MKONTRAK_FILE" accept=".pdf" class="inp bg-white p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer shadow-sm w-full mt-1">
+      </div>
+
+      <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 items-start shadow-sm"><i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i><p id="MKONTRAK_DESC" class="text-xs text-blue-800 leading-relaxed font-medium">Pilih tindakan di atas. Sistem akan mengirim notifikasi email otomatis ke target yang bersangkutan.</p></div>
       <div id="MKONTRAK_CATATAN_WRAP"><label class="lbl">Catatan Tambahan (Masuk ke Email)</label><textarea id="MKONTRAK_CATATAN" rows="3" class="inp resize-none !text-sm" placeholder="Instruksi khusus..."></textarea></div>
     </div>
-    <div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50"><button onclick="closeM('MKONTRAK')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600">Batal</button><button onclick="submitKontrakAction()" id="MKONTRAK_SUBMIT_BTN" class="px-6 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim Notifikasi</button></div>
+    <div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50"><button onclick="closeM('MKONTRAK')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600">Batal</button><button onclick="submitKontrakAction()" id="MKONTRAK_SUBMIT_BTN" class="px-6 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105"><i class="fa-solid fa-paper-plane"></i>Kirim Email</button></div>
   </div>
 </div>
-
+  
 <!-- Modal: Penilaian KPI Dinamis -->
 <div id="MPENILAIAN" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden fade border-t-8 border-t-purple-600 flex flex-col max-h-[95vh]">
@@ -1115,7 +1145,7 @@ tailwind.config = {
 <!-- ========================================================================= -->
 <script>
 // ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
-const API = 'https://script.google.com/macros/s/AKfycbzWzqpYI24qnXZRZ-fFdPLd5uj5O2j5I73SAM0i9_yxxY5yRrHvvwxOmTY4viAs5_wISg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyeifSqO0P1iGAKG0Unwoms-U3JgYc0oMJ8sbudHdgF4PYIpFMJ1B2480dmCtqjNCvNpA/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1147,10 +1177,34 @@ async function api(payload, msg=null) {
 window.onload = async () => {
   $('TDATE').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const token = new URLSearchParams(location.search).get('token');
-  if(token){ $('FMLOGIN').classList.add('hide'); $('TOKENMSG').classList.remove('hide'); const res=await api({action:'login_token',token}); if(res.success){ CU=res.user; localStorage.setItem('hris_u',JSON.stringify(CU)); history.replaceState({},'',location.pathname); bootApp(); } else { toast(res.message,true); $('FMLOGIN').classList.remove('hide'); $('TOKENMSG').classList.add('hide'); } return; }
-  if(localStorage.getItem('hris_u')){ try{ CU=JSON.parse(localStorage.getItem('hris_u')); bootApp(); return; }catch(e){} } $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide');
+  const pnlNik = new URLSearchParams(location.search).get('pnl_nik'); // Tangkap NIK dari Email Atasan
+  
+  if(token){ 
+    $('FMLOGIN').classList.add('hide'); $('TOKENMSG').classList.remove('hide'); 
+    const res=await api({action:'login_token',token}); 
+    if(res.success){ 
+      CU=res.user; localStorage.setItem('hris_u',JSON.stringify(CU)); 
+      history.replaceState({},'',location.pathname); 
+      bootApp(); 
+      
+      // Jika mendeteksi parameter pnl_nik, langsung buka Form Penilaian
+      if(pnlNik) {
+         setTimeout(async () => {
+             nav('kontrak'); // Pindah tab
+             await loadPenilaian(); // Tunggu data bawahan ditarik
+             const idx = PNL_BAWAHAN_DATA.findIndex(k => k.NIK === pnlNik || k.NIK_Karyawan === pnlNik);
+             if(idx > -1) openPenilaianForm(idx); // Eksekusi Modal
+         }, 1500);
+      }
+    } else { 
+      toast(res.message,true); $('FMLOGIN').classList.remove('hide'); $('TOKENMSG').classList.add('hide'); 
+    } 
+    return; 
+  }
+  
+  if(localStorage.getItem('hris_u')){ try{ CU=JSON.parse(localStorage.getItem('hris_u')); bootApp(); return; }catch(e){} } 
+  $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide');
 };
-on('FMLOGIN','submit', async e => { e.preventDefault(); const btn=$('BTNLOG'); btn.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Verifikasi...'; btn.disabled=true; const res=await api({action:'login',username:$('LU').value.trim(),password:$('LP').value}); if(res.success){ CU=res.user; localStorage.setItem('hris_u',JSON.stringify(CU)); bootApp(); }else{ toast(res.message,true); } btn.innerHTML='Akses Sistem <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>'; btn.disabled=false; });
 function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar.'); }
 
 const MENU_OPTS = [ { val: 'DASHBOARD', label: 'Dashboard Utama', el: 'NB-dashboard' }, { val: 'PENGAJUAN', label: 'Buat Pengajuan Dokumen', el: 'NB-pengajuan' }, { val: 'RIWAYAT', label: 'Rekam Jejak 360', el: 'NB-riwayat' }, { val: 'APPROVAL', label: 'Antrean Approval Form', el: 'NB-approval' }, { val: 'KONTRAK', label: 'Penilaian KPI & Evaluasi Kontrak', el: 'NB-kontrak' }, { val: 'CUTI', label: 'Manajemen Cuti & Izin', el: 'NB-cuti' }, { val: 'BROADCAST', label: 'Broadcast / Pengumuman', el: 'NB-broadcast' }, { val: 'DBKARY', label: 'Database Karyawan (HR)', el: 'NB-dbkary' }, { val: 'SP', label: 'Pemanggilan & SP (HR)', el: 'NB-sp' }, { val: 'FBUILDER', label: 'Form Builder (HR)', el: 'NB-fbuilder' }, { val: 'EXPORT', label: 'Export Data Database (HR)', el: 'NB-export' }, { val: 'KENDARAAN', label: 'Master Kendaraan & Log BBM', el: 'NB-kendaraan' }, { val: 'INVENTORY', label: 'Master Inventory & Stok Opname', el: 'NB-inventory' } ];
@@ -1413,22 +1467,31 @@ function openKaryDetail(k){
   let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${keys.map(kk=>{
       let val = (k[kk]!=null?k[kk]:'').toString();
       let upperK = kk.toUpperCase();
+      let inputType = 'text';
+      let isReadonly = (upperK.includes('JOIN') || upperK === 'MASA KERJA') ? 'readonly' : '';
+      let extraClass = isReadonly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-transparent' : 'bg-slate-50 focus:border-corp border-slate-200';
       
-      // Auto Format Tanggal
-      if(upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR')) {
+      // Auto Format Tanggal ke "Input Date" agar mudah ganti Habis Kontrak
+      if((upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR')) && !upperK.includes('JOIN')) {
+         inputType = 'date';
+         let d = new Date(val);
+         if(!isNaN(d.getTime()) && val.length > 5) val = d.toISOString().split('T')[0]; // Format YYYY-MM-DD
+      } 
+      // Kunci Tanggal Join (Tetap Readable)
+      else if(upperK.includes('JOIN')) { 
          let d = new Date(val);
          if(!isNaN(d.getTime()) && val.length > 5) {
              const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
              val = `${d.getDate().toString().padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
          }
       }
-      // Auto Kalkulasi Masa Kerja
+
       if(upperK === 'MASA KERJA') {
-         let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'];
+         let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'] || k['Tanggal_Join'];
          if(joinVal) val = calcMasaKerja(joinVal);
       }
       
-      return `<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kary-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-corp" data-field="${kk}" value="${val.replace(/"/g,'&quot;')}"></div>`;
+      return `<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">${kk} ${isReadonly?'<i class="fa-solid fa-lock text-slate-300"></i>':''}</p><input type="${inputType}" class="kary-edit-field w-full font-bold text-sm mt-1 px-2 py-1.5 rounded outline-none border ${extraClass}" data-field="${kk}" value="${val.replace(/"/g,'&quot;')}" ${isReadonly}></div>`;
   }).join('')}</div>`;
   
   if(CU.Role.toUpperCase().includes('HRD')) {
@@ -1446,8 +1509,36 @@ async function saveKaryawanEdit(){
 }
 
 let WGT_KB_MODE='konseling', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_penilaian',konseling:'kontrak_kirim_konseling',dokumen:'kontrak_request_dokumen'};
-function mkontrakSetMode(m){ WGT_KB_MODE=m; document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'); $('MKONTRAK_TAB_'+m).className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; }
-async function submitKontrakAction(){ const b=$('MKONTRAK_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Mengirim...'; const res=await api({action:MKONTRAK_ACTION_MAP[WGT_KB_MODE],user:CU,nik:$('MKONTRAK_NIK').value,namaKaryawan:$('MKONTRAK_NAMA_VAL').value,catatan:$('MKONTRAK_CATATAN').value}); b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);closeM('MKONTRAK');}else toast(res.message,true); }
+function mkontrakSetMode(m){ 
+  WGT_KB_MODE=m; 
+  document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'); 
+  $('MKONTRAK_TAB_'+m).className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; 
+  $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; 
+  
+  // Tampilkan form upload khusus untuk Tanda Tangan Dokumen
+  if(m === 'dokumen') { $('MKONTRAK_FILE_WRAP').classList.remove('hide'); $('MKONTRAK_DESC').textContent = "Penting: HRD wajib melampirkan file Draft Kontrak berbentuk PDF."; }
+  else { $('MKONTRAK_FILE_WRAP').classList.add('hide'); $('MKONTRAK_DESC').textContent = "Pilih tindakan di atas. Sistem akan mengirim notifikasi email otomatis ke target yang bersangkutan."; }
+}
+async function submitKontrakAction(){ 
+  let fileB64 = null, fileName = null;
+  // Validasi Wajib Upload PDF saat Tanda Tangan
+  if(WGT_KB_MODE === 'dokumen'){
+     const fi = $('MKONTRAK_FILE');
+     if(!fi.files.length) return toast('HRD Wajib melampirkan Draft Kontrak PDF!', true);
+     if(fi.files[0].size > 3145728) return toast('Maks ukuran file draft 3 MB', true);
+     fileB64 = await b64(fi.files[0]);
+     fileName = fi.files[0].name;
+  }
+
+  const b=$('MKONTRAK_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email...'; 
+  const res=await api({
+    action:MKONTRAK_ACTION_MAP[WGT_KB_MODE],
+    user:CU, nik:$('MKONTRAK_NIK').value, namaKaryawan:$('MKONTRAK_NAMA_VAL').value, catatan:$('MKONTRAK_CATATAN').value,
+    file: fileB64, fileName: fileName // Payload file tersisip
+  }); 
+  b.disabled=false; b.innerHTML=o; 
+  if(res.success){toast(res.message);closeM('MKONTRAK');}else toast(res.message,true); 
+}
 
 // ─── MASTER KENDARAAN (REVISED COMPLETE COLUMNS) ───
 async function loadKend(){ const res=await api({action:'get_kendaraan'}); KEND_DATA=res.data||[]; $('KENDGRID').innerHTML=KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); }
@@ -1671,6 +1762,45 @@ function calcMasaKerja(joinDateStr) {
    if(years < 0) return 'Belum genap 1 Tahun';
    return `${years} Tahun, ${months} Bulan, ${days} Hari`;
 }
+// --- LOGIKA TAB & SMART OFFBOARDING HRD ---
+function hrSpSetTab(t) {
+  $('FMSP').classList.toggle('hide', t !== 'sp');
+  $('FM_TERMINASI').classList.toggle('hide', t !== 'term');
+  $('TAB_BTN_SP').className = t === 'sp' ? 'px-5 py-2 text-xs font-black rounded-lg bg-red-600 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition';
+  $('TAB_BTN_TERM').className = t === 'term' ? 'px-5 py-2 text-xs font-black rounded-lg bg-slate-800 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition';
+  if(t === 'term' && $('TERM_KARY').children.length === 0) { $('TERM_KARY').innerHTML = '<option value="">— Pilih Karyawan —</option>' + DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); }
+}
+
+function hrUpdateLegalHint() {
+  const val = $('TERM_JENIS').value;
+  const box = $('TERM_LEGAL_BOX'); const txt = $('TERM_LEGAL_TEXT');
+  if(!val) { box.classList.add('hide'); return; }
+  
+  let html = '';
+  if(val === 'Resign Sukarela') html = 'Karyawan yang mengundurkan diri atas kemauan sendiri dan memenuhi syarat (30 hari notice) berhak atas: <br>1. <b>Uang Penggantian Hak (UPH)</b> sesuai Pasal 40 ayat (4).<br>2. <b>Uang Pisah</b> (Besarannya diatur dalam Perjanjian Kerja / Peraturan Perusahaan).';
+  else if(val === 'PHK - Efisiensi / Kerugian') html = 'Perusahaan berhak melakukan PHK karena efisiensi/tutup. Karyawan berhak atas:<br>1. <b>Uang Pesangon:</b> 0.5 kali (jika merugi) atau 1 kali (jika untuk pencegahan) dari ketentuan.<br>2. <b>Uang Penghargaan Masa Kerja (UPMK):</b> 1 kali ketentuan.<br>3. <b>Uang Penggantian Hak (UPH)</b>.';
+  else if(val === 'PHK - Pelanggaran Berat') html = 'Karyawan yang di-PHK karena pelanggaran bersifat mendesak (sesuai PP 35/2021 Pasal 52) <b>TIDAK mendapatkan Uang Pesangon & UPMK</b>. Karyawan hanya berhak atas:<br>1. <b>Uang Penggantian Hak (UPH)</b>.<br>2. <b>Uang Pisah</b>.';
+  else if(val === 'Habis Kontrak (PKWT)') html = 'Bagi karyawan PKWT yang masa kontraknya berakhir, Perusahaan <b>wajib memberikan Uang Kompensasi PKWT</b>.<br>Perhitungan: <b>(Masa Kerja / 12) x 1 Bulan Gaji Pokok</b>.';
+  else if(val === 'Pensiun') html = 'Karyawan yang pensiun berhak atas:<br>1. <b>Uang Pesangon:</b> 1.75 kali ketentuan.<br>2. <b>Uang Penghargaan Masa Kerja (UPMK):</b> 1 kali ketentuan.<br>3. <b>Uang Penggantian Hak (UPH)</b>.';
+  else if(val === 'Meninggal Dunia') html = 'Ahli waris karyawan yang meninggal dunia berhak atas:<br>1. <b>Uang Pesangon:</b> 2 kali ketentuan.<br>2. <b>Uang Penghargaan Masa Kerja (UPMK):</b> 1 kali ketentuan.<br>3. <b>Uang Penggantian Hak (UPH)</b>.';
+
+  txt.innerHTML = html; box.classList.remove('hide');
+}
+
+on('FM_TERMINASI', 'submit', async e => {
+  e.preventDefault();
+  const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value;
+  const lHtml = $('TERM_LEGAL_TEXT').innerHTML;
+  
+  if(!confirm(`PERINGATAN FINAL!\n\nAnda akan memproses ${j} untuk ${k}.\nStatus karyawan akan otomatis menjadi NONAKTIF. Email instruksi legal akan langsung dikirim ke Finance, GA, dan Karyawan.\n\nLanjutkan proses Offboarding?`)) return;
+  
+  const b = $('BTN_TERM_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengeksekusi Offboarding...';
+  
+  const res = await api({action: 'submit_terminasi', user: CU, namaKaryawan: k, tglEfektif: t, jenis: j, alasan: a, legalHtml: lHtml});
+  
+  b.disabled = false; b.innerHTML = o;
+  if(res.success){ toast(res.message); $('FM_TERMINASI').reset(); hrUpdateLegalHint(); } else toast(res.message, true);
+});
 </script>
 </body>
 </html>
