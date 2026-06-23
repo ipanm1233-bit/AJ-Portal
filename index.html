@@ -890,37 +890,36 @@ tailwind.config = {
             </div>
 
             <!-- Panel 2: Form Ambil Stok Cepat (BATCH) -->
+            <!-- Panel 2: Form Ambil Stok Cepat (BATCH) -->
             <div id="INV_PANEL_ambil" class="hide space-y-6">
               <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label class="lbl">Tanggal Pengambilan <span class="text-red-500">*</span></label>
-                    <input id="BATCH_TGL" type="date" class="inp !py-2.5 font-bold text-slate-700 shadow-sm">
-                  </div>
-                  <div>
-                    <label class="lbl">Nama Karyawan Penerima <span class="text-red-500">*</span></label>
-                    <select id="BATCH_KARY" class="inp !py-2.5 font-bold text-slate-700 shadow-sm"><option value="">— Pilih Karyawan —</option></select>
-                  </div>
-                  <div>
-                    <label class="lbl">Tujuan / Keperluan Keterangan <span class="text-red-500">*</span></label>
-                    <input id="BATCH_KEP" type="text" class="inp !py-2.5 font-medium shadow-sm" placeholder="Contoh: Kebutuhan ATK Divisi Sales">
+                    <label class="lbl">Tanggal Transaksi Pengambilan <span class="text-red-500">*</span></label>
+                    <input id="BATCH_TGL" type="date" class="inp !py-2.5 font-bold text-slate-700 shadow-sm w-full sm:w-1/2">
                   </div>
                 </div>
                 <div class="border border-slate-200 rounded-2xl overflow-hidden mt-4 shadow-sm">
                   <div class="table-container">
-                    <table class="w-full text-sm min-w-[500px]">
+                    <table class="w-full text-sm min-w-[900px]">
                       <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                        <tr><th class="px-5 py-3 text-left w-2/3">Pilih Barang</th><th class="px-5 py-3 text-center w-1/4">Qty</th><th class="px-5 py-3 text-center w-1/12">Hapus</th></tr>
+                        <tr>
+                          <th class="px-3 py-3 text-left w-1/3">Pilih Barang</th>
+                          <th class="px-3 py-3 text-center w-24">Qty</th>
+                          <th class="px-3 py-3 text-left w-1/4">Nama Karyawan</th>
+                          <th class="px-3 py-3 text-left w-1/4">Keperluan / Tujuan</th>
+                          <th class="px-3 py-3 text-center w-16">Hapus</th>
+                        </tr>
                       </thead>
                       <tbody id="BATCH_TBODY" class="divide-y divide-slate-100"></tbody>
                     </table>
                   </div>
                   <div class="p-3 bg-slate-50 border-t border-slate-200">
-                    <button type="button" onclick="addBatchRow()" class="px-4 py-2.5 text-xs font-black text-blue-600 bg-white border border-blue-200 hover:bg-blue-600 hover:text-white rounded-xl transition flex items-center gap-2 shadow-sm"><i class="fa-solid fa-plus"></i>Tambah Baris</button>
+                    <button type="button" onclick="addBatchRow()" class="px-4 py-2.5 text-xs font-black text-blue-600 bg-white border border-blue-200 hover:bg-blue-600 hover:text-white rounded-xl transition flex items-center gap-2 shadow-sm"><i class="fa-solid fa-plus"></i>Tambah Baris Barang</button>
                   </div>
                 </div>
                 <div class="flex justify-end pt-4">
-                  <button onclick="submitBatchAmbil()" id="BTN_BATCH_SUBMIT" class="bcorp px-8 py-3.5 rounded-xl text-sm font-black shadow-lg shadow-red-500/30 transition flex items-center justify-center gap-2 hover:scale-105"><i class="fa-solid fa-floppy-disk text-lg"></i>Simpan Transaksi Pengambilan</button>
+                  <button onclick="submitBatchAmbil()" id="BTN_BATCH_SUBMIT" class="bcorp px-8 py-3.5 rounded-xl text-sm font-black shadow-lg shadow-red-500/30 transition flex items-center justify-center gap-2 hover:scale-105"><i class="fa-solid fa-floppy-disk text-lg"></i>Simpan Seluruh Transaksi</button>
                 </div>
               </div>
             </div>
@@ -1410,17 +1409,32 @@ async function loadKaryawan(){ $('KARYGRID').innerHTML='<div class="col-span-ful
 
 function openKaryDetail(k){ 
   $('MKARY_TITLE').textContent=k.Nama_Karyawan; const sk=['_rowIndex', 'AKSES_MENU', 'AKSES MENU'], keys=Object.keys(k).filter(x=>!sk.includes(x)); 
-  let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kary-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-corp" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join('')}</div>`;
+  
+  let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${keys.map(kk=>{
+      let val = (k[kk]!=null?k[kk]:'').toString();
+      let upperK = kk.toUpperCase();
+      
+      // Auto Format Tanggal
+      if(upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR')) {
+         let d = new Date(val);
+         if(!isNaN(d.getTime()) && val.length > 5) {
+             const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+             val = `${d.getDate().toString().padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+         }
+      }
+      // Auto Kalkulasi Masa Kerja
+      if(upperK === 'MASA KERJA') {
+         let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'];
+         if(joinVal) val = calcMasaKerja(joinVal);
+      }
+      
+      return `<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kary-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-corp" data-field="${kk}" value="${val.replace(/"/g,'&quot;')}"></div>`;
+  }).join('')}</div>`;
   
   if(CU.Role.toUpperCase().includes('HRD')) {
      const am = (k['AKSES_MENU'] || k['AKSES MENU'] || '').toUpperCase();
      let cbHtml = MENU_OPTS.map(m => `<label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer w-[45%]"><input type="checkbox" class="kary-akses-cb w-4 h-4 text-corp" value="${m.val}" ${am.includes(m.val)?'checked':''}> ${m.label}</label>`).join('');
-     
-     html += `<div class="col-span-full border-t border-slate-200 pt-5 mt-5">
-       <p class="text-xs font-black text-corp uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-2"></i>Konfigurasi Akses Menu (Bypass)</p>
-       <div class="flex flex-wrap gap-4 bg-red-50 p-5 rounded-xl border border-red-100">${cbHtml}</div>
-       <p class="text-[10px] text-slate-500 mt-2 font-medium">Beri centang untuk memberikan akses menu secara paksa tanpa mempedulikan Role/Jabatan karyawan.</p>
-     </div>`;
+     html += `<div class="col-span-full border-t border-slate-200 pt-5 mt-5"><p class="text-xs font-black text-corp uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-2"></i>Konfigurasi Akses Menu (Bypass)</p><div class="flex flex-wrap gap-4 bg-red-50 p-5 rounded-xl border border-red-100">${cbHtml}</div></div>`;
   }
   $('MKARY_BODY').innerHTML = html; $('MKARY').dataset.editNama=k.Nama_Karyawan; $('MKARY').dataset.editNik=k.NIK_Karyawan; openM('MKARY'); 
 }
@@ -1482,18 +1496,35 @@ async function saveInv(){
 }
 function invSetTab(t){ ['list','ambil','riwayat','opname'].forEach(x=>{ $('INV_TAB_'+x).classList.toggle('bg-slate-800',x===t); $('INV_TAB_'+x).classList.toggle('text-white',x===t); $('INV_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='opname') { $('OPNAME_BODY').innerHTML='<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">Data kosong. Klik "Tarik Data Stok Sistem".</td></tr>'; } if(t==='riwayat')loadInvRiwayat(); }
 
-function addBatchRow(){ 
-  const opts=INV_DATA.map(i=> { const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']); return `<option value="${id}">${nama} (Sisa: ${stok})</option>`; }).join('');
-  const tr=document.createElement('tr'); tr.innerHTML=`<td class="px-5 py-3"><select class="batch-item inp !py-2 font-bold">${opts}</select></td><td class="px-5 py-3"><input type="number" class="batch-qty inp !py-2 text-center font-black" placeholder="0" min="1"></td><td class="px-5 py-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>`; 
+function addBatchRow() { 
+  const optsInv=INV_DATA.map(i=> { const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']); return `<option value="${id}">${nama} (Sisa: ${stok})</option>`; }).join('');
+  const optsKary='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('');
+  const tr=document.createElement('tr'); 
+  tr.innerHTML=`
+    <td class="px-3 py-3"><select class="batch-item inp !py-2 font-bold">${optsInv}</select></td>
+    <td class="px-3 py-3"><input type="number" class="batch-qty inp !py-2 text-center font-black" placeholder="0" min="1"></td>
+    <td class="px-3 py-3"><select class="batch-kary inp !py-2 font-bold">${optsKary}</select></td>
+    <td class="px-3 py-3"><input type="text" class="batch-kep inp !py-2 font-medium" placeholder="Contoh: ATK Sales"></td>
+    <td class="px-3 py-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td>
+  `; 
   $('BATCH_TBODY').appendChild(tr); 
 }
 async function submitBatchAmbil(){ 
-  const k=$('BATCH_KARY').value, kep=$('BATCH_KEP').value, tgl=$('BATCH_TGL').value; if(!k||!kep||!tgl)return toast('Harap lengkapi Tanggal, Penerima & Keperluan!',true); 
-  let err=false, items=[]; document.querySelectorAll('#BATCH_TBODY tr').forEach(r=>{ const id=r.querySelector('.batch-item').value, q=parseInt(r.querySelector('.batch-qty').value); if(!id||isNaN(q)||q<=0)err=true; else items.push({idBarang:id,jumlahAmbil:q,namaKaryawan:k,keperluan:kep,tanggal:tgl}); }); 
-  if(err||!items.length)return toast('Cek input barang/qty baris formulir!',true); if(!confirm('Potong jatah stok di database?'))return; 
-  showL('Sedang memotong stok...'); for(const x of items) { await api({action:'ambil_inventory',user:CU,...x}); } hideL(); toast('Transaksi log pengambilan berhasil terekam.'); $('BATCH_TBODY').innerHTML=''; addBatchRow(); loadInv(); 
+  const tgl=$('BATCH_TGL').value; if(!tgl) return toast('Harap isi Tanggal Pengambilan!',true); 
+  let err=false, items=[]; 
+  document.querySelectorAll('#BATCH_TBODY tr').forEach(r=>{ 
+    const id=r.querySelector('.batch-item').value, q=parseInt(r.querySelector('.batch-qty').value); 
+    const kary=r.querySelector('.batch-kary').value, kep=r.querySelector('.batch-kep').value;
+    if(!id||isNaN(q)||q<=0||!kary||!kep) err=true; 
+    else items.push({idBarang:id,jumlahAmbil:q,namaKaryawan:kary,keperluan:kep,tanggal:tgl}); 
+  }); 
+  if(err||!items.length)return toast('Lengkapi pilihan Barang, Qty, Karyawan, dan Keperluan per baris!',true); 
+  if(!confirm('Potong jatah stok di database?'))return; 
+  showL('Sedang memotong stok...'); 
+  for(const x of items) { await api({action:'ambil_inventory',user:CU,...x}); } 
+  hideL(); toast('Transaksi log pengambilan berhasil terekam.'); 
+  $('BATCH_TBODY').innerHTML=''; addBatchRow(); loadInv(); 
 }
-
 // ─── PERBAIKAN LOG INVENTORY UNDEFINED ───
 async function loadInvRiwayat(){ 
   const res=await api({action:'get_riwayat_inventory'}); LOG_INV_DATA = res.data||[]; 
@@ -1622,6 +1653,23 @@ async function saveForm(){
     await loadForms();
     loadFBList();
   } 
+}
+
+// Tambahan Fungsi Kendaraan Baru
+function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').value=''; $('KF_ST').value='TERSEDIA'; openM('MKEND'); }
+
+// Kalkulator Masa Kerja Otomatis
+function calcMasaKerja(joinDateStr) {
+   if(!joinDateStr) return '-';
+   let jd = new Date(joinDateStr); if(isNaN(jd.getTime())) return '-';
+   let now = new Date();
+   let years = now.getFullYear() - jd.getFullYear();
+   let months = now.getMonth() - jd.getMonth();
+   let days = now.getDate() - jd.getDate();
+   if(days < 0) { months--; days += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+   if(months < 0) { years--; months += 12; }
+   if(years < 0) return 'Belum genap 1 Tahun';
+   return `${years} Tahun, ${months} Bulan, ${days} Hari`;
 }
 </script>
 </body>
