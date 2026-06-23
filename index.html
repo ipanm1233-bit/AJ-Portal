@@ -1106,11 +1106,12 @@ tailwind.config = {
 <div id="MINV" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"><div class="bg-white rounded-3xl shadow-2xl w-full max-w-md fade border-t-8 border-t-cyan-500"><div class="px-8 py-6 border-b border-slate-100 bg-cyan-50/30"><h3 id="MINV_T" class="font-black text-slate-800 text-lg">Tambah Barang Aset</h3></div><div class="p-8 space-y-5"><div class="grid grid-cols-2 gap-5"><div><label class="lbl">ID Item</label><input id="IF_ID" type="text" class="inp font-bold uppercase shadow-sm"></div><div><label class="lbl">Kategori</label><input id="IF_KAT" type="text" class="inp font-bold shadow-sm"></div></div><div><label class="lbl">Nama Barang</label><input id="IF_NAMA" type="text" class="inp font-black shadow-sm"></div><div class="grid grid-cols-2 gap-5"><div><label class="lbl">Stok Aktual</label><input id="IF_STOK" type="number" class="inp font-black text-lg shadow-sm"></div><div><label class="lbl">Satuan</label><input id="IF_SAT" type="text" class="inp font-bold shadow-sm"></div></div></div><div class="px-8 py-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50"><button onclick="closeM('MINV')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 shadow-sm">Batal</button><button onclick="saveInv()" class="px-6 py-2.5 bg-cyan-600 text-white rounded-xl text-sm font-black shadow-lg">Simpan</button></div></div></div>
 
 <!-- ========================================================================= -->
+<!-- ========================================================================= -->
 <!-- ================== SCRIPT JAVASCRIPT UTAMA (FAST-LOAD) ================== -->
 <!-- ========================================================================= -->
 <script>
 // ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
-const API = 'https://script.google.com/macros/s/AKfycbyVm-eu8TpsZJafVOgubZUBl655kCFanXlxVyKC0OpK5BpPhjDxaWJR4DJ5XTfZmB0FEA/exec';
+const API = 'https://script.google.com/macros/s/AKfycbw_rPwmb4rZk6q2QRhCQQQ20QarsNucBki-yOOZyrZ7yD9Bl0kkQrI3_5R8h7JvVMBgVA/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1124,11 +1125,8 @@ function togglePw(){const f=$('LP'),i=$('PWICO');f.type=f.type==='password'?'tex
 const b64=f=>new Promise((r,j)=>{if(!f)return r(null);const rd=new FileReader();rd.onload=()=>r(rd.result);rd.onerror=j;rd.readAsDataURL(f);});
 function fmtDate(d,o={day:'numeric',month:'short',year:'numeric'}){if(!d)return'-';try{return new Date(d).toLocaleDateString('id-ID',o);}catch(e){return d.toString();}}
 function badge(s){s=(s||'').toUpperCase();if(s==='APPROVED FINAL')return`<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-check mr-1"></i>Approved</span>`;if(s==='REJECTED')return`<span class="bg-red-100 text-red-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-xmark mr-1"></i>Rejected</span>`;if(s==='SELESAI')return`<span class="bg-cyan-100 text-cyan-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-check-double mr-1"></i>Selesai</span>`;return`<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm"><i class="fa-solid fa-hourglass-half mr-1 animate-pulse"></i>Proses</span>`;}
-
-// Fungsi Badge Kategori Baru yang Hilang
 function kategoriBadge(k){ const m={'Pengajuan Form':'bg-blue-100 text-blue-800','Surat Peringatan':'bg-red-100 text-red-800','Penilaian Kontrak':'bg-purple-100 text-purple-800','Konseling':'bg-amber-100 text-amber-800','Dokumen Kontrak':'bg-emerald-100 text-emerald-800','Pengambilan Inventory':'bg-cyan-100 text-cyan-800'}; return `<span class="text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm ${m[k]||'bg-slate-200 text-slate-700'}">${k||'Lainnya'}</span>`; }
 
-// Smart Key Reader Inventory
 const getV = (obj, keys) => { if(!obj) return undefined; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return obj[k]; } } return undefined; };
 const exactKey = (obj, keys) => { if(!obj) return keys[0]; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return k; } } return keys[0]; };
 
@@ -1137,8 +1135,7 @@ async function api(payload, msg=null) {
     if(msg) showL(msg); else showL(); 
     const r = await fetch(API, {method:'POST',body:JSON.stringify(payload)}); 
     const text = await r.text();
-    // Anti-Crash jika Google Script return 404 HTML
-    if(text.includes('<html')) { hideL(); return {success:false, message:'Koneksi ke server gagal (404). Pastikan Web App URL di index.html sudah benar!'}; }
+    if(text.includes('<html')) { hideL(); return {success:false, message:'Koneksi ke server gagal (404). Pastikan Web App URL sudah benar & di-deploy ulang!'}; }
     return JSON.parse(text);
   } catch(e) { return {success:false,message:'Koneksi terputus: ' + e.message}; } finally { hideL(); } 
 }
@@ -1195,10 +1192,8 @@ function nav(vId) {
 
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
-// Fungsi Dropdown SP yang Hilang
 function fillSPDD(){ if($('SPKARY')) $('SPKARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); }
 
-// ─── DASHBOARD ───────────────────
 async function loadDashboard() {
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti||0; $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan||0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus||0; $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi||0;
@@ -1454,27 +1449,27 @@ async function loadKendRiwayat(){ const res=await api({action:'get_riwayat_kenda
 async function loadInv(){ 
   const res=await api({action:'get_inventory'}); INV_DATA=res.data||[]; 
   $('INVGRID').innerHTML=INV_DATA.map((i,idx)=>{
-    const id = getV(i, ['IDITEM', 'IDBARANG']) || '-'; const nama = getV(i, ['NAMABARANG']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || '';
+    const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || '';
     return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`;
   }).join('');
   if($('BATCH_KARY')) $('BATCH_KARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('');
   if(!$('BATCH_TBODY').children.length) { $('BATCH_TGL').value = new Date().toISOString().split('T')[0]; addBatchRow(); }
 }
-function filterInventory(q){ if(!q){loadInv();return;} $('INVGRID').innerHTML=INV_DATA.filter(i=>(getV(i,['NAMABARANG'])||'').toLowerCase().includes(q.toLowerCase())).map((i,idx)=>{
-    const id = getV(i, ['IDITEM', 'IDBARANG']) || '-'; const nama = getV(i, ['NAMABARANG']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || '';
+function filterInventory(q){ if(!q){loadInv();return;} $('INVGRID').innerHTML=INV_DATA.filter(i=>(getV(i,['NAMABARANG', 'Nama Barang'])||'').toLowerCase().includes(q.toLowerCase())).map((i,idx)=>{
+    const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || '';
     return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`;
 }).join(''); }
 function openInvM(iv){ 
-  $('IF_ID').value=iv ? getV(iv, ['IDITEM', 'IDBARANG']) : ''; 
-  $('IF_NAMA').value=iv ? getV(iv, ['NAMABARANG']) : ''; 
+  $('IF_ID').value=iv ? getV(iv, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) : ''; 
+  $('IF_NAMA').value=iv ? getV(iv, ['NAMABARANG', 'Nama Barang']) : ''; 
   $('IF_STOK').value=iv ? getV(iv, ['STOKSAATINI', 'STOK', 'QTY']) : 0; 
   $('IF_SAT').value=iv ? getV(iv, ['SATUAN']) : ''; 
   openM('MINV'); 
 }
 async function saveInv(){ 
   let refObj = INV_DATA.length > 0 ? INV_DATA[0] : null; let updates = {};
-  updates[exactKey(refObj, ['IDITEM', 'IDBARANG'])] = $('IF_ID').value;
-  updates[exactKey(refObj, ['NAMABARANG'])] = $('IF_NAMA').value;
+  updates[exactKey(refObj, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item'])] = $('IF_ID').value;
+  updates[exactKey(refObj, ['NAMABARANG', 'Nama Barang'])] = $('IF_NAMA').value;
   updates[exactKey(refObj, ['STOKSAATINI', 'STOK', 'QTY'])] = $('IF_STOK').value;
   updates[exactKey(refObj, ['SATUAN'])] = $('IF_SAT').value;
   const res=await api({action:'save_inventory',user:CU,updates:updates}); 
@@ -1483,7 +1478,7 @@ async function saveInv(){
 function invSetTab(t){ ['list','ambil','riwayat','opname'].forEach(x=>{ $('INV_TAB_'+x).classList.toggle('bg-slate-800',x===t); $('INV_TAB_'+x).classList.toggle('text-white',x===t); $('INV_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='opname') { $('OPNAME_BODY').innerHTML='<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">Data kosong. Klik "Tarik Data Stok Sistem".</td></tr>'; } if(t==='riwayat')loadInvRiwayat(); }
 
 function addBatchRow(){ 
-  const opts=INV_DATA.map(i=> { const id = getV(i, ['IDITEM', 'IDBARANG']); const nama = getV(i, ['NAMABARANG']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']); return `<option value="${id}">${nama} (Sisa: ${stok})</option>`; }).join('');
+  const opts=INV_DATA.map(i=> { const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']); return `<option value="${id}">${nama} (Sisa: ${stok})</option>`; }).join('');
   const tr=document.createElement('tr'); tr.innerHTML=`<td class="px-5 py-3"><select class="batch-item inp !py-2 font-bold">${opts}</select></td><td class="px-5 py-3"><input type="number" class="batch-qty inp !py-2 text-center font-black" placeholder="0" min="1"></td><td class="px-5 py-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>`; 
   $('BATCH_TBODY').appendChild(tr); 
 }
@@ -1532,7 +1527,7 @@ async function deleteLogInv(id) {
 function loadOpnameDraft() {
   if(!INV_DATA.length) return toast('Data barang sistem kosong. Harap refresh data.', true);
   $('OPNAME_BODY').innerHTML = INV_DATA.map((i, idx) => {
-     const id = getV(i, ['IDITEM', 'IDBARANG']); const nama = getV(i, ['NAMABARANG']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || 0;
+     const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || 0;
      return `<tr><td class="px-6 py-4 font-black text-slate-800">${nama}<br><span class="text-[10px] font-mono font-bold text-slate-400">${id}</span></td><td class="px-6 py-4 text-center font-bold text-slate-600 bg-slate-50"><span id="SO_SIS_${idx}">${stok}</span></td><td class="px-6 py-4 text-center"><input type="number" id="SO_FISIK_${idx}" data-idx="${idx}" class="so-fisik-input border-2 border-slate-200 p-1.5 w-20 text-center font-black rounded-lg" value="${stok}" oninput="calcOpnameRow(${idx})"></td><td class="px-6 py-4 text-center font-black"><span id="SO_SELISIH_${idx}" class="text-emerald-600">0</span></td><td class="px-6 py-4"><input type="text" id="SO_NOTE_${idx}" class="inp !py-1.5 text-xs font-medium" placeholder="Catatan audit..."></td></tr>`;
   }).join('');
   toast('Stok sistem ditarik ke memori lokal.');
@@ -1542,7 +1537,7 @@ function calcOpnameRow(idx) {
   const el = $('SO_SELISIH_'+idx); el.textContent = (selisih > 0 ? '+' : '') + selisih; el.className = selisih === 0 ? 'text-emerald-600 font-black' : 'text-red-600 font-black';
 }
 async function submitOpname() {
-  let items = []; document.querySelectorAll('.so-fisik-input').forEach(el => { const idx = parseInt(el.dataset.idx,10); items.push({ idBarang: getV(INV_DATA[idx], ['IDITEM', 'IDBARANG']), namaBarang: getV(INV_DATA[idx], ['NAMABARANG']), stokSistem: parseInt($('SO_SIS_'+idx).textContent)||0, stokFisik: parseInt(el.value)||0, catatan: $('SO_NOTE_'+idx).value||'' }); });
+  let items = []; document.querySelectorAll('.so-fisik-input').forEach(el => { const idx = parseInt(el.dataset.idx,10); items.push({ idBarang: getV(INV_DATA[idx], ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']), namaBarang: getV(INV_DATA[idx], ['NAMABARANG', 'Nama Barang']), stokSistem: parseInt($('SO_SIS_'+idx).textContent)||0, stokFisik: parseInt(el.value)||0, catatan: $('SO_NOTE_'+idx).value||'' }); });
   if(!items.length) return toast('Harap tarik data stok sistem terlebih dahulu!', true);
   const res = await api({action:'submit_stock_opname', user:CU, items:items}); if(res.success){ toast(res.message); invSetTab('list'); loadInv(); }
 }
@@ -1553,18 +1548,57 @@ async function doExportData() { const t=$('EXP_DATA').value, f=$('EXP_FMT').valu
 
 ['MDETAIL','MAPPROVE_ACTION','MKARY','MKEND','MKEND_DETAIL','MINV','MKONTRAK','MPENILAIAN','MEXPORT','MBC_DETAIL','MCUTI_DETAIL','MCUTI_MANUAL','MEDIT_LOG_INV'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); }); });
 
-// FITUR FORM BUILDER FILTER BY NAMA KARYAWAN
+// FITUR FORM BUILDER FILTER BY NAMA KARYAWAN & DROPDOWN OPTIONS FIX
 function renderFBKaryList() { $('FB_KARY_LIST').innerHTML = DD_KARY.map(k => `<label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition"><input type="checkbox" class="fb-kary-cb w-3.5 h-3.5 text-corp" value="${k.nama}"> <span class="truncate">${k.nama}</span></label>`).join(''); }
 function toggleAllFBKary(isAll) { document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.disabled = isAll; if(isAll) cb.checked = false; }); }
 function loadFBEditor(id){ const c=FORMS.find(f=>f.FormID===id); $('FBID').value=id; $('FBNAMA').value=c.NamaForm; const allowed = (c.AllowedRoles||'ALL').toUpperCase(); if(allowed === 'ALL') { $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); } else { $('FB_ALL_KARY').checked = false; toggleAllFBKary(false); const allowedArr = allowed.split(',').map(x=>x.trim()); document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.checked = allowedArr.includes(cb.value.toUpperCase()); }); } try{FB_STATE.flow=JSON.parse(c.ApprovalFlowJson||'[]');}catch(e){} try{FB_STATE.fields=JSON.parse(c.FieldsJSON||'[]');}catch(e){} fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
 function openNewForm(){ $('FBID').value='FORM-'+Date.now(); $('FBNAMA').value=''; $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); FB_STATE.flow=['HRD']; FB_STATE.fields=[{name:'alasan',label:'Alasan',type:'text',required:true}]; fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
-let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; const FB_FIELD_TYPES=[{type:'text',label:'Teks'},{type:'textarea',label:'Teks Panjang'},{type:'date',label:'Tanggal'},{type:'time',label:'Jam'},{type:'select',label:'Dropdown'},{type:'file',label:'Upload Dokumen'},{type:'karyawan',label:'Pilih Karyawan'},{type:'kendaraan',label:'Pilih Kendaraan'},{type:'inventory',label:'Pilih Barang Aset'}];
+
+let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; 
+const FB_FIELD_TYPES=[{type:'text',label:'Teks'},{type:'textarea',label:'Teks Panjang'},{type:'date',label:'Tanggal'},{type:'time',label:'Jam'},{type:'select',label:'Dropdown'},{type:'file',label:'Upload Dokumen'},{type:'karyawan',label:'Pilih Karyawan'},{type:'kendaraan',label:'Pilih Kendaraan'},{type:'inventory',label:'Pilih Barang Aset'}];
+
 function loadFBList(){ const ul=$('FBLIST'); if(!FORMS.length){ul.innerHTML='<li class="p-6 text-center text-slate-400">Kosong</li>';return;} ul.innerHTML=FORMS.map(f=>`<li><button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left p-4 hover:bg-slate-50"><p class="font-black">${f.NamaForm}</p></button></li>`).join(''); }
 function fbRenderFlowChips(){ $('FB_FLOW_CHIPS').innerHTML=FB_STATE.flow.map((r,i)=>`<span class="bg-white border px-3 py-1.5 rounded-lg text-xs font-black mr-2 mb-2 inline-block">${i+1}. ${r} <button onclick="fbRemoveFlowRole(${i})" class="text-red-500 ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 function fbAddFlowRole(){ FB_STATE.flow.push($('FB_FLOW_ADD_ROLE').value); fbRenderFlowChips(); } function fbRemoveFlowRole(i){ FB_STATE.flow.splice(i,1); fbRenderFlowChips(); }
-function fbRenderFieldsList(){ $('FB_FIELDS_LIST').innerHTML=FB_STATE.fields.map((f,i)=>`<div class="bg-slate-50 border p-4 rounded-xl mb-2 flex gap-3"><input type="text" class="inp" value="${f.label}" onchange="FB_STATE.fields[${i}].label=this.value; FB_STATE.fields[${i}].name=this.value.replace(/\\s+/g,'_').toLowerCase();"><select class="inp" onchange="FB_STATE.fields[${i}].type=this.value">${FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===f.type?'selected':''}>${t.label}</option>`).join('')}</select><button onclick="FB_STATE.fields.splice(${i},1);fbRenderFieldsList()" class="bg-red-100 text-red-600 px-4 rounded-xl"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
+
+function fbRenderFieldsList(){ 
+  $('FB_FIELDS_LIST').innerHTML=FB_STATE.fields.map((f,i)=>`
+    <div class="bg-slate-50 border p-4 rounded-xl mb-2 flex flex-col gap-3">
+      <div class="flex gap-3">
+        <input type="text" class="inp" value="${f.label}" onchange="FB_STATE.fields[${i}].label=this.value; FB_STATE.fields[${i}].name=this.value.replace(/\\s+/g,'_').toLowerCase();">
+        <select class="inp" onchange="FB_STATE.fields[${i}].type=this.value; fbRenderFieldsList();">
+          ${FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===f.type?'selected':''}>${t.label}</option>`).join('')}
+        </select>
+        <button onclick="FB_STATE.fields.splice(${i},1);fbRenderFieldsList()" class="bg-red-100 text-red-600 px-4 rounded-xl"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      ${f.type === 'select' ? `<input type="text" class="inp !py-2 text-xs font-bold text-blue-700 bg-blue-50 border-blue-200" placeholder="Ketik pilihan dipisah dengan koma (Cth: Laki-laki, Perempuan)" value="${(f.options||[]).join(', ')}" onchange="FB_STATE.fields[${i}].options=this.value.split(',').map(x=>x.trim());">` : ''}
+    </div>
+  `).join(''); 
+}
+
 function fbAddField(){ FB_STATE.fields.push({name:'baru',label:'Baru',type:'text'}); fbRenderFieldsList(); }
-async function saveForm(){ let allowed = 'ALL'; if(!$('FB_ALL_KARY').checked) { const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value); if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true); allowed = checked.join(','); } const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed}); if(res.success){toast('Disimpan');loadForms();loadFBList();} }
+
+async function saveForm(){ 
+  let allowed = 'ALL'; 
+  if(!$('FB_ALL_KARY').checked) { 
+    const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value); 
+    if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true); 
+    allowed = checked.join(','); 
+  } 
+  
+  const b = document.activeElement;
+  if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
+
+  const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed}); 
+  
+  if(b) b.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi';
+  
+  if(res.success){
+    toast('Disimpan');
+    await loadForms(); // <--- INI PERBAIKANNYA (Sistem menunggu data terbaru)
+    loadFBList();
+  } 
+}
 </script>
 </body>
 </html>
