@@ -704,9 +704,14 @@ tailwind.config = {
                 <!-- Identitas Form & Hak Akses (By Name) -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
                   <h3 class="font-black text-slate-800 border-b border-slate-100 pb-3 mb-4"><i class="fa-solid fa-circle-info text-corp mr-2"></i>Informasi Utama</h3>
-                  <div class="grid grid-cols-1 gap-5">
-                    <div><label class="lbl">Nama / Judul Form</label><input id="FBNAMA" type="text" class="inp !py-2.5 font-bold text-lg" placeholder="Contoh: Permohonan Cuti"></div>
-                    <div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="sm:col-span-2"><label class="lbl">Nama / Judul Form</label><input id="FBNAMA" type="text" class="inp !py-2.5 font-bold text-lg" placeholder="Contoh: Permohonan Cuti"></div>
+                    <div class="sm:col-span-2">
+                      <label class="lbl">Tembusan Email Saat Full Approve (Pisahkan koma)</label>
+                      <input id="FBNOTIFY" type="text" class="inp !py-2.5 font-bold bg-blue-50 text-blue-800 border-blue-200" placeholder="Contoh: HRD, GM, FINANCE">
+                      <p class="text-[10px] font-bold text-slate-400 mt-1">Sistem akan otomatis mengirimkan detail PDF/Tabel rincian ke Role/Jabatan ini saat form disetujui penuh.</p>
+                    </div>
+                    <div class="sm:col-span-2">
                       <label class="lbl"><i class="fa-solid fa-users text-corp mr-1"></i> Karyawan yang Diizinkan Mengakses Form Ini</label>
                       <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                         <div class="bg-slate-100 p-3 border-b border-slate-200">
@@ -1551,8 +1556,26 @@ async function doExportData() { const t=$('EXP_DATA').value, f=$('EXP_FMT').valu
 // FITUR FORM BUILDER FILTER BY NAMA KARYAWAN & DROPDOWN OPTIONS FIX
 function renderFBKaryList() { $('FB_KARY_LIST').innerHTML = DD_KARY.map(k => `<label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition"><input type="checkbox" class="fb-kary-cb w-3.5 h-3.5 text-corp" value="${k.nama}"> <span class="truncate">${k.nama}</span></label>`).join(''); }
 function toggleAllFBKary(isAll) { document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.disabled = isAll; if(isAll) cb.checked = false; }); }
-function loadFBEditor(id){ const c=FORMS.find(f=>f.FormID===id); $('FBID').value=id; $('FBNAMA').value=c.NamaForm; const allowed = (c.AllowedRoles||'ALL').toUpperCase(); if(allowed === 'ALL') { $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); } else { $('FB_ALL_KARY').checked = false; toggleAllFBKary(false); const allowedArr = allowed.split(',').map(x=>x.trim()); document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.checked = allowedArr.includes(cb.value.toUpperCase()); }); } try{FB_STATE.flow=JSON.parse(c.ApprovalFlowJson||'[]');}catch(e){} try{FB_STATE.fields=JSON.parse(c.FieldsJSON||'[]');}catch(e){} fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
-function openNewForm(){ $('FBID').value='FORM-'+Date.now(); $('FBNAMA').value=''; $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); FB_STATE.flow=['HRD']; FB_STATE.fields=[{name:'alasan',label:'Alasan',type:'text',required:true}]; fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
+function loadFBEditor(id){ 
+  const c=FORMS.find(f=>f.FormID===id); 
+  $('FBID').value=id; $('FBNAMA').value=c.NamaForm; 
+  $('FBNOTIFY').value=c.NotifyRoles || 'HRD, GM, FINANCE'; // Tarik data notify
+  const allowed = (c.AllowedRoles||'ALL').toUpperCase(); 
+  if(allowed === 'ALL') { $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); } 
+  else { $('FB_ALL_KARY').checked = false; toggleAllFBKary(false); const allowedArr = allowed.split(',').map(x=>x.trim()); document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.checked = allowedArr.includes(cb.value.toUpperCase()); }); } 
+  try{FB_STATE.flow=JSON.parse(c.ApprovalFlowJson||'[]');}catch(e){} 
+  try{FB_STATE.fields=JSON.parse(c.FieldsJSON||'[]');}catch(e){} 
+  fbRenderFlowChips(); fbRenderFieldsList(); 
+  $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); 
+}
+function openNewForm(){ 
+  $('FBID').value='FORM-'+Date.now(); $('FBNAMA').value=''; 
+  $('FBNOTIFY').value='HRD, GM, FINANCE'; // Default form baru
+  $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); 
+  FB_STATE.flow=['HRD']; FB_STATE.fields=[{name:'alasan',label:'Alasan',type:'text',required:true}]; 
+  fbRenderFlowChips(); fbRenderFieldsList(); 
+  $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); 
+}
 
 let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; 
 const FB_FIELD_TYPES=[{type:'text',label:'Teks'},{type:'textarea',label:'Teks Panjang'},{type:'date',label:'Tanggal'},{type:'time',label:'Jam'},{type:'select',label:'Dropdown'},{type:'file',label:'Upload Dokumen'},{type:'karyawan',label:'Pilih Karyawan'},{type:'kendaraan',label:'Pilih Kendaraan'},{type:'inventory',label:'Pilih Barang Aset'}];
@@ -1589,13 +1612,14 @@ async function saveForm(){
   const b = document.activeElement;
   if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-  const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed}); 
+  // Kirim properti notifyRoles tambahan
+  const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed, notifyRoles:$('FBNOTIFY').value}); 
   
   if(b) b.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi';
   
   if(res.success){
     toast('Disimpan');
-    await loadForms(); // <--- INI PERBAIKANNYA (Sistem menunggu data terbaru)
+    await loadForms();
     loadFBList();
   } 
 }
