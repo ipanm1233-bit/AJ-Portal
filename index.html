@@ -1431,7 +1431,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbzRNH8I5EzjMxeGeduU_ZrOCWzvbcOReML4phKVHC01UbCKdjg_CUkLBRbTZGM_mc60SQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyghtsKbVA0jSQNBr-gN44jlW5InTVM-Camjql3MqZYnViPFvOLNouKoPLeb1TIYHu4vQ/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1534,26 +1534,38 @@ function nav(vId) {
   document.querySelectorAll('.app-view').forEach(el => el.classList.add('hide'));
   const targetView = document.getElementById('V-' + vId);
   if(targetView) targetView.classList.remove('hide');
-  document.querySelectorAll('.nitem').forEach(el => { el.classList.remove('bg-slate-800', 'text-white', 'border-l-4', 'border-corp', 'active'); el.classList.add('text-slate-400'); });
+  
+  document.querySelectorAll('.nitem').forEach(el => { 
+    el.classList.remove('bg-slate-800', 'text-white', 'border-l-4', 'border-corp', 'active'); 
+    el.classList.add('text-slate-400'); 
+  });
+  
   const activeMenu = document.getElementById('NB-' + vId);
-  if(activeMenu) { activeMenu.classList.remove('text-slate-400'); activeMenu.classList.add('active'); }
+  if(activeMenu) { 
+    activeMenu.classList.remove('text-slate-400'); 
+    activeMenu.classList.add('active'); 
+  }
   
   const titles = {'dashboard': 'Dashboard Utama', 'pengajuan': 'Buat Pengajuan Baru', 'riwayat': 'Rekam Jejak 360', 'approval': 'Antrean Persetujuan', 'kontrak': 'Penilaian KPI & Evaluasi Kontrak', 'cuti': 'Manajemen Cuti & Izin', 'broadcast': 'Broadcast & Memo Global', 'dbkary': 'Master Database Karyawan', 'sp': 'Tindakan Indisipliner (SP)', 'fbuilder': 'Form Builder (Konfigurasi)', 'export': 'Export Data Sistem', 'kendaraan': 'Manajemen Kendaraan & Log BBM', 'inventory': 'Master Inventory & Stok Opname', 'lifecycle': 'Siklus Karyawan (On/Offboarding)'};
   const titleEl = document.getElementById('PTITLE'); if(titleEl) titleEl.textContent = titles[vId] || 'Portal HRIS';
   
+  // ROUTING & PEMANGGILAN DATA
   if(vId === 'dashboard') loadDashboard(); 
   if(vId === 'pengajuan') renderFormCards(AVAILABLE_FORMS); 
   if(vId === 'riwayat') loadRiwayat(); 
   if(vId === 'approval') loadApproval(); 
   if(vId === 'dbkary') loadKaryawan(); 
   if(vId === 'fbuilder') { loadForms(); loadFBList(); } 
-  if(vId === 'sp') hrSpSetTab('sp'); 
+  if(vId === 'sp') { 
+    hrSpSetTab('sp'); 
+    if($('SPKARY')) $('SPKARY').innerHTML = DD_KARY.map(k => `<option value="${k.nama}">${k.nama}</option>`).join('');
+  }
   if(vId === 'kontrak') loadPenilaian(); 
   if(vId === 'cuti') loadCutiKaryawan(); 
   if(vId === 'kendaraan') loadKend(); 
   if(vId === 'inventory') loadInv(); 
   if(vId === 'lifecycle') hrCycleSetTab('on'); 
-  if(vId === 'broadcast') initTinyMCE(); 
+  if(vId === 'broadcast') initTinyMCE();
   
   const sb = document.getElementById('sidebar');
   if(sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 768) sbToggle();
@@ -1562,6 +1574,7 @@ function nav(vId) {
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
 async function loadDashboard() {
+  // Reset Data
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
   $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
@@ -1570,6 +1583,7 @@ async function loadDashboard() {
   const res = await api({action:'get_dashboard', user:CU}); 
   if(!res.success) return;
   
+  // Render Cuti Hari Ini
   const ctEl = $('DCUTI_TODAY'); 
   if(res.cutiHariIni && res.cutiHariIni.length){ 
     ctEl.innerHTML = res.cutiHariIni.map(c => `<div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex items-center justify-center"><i class="fa-solid fa-user"></i></div><div><p class="font-black text-slate-800 text-sm">${c.Nama}</p><p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p></div></div>`).join(''); 
@@ -1577,52 +1591,34 @@ async function loadDashboard() {
     ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
   }
   
+  // Render Broadcast
   const bcEl = $('DBC'); 
   DASH_BC_DATA = res.broadcasts || []; 
-  if(DASH_BC_DATA.length){ 
-    bcEl.innerHTML = DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer group"><div class="flex justify-between items-start mb-1.5"><p class="font-black text-slate-800 text-sm group-hover:text-corp transition">${b.Judul||''}</p><span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">${fmtDate(b.Tanggal)}</span></div><div class="text-xs text-slate-500 font-medium line-clamp-2">${(b.Isi||'').replace(/<[^>]+>/g, '')}</div></div>`).join(''); 
-  } else { 
-    bcEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Tidak ada pengumuman.</div>`; 
-  }
+  bcEl.innerHTML = DASH_BC_DATA.length ? DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer"><p class="font-black text-sm">${b.Judul||''}</p></div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Tidak ada pengumuman.</div>';
   
+  // Render Riwayat
   const rwEl = $('DRWYT'); 
-  if(res.riwayat_singkat && res.riwayat_singkat.length){ 
-    rwEl.innerHTML = res.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join(''); 
-  } else { 
-    rwEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Belum ada riwayat.</div>`; 
-  }
+  rwEl.innerHTML = (res.riwayat_singkat && res.riwayat_singkat.length) ? res.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
   
-  $('ALERT_KB').classList.add('hide'); 
+  // Widget Kontrak (Hanya HRD/GM)
   const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
-  
-  if(res.alertKontrak && res.alertKontrak.length){ 
-    const mine = res.alertKontrak.find(k => k.Nama.toUpperCase() === CU.Nama.toUpperCase()); 
-    if(mine){ 
-      $('ALERT_KB').classList.remove('hide'); 
-      $('ALERT_KB_LIST').innerHTML = `<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}.</p>`; 
-    } 
+  $('WGT_KB').classList.add('hide');
+  if(res.alertKontrak && res.alertKontrak.length > 0 && isHrdOrGm){ 
+    $('WGT_KB').classList.remove('hide'); 
     WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
-    
-    if(WGT_KB_DATA.length > 0 && isHrdOrGm && $('WGT_KB')){ 
-      $('WGT_KB').classList.remove('hide'); 
-      $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
-      $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => { 
-        const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
-        return `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Cabang||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs font-bold">${fmtDate(k.KontrakHabis)}</td><td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td><td class="px-6 py-4 text-center"><button class="text-[10px] font-black text-orange-600 bg-orange-100 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg transition shadow-sm">Tindak Lanjut</button></td></tr>`; 
-      }).join(''); 
-    } else if ($('WGT_KB')) {
-      $('WGT_KB').classList.add('hide');
-    }
-  } else if ($('WGT_KB')) {
-    $('WGT_KB').classList.add('hide');
+    $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
+    $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-right text-xs font-black">${k.SisaHari} hr</td></tr>`).join(''); 
   }
-
-  if(res.offboardingTasks && res.offboardingTasks.length > 0 && CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
-    $('WGT_OFF').classList.remove('hide');
-    $('WGT_OFF_N').textContent = res.offboardingTasks.length;
-    $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-slate-800">${t.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${t.Jenis}</td><td class="px-6 py-4 font-bold text-red-600 text-xs">${fmtDate(t.TglEfektif)}</td><td class="px-6 py-4 text-center"><button class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-[10px] font-black hover:scale-105 transition shadow-sm">Proses Clearance</button></td></tr>`).join('');
-  } else if($('WGT_OFF')) {
-    $('WGT_OFF').classList.add('hide');
+  
+  // Widget Offboarding (Hanya HRD)
+  if(CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
+    if(res.offboardingTasks && res.offboardingTasks.length > 0) {
+      $('WGT_OFF').classList.remove('hide');
+      $('WGT_OFF_N').textContent = res.offboardingTasks.length;
+      $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-sm">${t.Nama}</td><td class="px-6 py-4 text-xs">${t.Jenis}</td><td class="px-6 py-4 text-xs font-bold text-red-600">${fmtDate(t.TglEfektif)}</td></tr>`).join('');
+    } else {
+      $('WGT_OFF').classList.add('hide');
+    }
   }
 }
 
