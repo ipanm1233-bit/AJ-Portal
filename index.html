@@ -1431,7 +1431,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyghtsKbVA0jSQNBr-gN44jlW5InTVM-Camjql3MqZYnViPFvOLNouKoPLeb1TIYHu4vQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzE8yyVFVmyGPr2zTSkoCu_VJaJquY2rghLTuEc9lD2sCcrc30t979hnEadvVog-ExQqg/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1684,7 +1684,10 @@ function renderDynFormFields(){
 }
 
 on('DYNFORM','submit',async e=>{ 
-  e.preventDefault(); const fid=$('SELFORM').value, cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return; 
+  e.preventDefault(); 
+  const fid=$('SELFORM').value, cfg=FORMS.find(f=>f.FormID===fid); 
+  if(!cfg) return; 
+  
   let f=[]; try{f=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){} 
   let det={}, proms=[]; 
   for(const x of f){ 
@@ -1697,10 +1700,26 @@ on('DYNFORM','submit',async e=>{
     } else det[x.name]=el.value; 
   } 
   if(proms.length) await Promise.all(proms); 
-  const b=$('BTNSUBMIT'); b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan... (Harap Tunggu)'; 
-  const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det},'Menyimpan...'); 
+  
+  const b=$('BTNSUBMIT'); 
+  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan... (Harap Tunggu)'; 
+  
+  const res=await api({
+    action:'submit_pengajuan',
+    user:CU,
+    formId:fid,
+    namaForm:cfg.NamaForm,
+    detail:det
+  },'Menyimpan...'); 
+  
   b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
-  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(); }else toast(res.message,true); 
+  if(res.success){ 
+    toast('Berhasil dikirim!'); 
+    closeDynForm(); 
+    checkApprovalStatus(); 
+    nav('riwayat'); 
+    loadRiwayat(); 
+  } else toast(res.message, true); 
 });
 
 async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
@@ -1837,9 +1856,35 @@ async function openCutiDetail(nama) {
 }
 function openFormCutiManual(){ $('FM_CUTI_MANUAL').reset(); closeM('MCUTI_DETAIL'); openM('MCUTI_MANUAL'); }
 on('FM_CUTI_MANUAL', 'submit', async e => {
-  e.preventDefault(); const b=$('MCM_BTN'), o=b.innerHTML; b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencetak PDF...';
-  const res = await api({ action: 'input_cuti_manual', user: CU, namaKaryawan: $('MCM_NAMA_VAL').value, jenisCuti: $('MCM_JENIS').value, tglMulai: $('MCM_TGL_M').value, tglSelesai: $('MCM_TGL_S').value, alasan: $('MCM_ALASAN').value });
-  b.disabled=false; b.innerHTML=o; if(res.success){ toast('Cuti manual terekam, jatah terpotong, & PDF terkirim!'); closeM('MCUTI_MANUAL'); openCutiDetail($('MCM_NAMA_VAL').value); } else toast(res.message, true);
+  e.preventDefault(); 
+  const b=$('MCM_BTN'), o=b.innerHTML; 
+  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencetak PDF...';
+  
+  const res = await api({ 
+    action: 'input_cuti_manual', 
+    user: CU, 
+    namaKaryawan: $('MCM_NAMA_VAL').value, 
+    jenisCuti: $('MCM_JENIS').value, 
+    jenisSetengahHari: $('MCM_JENIS_SETENGAH') ? $('MCM_JENIS_SETENGAH').value : '-',
+    tglMulai: $('MCM_TGL_M').value, 
+    tglSelesai: $('MCM_TGL_S').value, 
+    alasan: $('MCM_ALASAN').value,
+    // Data untuk PDF Template
+    cabang: CU.Cabang,
+    jabatan: CU.Jabatan,
+    alamat: CU.Alamat,
+    hp: CU.HP,
+    sisaCutiTahunan: CU.SisaCuti,
+    sisaCutiKhusus: CU.SisaKhusus,
+    sisaCutiAkumulasi: CU.SisaAkumulasi
+  });
+  
+  b.disabled=false; b.innerHTML=o; 
+  if(res.success){ 
+    toast('Cuti berhasil terekam & PDF PDF telah dibuat!'); 
+    closeM('MCUTI_MANUAL'); 
+    openCutiDetail($('MCM_NAMA_VAL').value); 
+  } else toast(res.message, true);
 });
 
 // --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK) ---
@@ -1890,18 +1935,60 @@ function hrCycleSetTab(t) { $('FM_ONBOARDING').classList.toggle('hide', t !== 'o
 function hrUpdateLegalHint() { const val = $('TERM_JENIS').value; const box = $('TERM_LEGAL_BOX'); const txt = $('TERM_LEGAL_TEXT'); if(!val) { box.classList.add('hide'); return; } let html = ''; if(val === 'Resign Sukarela') html = 'Karyawan mengundurkan diri sukarela: berhak atas Uang Penggantian Hak (UPH) dan Uang Pisah.'; else if(val === 'PHK - Efisiensi / Kerugian') html = 'PHK Efisiensi: berhak Uang Pesangon (0.5-1x), UPMK, UPH.'; else if(val === 'PHK - Pelanggaran Berat') html = 'PHK Pelanggaran Berat: TIDAK mendapatkan Uang Pesangon & UPMK. Hanya UPH & Uang Pisah.'; else if(val === 'Habis Kontrak (PKWT)') html = 'Habis Kontrak: Perusahaan wajib Uang Kompensasi PKWT = (Masa Kerja/12) x Gaji Pokok.'; else if(val === 'Pensiun') html = 'Pensiun: Pesangon (1.75x), UPMK (1x), UPH.'; txt.innerHTML = html; box.classList.remove('hide'); }
 
 on('FM_ONBOARDING', 'submit', async e => { 
-  e.preventDefault(); const b = $('BTN_ONB_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
-  const res = await api({action: 'submit_onboarding', user:CU, nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, cabang:$('ONB_CABANG').value, atasan:$('ONB_ATASAN').value, tglJoin:$('ONB_TGL').value, status:$('ONB_STATUS').value, email:$('ONB_EMAIL').value, hp:$('ONB_HP').value, alamat:$('ONB_ALAMAT').value}); 
-  b.disabled = false; b.innerHTML = o; if(res.success){ toast(res.message); $('FM_ONBOARDING').reset(); prefetchDD(); } else toast(res.message, true); 
+  e.preventDefault(); 
+  const b = $('BTN_ONB_SUBMIT'), o = b.innerHTML; 
+  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
+  
+  const res = await api({
+    action: 'submit_onboarding', 
+    user:CU, 
+    nik:$('ONB_NIK').value, 
+    nama:$('ONB_NAMA').value, 
+    jabatan:$('ONB_JABATAN').value, 
+    divisi:$('ONB_DIVISI').value, 
+    cabang:$('ONB_CABANG').value, 
+    atasan:$('ONB_ATASAN').value, 
+    tglJoin:$('ONB_TGL').value, 
+    status:$('ONB_STATUS').value, 
+    email:$('ONB_EMAIL').value, 
+    hp:$('ONB_HP').value, 
+    alamat:$('ONB_ALAMAT').value
+  }); 
+  
+  b.disabled = false; b.innerHTML = o; 
+  if(res.success){ 
+    toast(res.message); 
+    $('FM_ONBOARDING').reset(); 
+    prefetchDD(); 
+  } else toast(res.message, true); 
 });
 
 on('FM_TERMINASI', 'submit', async e => { 
-  e.preventDefault(); const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value, lHtml = $('TERM_LEGAL_TEXT').innerHTML; 
+  e.preventDefault(); 
+  const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value, lHtml = $('TERM_LEGAL_TEXT').innerHTML; 
+  
   if(!confirm(`PERINGATAN FINAL!\nAnda memproses ${j} untuk ${k}.\nStatus akan NONAKTIF.`)) return; 
-  const b = $('BTN_TERM_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengeksekusi...'; 
-  const res = await api({action: 'submit_terminasi', user: CU, namaKaryawan: k, tglEfektif: t, jenis: j, alasan: a, legalHtml: lHtml}); 
+  
+  const b = $('BTN_TERM_SUBMIT'), o = b.innerHTML; 
+  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengeksekusi...'; 
+  
+  const res = await api({
+    action: 'submit_terminasi', 
+    user: CU, 
+    namaKaryawan: k, 
+    tglEfektif: t, 
+    jenis: j, 
+    alasan: a, 
+    legalHtml: lHtml
+  }); 
+  
   b.disabled = false; b.innerHTML = o; 
-  if(res.success){ toast(res.message); $('FM_TERMINASI').reset(); hrUpdateLegalHint(); loadDashboard(); } else toast(res.message, true); 
+  if(res.success){ 
+    toast(res.message); 
+    $('FM_TERMINASI').reset(); 
+    hrUpdateLegalHint(); 
+    loadDashboard(); // Refresh dashboard untuk memunculkan di widget Offboarding
+  } else toast(res.message, true); 
 });
 
 let CURRENT_OFFBOARD = null;
