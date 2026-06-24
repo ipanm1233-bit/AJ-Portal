@@ -1404,11 +1404,22 @@ tailwind.config = {
 </div>
 
 <div id="MREQ_PROFILE" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-blue-500">
-    <div class="px-8 py-6 border-b border-slate-100 bg-blue-50/50"><h3 class="font-black text-slate-800 text-lg">Request Perubahan</h3><p class="text-xs text-slate-500 font-bold mt-1">Tulis bagian apa yang salah/berubah.</p></div>
-    <form id="FM_REQ_PROFIL" class="p-8 space-y-4">
-      <textarea id="REQ_PROF_MSG" rows="4" class="inp resize-none !text-sm" placeholder="Contoh: Tolong update No HP saya menjadi 0812345... dan Alamat Domisili pindah ke..." required></textarea>
-      <div class="flex justify-end gap-3 pt-2"><button type="button" onclick="closeM('MREQ_PROFILE')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600">Batal</button><button type="submit" id="BTN_REQ_PROF" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black shadow-lg">Kirim ke HRD</button></div>
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden fade border-t-8 border-t-blue-500 flex flex-col max-h-[90vh]">
+    <div class="px-8 py-6 border-b border-slate-100 bg-blue-50/50 flex-shrink-0">
+      <h3 class="font-black text-slate-800 text-lg">Request Perubahan Data</h3>
+      <p class="text-xs text-slate-500 font-bold mt-1">Centang data mana saja yang ingin Anda perbarui.</p>
+    </div>
+    
+    <form id="FM_REQ_PROFIL" class="flex flex-col flex-1 overflow-hidden">
+      <!-- Area Checklist Dinamis -->
+      <div id="REQ_PROF_FIELDS" class="p-8 space-y-3 overflow-y-auto bg-slate-50/50 flex-1">
+        <!-- Input checklist akan otomatis digenerate oleh Javascript di sini -->
+      </div>
+      
+      <div class="p-6 border-t border-slate-100 bg-white flex justify-end gap-3 flex-shrink-0">
+        <button type="button" onclick="closeM('MREQ_PROFILE')" class="px-6 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200 transition">Batal</button>
+        <button type="submit" id="BTN_REQ_PROF" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-500/30 hover:scale-105 transition">Kirim ke HRD</button>
+      </div>
     </form>
   </div>
 </div>
@@ -1417,7 +1428,7 @@ tailwind.config = {
 <!-- ========================================================================= -->
 <script>
 // ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
-const API = 'https://script.google.com/macros/s/AKfycbw_YGJSnyi2cQvzL0fHoxoHpVgy-OCVtlxNpvmni49NySOWgibemJnOpe9EHO-9n5ZZfw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxF2-NgChvua38uJPA7T-NjZSDl51KndushOPy-HTFWWFqJgyuH9qkeq_zNL0-17uCf/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1527,7 +1538,20 @@ function nav(vId) {
   const titles = {'dashboard': 'Dashboard Utama', 'pengajuan': 'Buat Pengajuan Baru', 'riwayat': 'Rekam Jejak 360', 'approval': 'Antrean Persetujuan', 'kontrak': 'Penilaian KPI & Evaluasi Kontrak', 'cuti': 'Manajemen Cuti & Izin', 'broadcast': 'Broadcast & Memo Global', 'dbkary': 'Master Database Karyawan', 'sp': 'Tindakan Indisipliner (SP)', 'fbuilder': 'Form Builder (Konfigurasi)', 'export': 'Export Data Sistem', 'kendaraan': 'Manajemen Kendaraan & Log BBM', 'inventory': 'Master Inventory & Stok Opname', 'lifecycle': 'Siklus Karyawan (On/Offboarding)'};
   const titleEl = document.getElementById('PTITLE'); if(titleEl) titleEl.textContent = titles[vId] || 'Portal HRIS';
   
-  if(vId === 'dashboard') loadDashboard(); if(vId === 'pengajuan') renderFormCards(AVAILABLE_FORMS); if(vId === 'riwayat') loadRiwayat(); if(vId === 'approval') loadApprovalList(); if(vId === 'dbkary') loadKaryawan(); if(vId === 'fbuilder') loadForms(); if(vId === 'sp') hrSpSetTab('sp'); if(vId === 'kontrak') loadPenilaian(); if(vId === 'cuti') loadCutiKaryawan(); if(vId === 'kendaraan') loadKend(); if(vId === 'inventory') loadInv(); if(vId === 'lifecycle') hrCycleSetTab('on'); 
+  // PERBAIKAN ROUTING (TIDAK ADA LAGI FUNGSI UNDEFINED)
+  if(vId === 'dashboard') loadDashboard(); 
+  if(vId === 'pengajuan') renderFormCards(AVAILABLE_FORMS); 
+  if(vId === 'riwayat') loadRiwayat(); 
+  if(vId === 'approval') loadApproval(); // <--- Diperbaiki dari loadApprovalList()
+  if(vId === 'dbkary') loadKaryawan(); 
+  if(vId === 'fbuilder') { loadForms(); loadFBList(); } // <--- Memanggil list form di sidebar
+  if(vId === 'sp') hrSpSetTab('sp'); 
+  if(vId === 'kontrak') loadPenilaian(); 
+  if(vId === 'cuti') loadCutiKaryawan(); 
+  if(vId === 'kendaraan') loadKend(); 
+  if(vId === 'inventory') loadInv(); 
+  if(vId === 'lifecycle') hrCycleSetTab('on'); 
+  if(vId === 'broadcast') initTinyMCE(); // <--- Mengaktifkan fitur Rich Text (Bold, Tabel, dll)
   
   const sb = document.getElementById('sidebar');
   if(sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 768) sbToggle();
@@ -1689,8 +1713,80 @@ async function loadApproval(){ $('APPRBODY').innerHTML=`<tr><td colspan="5" clas
 function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value=type; $('MAA_NOTE').value=''; $('MAA_TITLE').textContent = type==='APPROVE' ? 'Setujui Pengajuan' : 'Tolak Pengajuan'; $('MAA_ICON').className = type==='APPROVE' ? 'fa-solid fa-check text-emerald-600' : 'fa-solid fa-xmark text-red-600'; $('MAA_ICON_WRAP').className = type==='APPROVE' ? 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-emerald-100' : 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-red-100'; $('MAA_BORDER').className = type==='APPROVE' ? 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-emerald-500' : 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-red-500'; $('MAA_BTN').className = type==='APPROVE' ? 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-emerald-600' : 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-red-600'; openM('MAPPROVE_ACTION'); }
 async function submitApprovalAction(){ const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value; if(!note) return toast('Anda wajib mengisi catatan!',true); const b=$('MAA_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'process_approval',user:CU,txId:id,decision:type,alasan:note}); b.disabled=false; b.innerHTML=o; if(res.success){toast('Berhasil diproses.');closeM('MAPPROVE_ACTION');loadApproval();checkApprovalStatus();}else toast(res.message,true); }
 
-async function loadPenilaian(){ $('PNL_GRID').innerHTML=`<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; $('PNL_EMPTY').classList.add('hide'); const res=await api({action:'get_bawahan',user:CU}); if(!res.success){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} PNL_BAWAHAN_DATA=res.data||[]; if(!PNL_BAWAHAN_DATA.length){$('PNL_GRID').innerHTML='';$('PNL_EMPTY').classList.remove('hide');return;} $('PNL_GRID').innerHTML=PNL_BAWAHAN_DATA.map((k,i)=>`<div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col"><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl">${k.Nama.charAt(0)}</div><div><p class="font-black text-slate-800 text-base">${k.Nama}</p><p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${k.Jabatan}</p></div></div><p class="text-[10px] font-bold text-slate-400 mb-4">Template KPI: <span class="text-slate-600">${k.TemplateKPI||'Default (General)'}</span></p><button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white transition shadow-sm"><i class="fa-solid fa-star mr-1"></i>Beri Penilaian</button></div>`).join(''); }
-function openKontrakAction(i){ const k=WGT_KB_DATA[i]; if(!k)return; $('MKONTRAK_NAMA').textContent=k.Nama; $('MKONTRAK_NIK').value=k.NIK||''; $('MKONTRAK_NAMA_VAL').value=k.Nama; mkontrakSetMode('konseling'); openM('MKONTRAK'); }
+async function loadPenilaian() { 
+  // 1. Munculkan loading & sembunyikan kotak kosong
+  $('PNL_GRID').innerHTML = `<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; 
+  $('PNL_EMPTY').classList.add('hide'); 
+  
+  // 2. Tarik data bawahan dari server
+  const res = await api({action:'get_bawahan', user:CU}); 
+  
+  // 3. Jika gagal atau error dari server
+  if(!res.success) {
+    $('PNL_GRID').innerHTML = '';
+    $('PNL_EMPTY').classList.remove('hide');
+    return;
+  } 
+  
+  PNL_BAWAHAN_DATA = res.data || []; 
+  
+  // 4. Jika data kosong (tidak ada bawahan)
+  if(!PNL_BAWAHAN_DATA.length) {
+    $('PNL_GRID').innerHTML = '';
+    $('PNL_EMPTY').classList.remove('hide');
+    return;
+  } 
+  
+  // 5. Render kartu bawahan dengan aman (Bypass TypeError charAt)
+  $('PNL_GRID').innerHTML = PNL_BAWAHAN_DATA.map((k, i) => {
+    // Penarikan properti dengan Fallback cerdas agar tidak undefined
+    let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
+    let jabatanBawahan = k.Jabatan || k.Posisi || '-';
+    let templateKpiBawahan = k.TemplateKPI || k.TEMPLATE_KPI || k['Template KPI'] || 'Default (General)';
+    
+    // Tarik huruf pertama dengan aman
+    let inisial = namaBawahan.charAt(0).toUpperCase();
+
+    return `
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col hover:border-purple-300 transition">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl shadow-inner">
+          ${inisial}
+        </div>
+        <div>
+          <p class="font-black text-slate-800 text-base">${namaBawahan}</p>
+          <p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${jabatanBawahan}</p>
+        </div>
+      </div>
+      <p class="text-[10px] font-bold text-slate-400 mb-4">Template KPI: <span class="text-slate-600">${templateKpiBawahan}</span></p>
+      
+      <button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white transition shadow-sm">
+        <i class="fa-solid fa-star mr-1"></i>Beri Penilaian
+      </button>
+    </div>`;
+  }).join(''); 
+}
+
+let WGT_KB_MODE='konseling', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_penilaian',konseling:'kontrak_kirim_konseling',dokumen:'kontrak_request_dokumen'};
+
+function mkontrakSetMode(m){ 
+  WGT_KB_MODE=m; 
+  document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'); 
+  $('MKONTRAK_TAB_'+m).className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; 
+  $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; 
+  if(m === 'dokumen') { $('MKONTRAK_FILE_WRAP').classList.remove('hide'); $('MKONTRAK_DESC').textContent = "Penting: HRD wajib melampirkan file Draft Kontrak berbentuk PDF."; }
+  else { $('MKONTRAK_FILE_WRAP').classList.add('hide'); $('MKONTRAK_DESC').textContent = "Pilih tindakan di atas. Sistem mengirim notifikasi email otomatis ke target bersangkutan."; }
+}  
+  
+function openKontrakAction(i){ 
+  const k=WGT_KB_DATA[i]; 
+  if(!k)return; 
+  $('MKONTRAK_NAMA').textContent=k.Nama; 
+  $('MKONTRAK_NIK').value=k.NIK||''; 
+  $('MKONTRAK_NAMA_VAL').value=k.Nama; 
+  mkontrakSetMode('konseling'); 
+  openM('MKONTRAK'); 
+}
 let KPI_CURRENT_QUESTIONS = [];
 async function openPenilaianForm(i){ 
   const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
@@ -1831,14 +1927,23 @@ async function doExportData() { const t=$('EXP_DATA').value, f=$('EXP_FMT').valu
 
 ['MDETAIL','MAPPROVE_ACTION','MKARY','MKEND','MKEND_DETAIL','MINV','MKONTRAK','MPENILAIAN','MEXPORT','MBC_DETAIL','MCUTI_DETAIL','MCUTI_MANUAL','MEDIT_LOG_INV'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); }); });
 
+let MY_PROFILE_DATA = null;
+  
 async function openMyProfile() {
   $('MPROF_AVATAR').textContent = (CU.Nama||'U').charAt(0).toUpperCase();
   $('MPROF_BODY').innerHTML = '<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>';
   openM('MPROFILE');
+  
   const res = await api({action: 'get_my_profile', user: CU});
   if(!res.success) { $('MPROF_BODY').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold">${res.message}</p>`; return; }
-  const k = res.data; const sk=['_rowIndex', 'AKSES_MENU', 'AKSES MENU']; const keys=Object.keys(k).filter(x=>!sk.includes(x));
-  $('MPROF_BODY').innerHTML = keys.map(kk=>{
+  
+  const k = res.data; 
+  MY_PROFILE_DATA = k; // Simpan ke memory untuk fitur checklist
+  
+  const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU', 'username', 'IsAtasan']; 
+  const keys = Object.keys(k).filter(x => !sk.includes(x));
+  
+  $('MPROF_BODY').innerHTML = keys.map(kk => {
       let val = (k[kk]!=null?k[kk]:'').toString(); let upperK = kk.toUpperCase();
       if((upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR'))) {
          let d = new Date(val); if(!isNaN(d.getTime()) && val.length > 5) { const m = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']; val = `${d.getDate().toString().padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()}`; }
@@ -1848,11 +1953,59 @@ async function openMyProfile() {
   }).join('');
 }
 
-function openReqProfile() { closeM('MPROFILE'); $('REQ_PROF_MSG').value=''; openM('MREQ_PROFILE'); }
+function openReqProfile() { 
+  closeM('MPROFILE'); 
+  const container = $('REQ_PROF_FIELDS');
+  
+  if(!MY_PROFILE_DATA) {
+     container.innerHTML = '<p class="text-sm text-red-500 font-bold text-center">Gagal memuat profil. Tutup dan coba lagi.</p>';
+  } else {
+     // Jangan tampilkan data-data sensitif yang tidak boleh diubah sendiri oleh karyawan
+     const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU', 'username', 'IsAtasan', 'SisaCuti', 'SisaKhusus', 'SisaAkumulasi', 'JatahTahunan', 'KontrakHabis', 'MasaKerja', 'TemplateKPI', 'NIK']; 
+     const keys = Object.keys(MY_PROFILE_DATA).filter(x => !sk.includes(x));
+     
+     container.innerHTML = keys.map((key, i) => {
+        let oldVal = (MY_PROFILE_DATA[key] != null ? MY_PROFILE_DATA[key] : '').toString().replace(/"/g, '&quot;');
+        return `
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm transition hover:border-blue-300">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" class="req-prof-cb w-5 h-5 text-blue-600 rounded" onchange="document.getElementById('REQ_INP_${i}').classList.toggle('hide', !this.checked); if(this.checked) document.getElementById('REQ_INP_${i}').focus();" data-key="${key}" data-old="${oldVal}">
+            <div>
+              <span class="text-xs font-black text-slate-700 uppercase tracking-wider block">${key}</span>
+              <span class="text-[10px] font-bold text-slate-400">Data saat ini: ${oldVal || '-'}</span>
+            </div>
+          </label>
+          <input type="text" id="REQ_INP_${i}" class="inp mt-3 !py-2.5 text-sm hide font-bold border-blue-200 focus:border-blue-500 bg-blue-50" placeholder="Ketik data ${key} yang baru disini...">
+        </div>
+        `;
+     }).join('');
+  }
+  openM('MREQ_PROFILE'); 
+}
+
 on('FM_REQ_PROFIL', 'submit', async e => {
-  e.preventDefault(); const b = $('BTN_REQ_PROF'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Mengirim...';
-  const res = await api({action: 'req_update_profile', user: CU, pesan: $('REQ_PROF_MSG').value});
+  e.preventDefault(); 
+  
+  let changes = [];
+  document.querySelectorAll('.req-prof-cb:checked').forEach((cb) => {
+    let inp = cb.closest('div').querySelector('input[type="text"]');
+    let key = cb.dataset.key;
+    let oldVal = cb.dataset.old || '-';
+    let newVal = inp.value.trim();
+    
+    if(newVal && newVal !== oldVal) {
+       changes.push(`➤ ${key.toUpperCase()}\n   Data Baru: ${newVal}\n   Data Lama: ${oldVal}`);
+    }
+  });
+
+  if(changes.length === 0) return toast('Pilih dan isi minimal 1 data baru yang berbeda!', true);
+
+  const pesanFormatted = "PENGAJUAN PEMBARUAN DATA MASTER:\n\n" + changes.join('\n\n');
+
+  const b = $('BTN_REQ_PROF'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim...';
+  const res = await api({action: 'req_update_profile', user: CU, pesan: pesanFormatted});
   b.disabled = false; b.innerHTML = o;
+  
   if(res.success){ toast(res.message); closeM('MREQ_PROFILE'); } else toast(res.message, true);
 });
 
