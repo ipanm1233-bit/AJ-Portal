@@ -1427,7 +1427,10 @@ tailwind.config = {
 <!-- ================== SCRIPT JAVASCRIPT UTAMA (FAST-LOAD) ================== -->
 <!-- ========================================================================= -->
 <script>
-// ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
+// =========================================================================
+// SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
+// =========================================================================
+
 const API = 'https://script.google.com/macros/s/AKfycbzRNH8I5EzjMxeGeduU_ZrOCWzvbcOReML4phKVHC01UbCKdjg_CUkLBRbTZGM_mc60SQ/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
@@ -1538,20 +1541,19 @@ function nav(vId) {
   const titles = {'dashboard': 'Dashboard Utama', 'pengajuan': 'Buat Pengajuan Baru', 'riwayat': 'Rekam Jejak 360', 'approval': 'Antrean Persetujuan', 'kontrak': 'Penilaian KPI & Evaluasi Kontrak', 'cuti': 'Manajemen Cuti & Izin', 'broadcast': 'Broadcast & Memo Global', 'dbkary': 'Master Database Karyawan', 'sp': 'Tindakan Indisipliner (SP)', 'fbuilder': 'Form Builder (Konfigurasi)', 'export': 'Export Data Sistem', 'kendaraan': 'Manajemen Kendaraan & Log BBM', 'inventory': 'Master Inventory & Stok Opname', 'lifecycle': 'Siklus Karyawan (On/Offboarding)'};
   const titleEl = document.getElementById('PTITLE'); if(titleEl) titleEl.textContent = titles[vId] || 'Portal HRIS';
   
-  // PERBAIKAN ROUTING (TIDAK ADA LAGI FUNGSI UNDEFINED)
   if(vId === 'dashboard') loadDashboard(); 
   if(vId === 'pengajuan') renderFormCards(AVAILABLE_FORMS); 
   if(vId === 'riwayat') loadRiwayat(); 
-  if(vId === 'approval') loadApproval(); // <--- Diperbaiki dari loadApprovalList()
+  if(vId === 'approval') loadApproval(); 
   if(vId === 'dbkary') loadKaryawan(); 
-  if(vId === 'fbuilder') { loadForms(); loadFBList(); } // <--- Memanggil list form di sidebar
+  if(vId === 'fbuilder') { loadForms(); loadFBList(); } 
   if(vId === 'sp') hrSpSetTab('sp'); 
   if(vId === 'kontrak') loadPenilaian(); 
   if(vId === 'cuti') loadCutiKaryawan(); 
   if(vId === 'kendaraan') loadKend(); 
   if(vId === 'inventory') loadInv(); 
   if(vId === 'lifecycle') hrCycleSetTab('on'); 
-  if(vId === 'broadcast') initTinyMCE(); // <--- Mengaktifkan fitur Rich Text (Bold, Tabel, dll)
+  if(vId === 'broadcast') initTinyMCE(); 
   
   const sb = document.getElementById('sidebar');
   if(sb && !sb.classList.contains('-translate-x-full') && window.innerWidth < 768) sbToggle();
@@ -1560,17 +1562,14 @@ function nav(vId) {
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
 async function loadDashboard() {
-  // 1. Update Sisa Cuti UI
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
   $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
   $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
   
-  // 2. Tarik Data dari Server
   const res = await api({action:'get_dashboard', user:CU}); 
   if(!res.success) return;
   
-  // 3. Render Daftar Karyawan Cuti Hari Ini
   const ctEl = $('DCUTI_TODAY'); 
   if(res.cutiHariIni && res.cutiHariIni.length){ 
     ctEl.innerHTML = res.cutiHariIni.map(c => `<div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex items-center justify-center"><i class="fa-solid fa-user"></i></div><div><p class="font-black text-slate-800 text-sm">${c.Nama}</p><p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p></div></div>`).join(''); 
@@ -1578,7 +1577,6 @@ async function loadDashboard() {
     ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
   }
   
-  // 4. Render Broadcast / Memo
   const bcEl = $('DBC'); 
   DASH_BC_DATA = res.broadcasts || []; 
   if(DASH_BC_DATA.length){ 
@@ -1587,7 +1585,6 @@ async function loadDashboard() {
     bcEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Tidak ada pengumuman.</div>`; 
   }
   
-  // 5. Render Aktivitas / Riwayat Singkat 360
   const rwEl = $('DRWYT'); 
   if(res.riwayat_singkat && res.riwayat_singkat.length){ 
     rwEl.innerHTML = res.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join(''); 
@@ -1595,7 +1592,6 @@ async function loadDashboard() {
     rwEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Belum ada riwayat.</div>`; 
   }
   
-  // 6. Render Peringatan Kontrak (HANYA MUNCUL UNTUK HRD & GM)
   $('ALERT_KB').classList.add('hide'); 
   const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
   
@@ -1621,7 +1617,6 @@ async function loadDashboard() {
     $('WGT_KB').classList.add('hide');
   }
 
-  // 7. MENGISI WIDGET OFFBOARDING TRACKER (KHUSUS HRD)
   if(res.offboardingTasks && res.offboardingTasks.length > 0 && CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
     $('WGT_OFF').classList.remove('hide');
     $('WGT_OFF_N').textContent = res.offboardingTasks.length;
@@ -1629,18 +1624,11 @@ async function loadDashboard() {
   } else if($('WGT_OFF')) {
     $('WGT_OFF').classList.add('hide');
   }
-
-  // 7. MENGISI WIDGET OFFBOARDING HRD
-  if(res.offboardingTasks && res.offboardingTasks.length > 0 && $('WGT_OFF')) {
-    $('WGT_OFF').classList.remove('hide');
-    $('WGT_OFF_N').textContent = res.offboardingTasks.length;
-    $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-slate-800">${t.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${t.Jenis}</td><td class="px-6 py-4 font-bold text-red-600 text-xs">${fmtDate(t.TglEfektif)}</td><td class="px-6 py-4 text-center"><button class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-[10px] font-black hover:scale-105 transition shadow-sm">Proses Clearance</button></td></tr>`).join('');
-  } else if($('WGT_OFF')) {
-    $('WGT_OFF').classList.add('hide');
-  }
 }
+
 function openBroadcast(i){ const b=DASH_BC_DATA[i]; if(!b) return; $('MBC_TITLE').textContent=b.Judul; $('MBC_DATE').textContent=fmtDate(b.Tanggal); $('MBC_CONTENT').innerHTML=b.Isi; $('MBC_LINK').innerHTML=b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-black text-sm rounded-xl">Unduh Lampiran</a>`:''; openM('MBC_DETAIL'); }
 function bcToggleTarget(){ const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL'), txt=$('BCTARGET_TEXT'), sNik=$('BCTARGET_SELECT_NIK'), sCab=$('BCTARGET_SELECT_CABANG'), h=$('BC_MULTIPLE_HINT'); txt.classList.add('hide'); sNik.classList.add('hide'); sCab.classList.add('hide'); h.classList.add('hide'); if(t==='GENERAL') w.classList.add('hide'); else if(t==='NIK'){ w.classList.remove('hide'); l.textContent='Pilih Karyawan (Bisa Lebih dari Satu)'; sNik.classList.remove('hide'); h.classList.remove('hide'); if(!sNik.dataset.loaded){ sNik.innerHTML=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); sNik.dataset.loaded='1'; } } else if(t==='CABANG'){ w.classList.remove('hide'); l.textContent='Pilih Cabang'; sCab.classList.remove('hide'); } else{ w.classList.remove('hide'); l.textContent='Nama Divisi'; txt.classList.remove('hide'); } }
+
 on('FMBC','submit',async e=>{ e.preventDefault(); if(tinymce.get('BCISI')) tinymce.get('BCISI').save(); const fi=$('BCFILE'); let f64=null,fn=null; if(fi.files.length){ if(fi.files[0].size>2097152) return toast('Maks 2MB',true); f64=await b64(fi.files[0]); fn=fi.files[0].name; } const t=$('BCTYPE').value; let tv='ALL'; if(t==='NIK')tv=Array.from($('BCTARGET_SELECT_NIK').selectedOptions).map(o=>o.value).join(','); if(t==='CABANG')tv=$('BCTARGET_SELECT_CABANG').value; if(t==='DIVISI')tv=$('BCTARGET_TEXT').value; if(t!=='GENERAL'&&!tv) return toast('Target wajib',true); const isi=$('BCISI').value; if(!isi) return toast('Isi kosong',true); const b=$('BC_BTN_SUBMIT'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'send_broadcast',user:CU,targetType:t,targetValue:tv,judul:$('BCJUDUL').value,isi,file:f64,fileName:fn},'Mengirim...'); b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);$('FMBC').reset();if(tinymce.get('BCISI'))tinymce.get('BCISI').setContent('');bcToggleTarget();}else toast(res.message,true); });
 
 async function loadForms(){ 
@@ -1716,7 +1704,7 @@ on('DYNFORM','submit',async e=>{
   const b=$('BTNSUBMIT'); b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan... (Harap Tunggu)'; 
   const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det},'Menyimpan...'); 
   b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
-  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(): }else toast(res.message,true); 
+  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(); }else toast(res.message,true); 
 });
 
 async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
@@ -1727,62 +1715,7 @@ async function loadApproval(){ $('APPRBODY').innerHTML=`<tr><td colspan="5" clas
 function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value=type; $('MAA_NOTE').value=''; $('MAA_TITLE').textContent = type==='APPROVE' ? 'Setujui Pengajuan' : 'Tolak Pengajuan'; $('MAA_ICON').className = type==='APPROVE' ? 'fa-solid fa-check text-emerald-600' : 'fa-solid fa-xmark text-red-600'; $('MAA_ICON_WRAP').className = type==='APPROVE' ? 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-emerald-100' : 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-red-100'; $('MAA_BORDER').className = type==='APPROVE' ? 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-emerald-500' : 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-red-500'; $('MAA_BTN').className = type==='APPROVE' ? 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-emerald-600' : 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-red-600'; openM('MAPPROVE_ACTION'); }
 async function submitApprovalAction(){ const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value; if(!note) return toast('Anda wajib mengisi catatan!',true); const b=$('MAA_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'process_approval',user:CU,txId:id,decision:type,alasan:note}); b.disabled=false; b.innerHTML=o; if(res.success){toast('Berhasil diproses.');closeM('MAPPROVE_ACTION');loadApproval();checkApprovalStatus();}else toast(res.message,true); }
 
-async function loadPenilaian() { 
-  // 1. Munculkan loading & sembunyikan kotak kosong
-  $('PNL_GRID').innerHTML = `<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; 
-  $('PNL_EMPTY').classList.add('hide'); 
-  
-  // 2. Tarik data bawahan dari server
-  const res = await api({action:'get_bawahan', user:CU}); 
-  
-  // 3. Jika gagal atau error dari server
-  if(!res.success) {
-    $('PNL_GRID').innerHTML = '';
-    $('PNL_EMPTY').classList.remove('hide');
-    return;
-  } 
-  
-  PNL_BAWAHAN_DATA = res.data || []; 
-  
-  // 4. Jika data kosong (tidak ada bawahan)
-  if(!PNL_BAWAHAN_DATA.length) {
-    $('PNL_GRID').innerHTML = '';
-    $('PNL_EMPTY').classList.remove('hide');
-    return;
-  } 
-  
-  // 5. Render kartu bawahan dengan aman (Bypass TypeError charAt)
-  $('PNL_GRID').innerHTML = PNL_BAWAHAN_DATA.map((k, i) => {
-    // Penarikan properti dengan Fallback cerdas agar tidak undefined
-    let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
-    let jabatanBawahan = k.Jabatan || k.Posisi || '-';
-    let templateKpiBawahan = k.TemplateKPI || k.TEMPLATE_KPI || k['Template KPI'] || 'Default (General)';
-    
-    // Tarik huruf pertama dengan aman
-    let inisial = namaBawahan.charAt(0).toUpperCase();
-
-    return `
-    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col hover:border-purple-300 transition">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl shadow-inner">
-          ${inisial}
-        </div>
-        <div>
-          <p class="font-black text-slate-800 text-base">${namaBawahan}</p>
-          <p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${jabatanBawahan}</p>
-        </div>
-      </div>
-      <p class="text-[10px] font-bold text-slate-400 mb-4">Template KPI: <span class="text-slate-600">${templateKpiBawahan}</span></p>
-      
-      <button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white transition shadow-sm">
-        <i class="fa-solid fa-star mr-1"></i>Beri Penilaian
-      </button>
-    </div>`;
-  }).join(''); 
-}
-
 let WGT_KB_MODE='konseling', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_penilaian',konseling:'kontrak_kirim_konseling',dokumen:'kontrak_request_dokumen'};
-
 function mkontrakSetMode(m){ 
   WGT_KB_MODE=m; 
   document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white transition flex flex-col items-center gap-2 text-center'); 
@@ -1796,27 +1729,50 @@ function mkontrakSetMode(m){
     if($('MKONTRAK_DESC')) $('MKONTRAK_DESC').textContent = "Pilih tindakan di atas. Sistem mengirim notifikasi email otomatis ke target bersangkutan."; 
   }
 }
+function openKontrakAction(i){ const k=WGT_KB_DATA[i]; if(!k)return; $('MKONTRAK_NAMA').textContent=k.Nama; $('MKONTRAK_NIK').value=k.NIK||''; $('MKONTRAK_NAMA_VAL').value=k.Nama; mkontrakSetMode('konseling'); openM('MKONTRAK'); }
 
-function openKontrakAction(i){ 
-  const k=WGT_KB_DATA[i]; 
-  if(!k)return; 
-  $('MKONTRAK_NAMA').textContent=k.Nama; 
-  $('MKONTRAK_NIK').value=k.NIK||''; 
-  $('MKONTRAK_NAMA_VAL').value=k.Nama; 
-  mkontrakSetMode('konseling'); 
-  openM('MKONTRAK'); 
+async function loadPenilaian() { 
+  $('PNL_GRID').innerHTML = `<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; 
+  $('PNL_EMPTY').classList.add('hide'); 
+  const res = await api({action:'get_bawahan', user:CU}); 
+  if(!res.success) { $('PNL_GRID').innerHTML = ''; $('PNL_EMPTY').classList.remove('hide'); return; } 
+  PNL_BAWAHAN_DATA = res.data || []; 
+  if(!PNL_BAWAHAN_DATA.length) { $('PNL_GRID').innerHTML = ''; $('PNL_EMPTY').classList.remove('hide'); return; } 
+  $('PNL_GRID').innerHTML = PNL_BAWAHAN_DATA.map((k, i) => {
+    let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
+    let jabatanBawahan = k.Jabatan || k.Posisi || '-';
+    let templateKpiBawahan = k.TemplateKPI || k.TEMPLATE_KPI || k['Template KPI'] || 'Default (General)';
+    let inisial = namaBawahan.charAt(0).toUpperCase();
+    return `
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col hover:border-purple-300 transition">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-full bg-purple-500 text-white flex items-center justify-center font-black text-xl shadow-inner">
+          ${inisial}
+        </div>
+        <div>
+          <p class="font-black text-slate-800 text-base">${namaBawahan}</p>
+          <p class="text-[10px] font-black text-purple-600 uppercase mt-0.5">${jabatanBawahan}</p>
+        </div>
+      </div>
+      <p class="text-[10px] font-bold text-slate-400 mb-4">Template KPI: <span class="text-slate-600">${templateKpiBawahan}</span></p>
+      <button onclick="openPenilaianForm(${i})" class="mt-auto w-full bg-purple-50 text-purple-700 font-black text-xs py-3 rounded-xl hover:bg-purple-600 hover:text-white transition shadow-sm">
+        <i class="fa-solid fa-star mr-1"></i>Beri Penilaian
+      </button>
+    </div>`;
+  }).join(''); 
 }
-  
+
 let KPI_CURRENT_QUESTIONS = [];
 async function openPenilaianForm(i){ 
   const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
-  $('MPNL_NAMA').textContent=k.Nama; $('MPNL_SUB').textContent=k.Jabatan+' — '+k.Divisi; 
-  $('MPNL_NIK').value=k.NIK||''; $('MPNL_NAMA_VAL').value=k.Nama; $('MPNL_JABATAN').value=k.Jabatan||''; $('MPNL_TEMPLATE').value=k.TemplateKPI||'';
+  let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
+  $('MPNL_NAMA').textContent=namaBawahan; $('MPNL_SUB').textContent=(k.Jabatan||'-')+' — '+(k.Divisi||'-'); 
+  $('MPNL_NIK').value=k.NIK_Karyawan||k.NIK||''; $('MPNL_NAMA_VAL').value=namaBawahan; $('MPNL_JABATAN').value=k.Jabatan||''; $('MPNL_TEMPLATE').value=k.TemplateKPI||k.TEMPLATE_KPI||k['Template KPI']||'';
   $('MPNL_NILAI').value=''; $('MPNL_CATATAN').value=''; $('MPNL_TOTAL_SKOR').textContent='0.00';
   $('MPNL_KPI_WRAP').innerHTML=`<p class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencari Indikator Penilaian...</p>`;
   openM('MPENILAIAN'); 
 
-  const res = await api({action: 'get_kpi_questions', templateKpi: k.TemplateKPI, jabatan: k.Jabatan});
+  const res = await api({action: 'get_kpi_questions', templateKpi: $('MPNL_TEMPLATE').value, jabatan: k.Jabatan});
   KPI_CURRENT_QUESTIONS = res.data || [];
   if(!KPI_CURRENT_QUESTIONS.length) { $('MPNL_KPI_WRAP').innerHTML=`<div class="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center">Master Soal KPI untuk jabatan/template ini kosong. Hubungi HRD.</div>`; return; }
 
@@ -1846,6 +1802,19 @@ async function submitPenilaian(){
   const b=$('MPNL_SUBMIT_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan & Mengirim...'; 
   const res=await api({action:'simpan_penilaian',user:CU,nik:$('MPNL_NIK').value,namaKaryawan:$('MPNL_NAMA_VAL').value,totalSkor:$('MPNL_TOTAL_SKOR').textContent,keputusan:nilai,catatan:$('MPNL_CATATAN').value, kpiData:kpiData}); 
   b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);closeM('MPENILAIAN');}else toast(res.message,true); 
+}
+// =======================================================================================
+// SAMBUNGAN SCRIPT - MODUL CUTI, KARYAWAN, OFFBOARDING TRACKER, ASET, DAN PROFIL
+// =======================================================================================
+
+function calcMasaKerja(joinDateStr) {
+  if(!joinDateStr) return '-';
+  const j = new Date(joinDateStr); if(isNaN(j.getTime())) return '-';
+  const n = new Date();
+  let y = n.getFullYear() - j.getFullYear(); let m = n.getMonth() - j.getMonth(); let d = n.getDate() - j.getDate();
+  if(d < 0) { m--; d += new Date(n.getFullYear(), n.getMonth(), 0).getDate(); }
+  if(m < 0) { y--; m += 12; }
+  return `${y} Tahun, ${m} Bulan`;
 }
 
 async function loadCutiKaryawan() {
@@ -1877,9 +1846,28 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
   b.disabled=false; b.innerHTML=o; if(res.success){ toast('Cuti manual terekam, jatah terpotong, & PDF terkirim!'); closeM('MCUTI_MANUAL'); openCutiDetail($('MCM_NAMA_VAL').value); } else toast(res.message, true);
 });
 
-async function loadKaryawan(){ $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>'; const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value}); if(!res.success)return; const d=res.data||[]; $('TOTALKARY').textContent=res.total||d.length; if(!d.length){$('KARYGRID').innerHTML='<div class="col-span-full text-center">Kosong.</div>';return;} $('KARYGRID').innerHTML=d.map(k=>`<div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100"><div class="flex items-start gap-4 mb-5"><div class="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center font-black">${k.Nama_Karyawan.charAt(0)}</div><div><p class="font-black text-slate-900">${k.Nama_Karyawan}</p><p class="text-[10px] font-black text-slate-400 uppercase">${k.JABATAN}</p></div></div><button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="w-full text-xs font-black text-corp bg-corpl py-2.5 rounded-xl">Detail Karyawan</button></div>`).join(''); }
+// --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK) ---
+async function loadKaryawan(){ 
+  $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>'; 
+  const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value}); 
+  if(!res.success) { $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">${res.message}</div>`; return; } 
+  
+  const d=res.data||[]; 
+  $('TOTALKARY').textContent=res.total||d.length; 
+  if(!d.length){$('KARYGRID').innerHTML='<div class="col-span-full text-center text-slate-400 font-bold">Data Karyawan Kosong / Tidak Ditemukan.</div>';return;} 
+  
+  $('KARYGRID').innerHTML=d.map(k=> {
+    let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Unknown';
+    let jabK = k.JABATAN || k.Jabatan || k.Posisi || '-';
+    let inisial = namaK.charAt(0).toUpperCase();
+    return `<div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:border-corp transition"><div class="flex items-start gap-4 mb-5"><div class="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center font-black">${inisial}</div><div><p class="font-black text-slate-900">${namaK}</p><p class="text-[10px] font-black text-slate-400 uppercase">${jabK}</p></div></div><button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="w-full text-xs font-black text-corp bg-corpl py-2.5 rounded-xl hover:bg-corp hover:text-white transition">Detail Karyawan</button></div>`;
+  }).join(''); 
+}
 function openKaryDetail(k){ 
-  $('MKARY_TITLE').textContent=k.Nama_Karyawan; const sk=['_rowIndex', 'AKSES_MENU', 'AKSES MENU'], keys=Object.keys(k).filter(x=>!sk.includes(x)); 
+  let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '';
+  $('MKARY_TITLE').textContent=namaK; 
+  const sk=['_rowIndex', 'AKSES_MENU', 'AKSES MENU'], keys=Object.keys(k).filter(x=>!sk.includes(x)); 
+  
   let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${keys.map(kk=>{
       let val = (k[kk]!=null?k[kk]:'').toString(), upperK = kk.toUpperCase(), inputType = 'text', isReadonly = (upperK.includes('JOIN') || upperK === 'MASA KERJA') ? 'readonly' : '', extraClass = isReadonly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-transparent' : 'bg-slate-50 focus:border-corp border-slate-200';
       if((upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR')) && !upperK.includes('JOIN')) { inputType = 'date'; let d = new Date(val); if(!isNaN(d.getTime()) && val.length > 5) val = d.toISOString().split('T')[0]; } 
@@ -1887,19 +1875,113 @@ function openKaryDetail(k){
       if(upperK === 'MASA KERJA') { let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'] || k['Tanggal_Join']; if(joinVal) val = calcMasaKerja(joinVal); }
       return `<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">${kk} ${isReadonly?'<i class="fa-solid fa-lock text-slate-300"></i>':''}</p><input type="${inputType}" class="kary-edit-field w-full font-bold text-sm mt-1 px-2 py-1.5 rounded outline-none border ${extraClass}" data-field="${kk}" value="${val.replace(/"/g,'&quot;')}" ${isReadonly}></div>`;
   }).join('')}</div>`;
+  
   if(CU.Role.toUpperCase().includes('HRD')) {
-     const am = (k['AKSES_MENU'] || k['AKSES MENU'] || '').toUpperCase(); let cbHtml = MENU_OPTS.map(m => `<label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer w-[45%]"><input type="checkbox" class="kary-akses-cb w-4 h-4 text-corp" value="${m.val}" ${am.includes(m.val)?'checked':''}> ${m.label}</label>`).join('');
+     const am = (k['AKSES_MENU'] || k['AKSES MENU'] || '').toUpperCase(); 
+     let cbHtml = MENU_OPTS.map(m => `<label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer w-[45%]"><input type="checkbox" class="kary-akses-cb w-4 h-4 text-corp" value="${m.val}" ${am.includes(m.val)?'checked':''}> ${m.label}</label>`).join('');
      html += `<div class="col-span-full border-t border-slate-200 pt-5 mt-5"><p class="text-xs font-black text-corp uppercase tracking-widest mb-3"><i class="fa-solid fa-user-shield mr-2"></i>Konfigurasi Akses Menu (Bypass)</p><div class="flex flex-wrap gap-4 bg-red-50 p-5 rounded-xl border border-red-100">${cbHtml}</div></div>`;
   }
-  $('MKARY_BODY').innerHTML = html; $('MKARY').dataset.editNama=k.Nama_Karyawan; $('MKARY').dataset.editNik=k.NIK_Karyawan; openM('MKARY'); 
+  
+  $('MKARY_BODY').innerHTML = html; 
+  $('MKARY').dataset.editNama=namaK; 
+  $('MKARY').dataset.editNik=k.NIK_Karyawan || k.NIK || ''; 
+  openM('MKARY'); 
 }
 async function saveKaryawanEdit(){ const u={}; document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); if(document.querySelector('.kary-akses-cb')) { let h=[]; document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); u['AKSES_MENU'] = h.join(','); } const res=await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); if(res.success){toast('Disimpan.');closeM('MKARY');loadKaryawan();} }
 
+// --- SIKLUS KARYAWAN & OFFBOARDING TRACKER ---
 function hrCycleSetTab(t) { $('FM_ONBOARDING').classList.toggle('hide', t !== 'on'); $('FM_TERMINASI').classList.toggle('hide', t !== 'off'); $('TAB_BTN_ON').className = t === 'on' ? 'px-5 py-2 text-xs font-black rounded-lg bg-blue-600 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; $('TAB_BTN_OFF').className = t === 'off' ? 'px-5 py-2 text-xs font-black rounded-lg bg-slate-800 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; if(t === 'on' && $('ONB_ATASAN').children.length === 1) { $('ONB_ATASAN').innerHTML += DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } if(t === 'off' && $('TERM_KARY').children.length === 0) { $('TERM_KARY').innerHTML = '<option value="">— Pilih Karyawan —</option>' + DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } }
 function hrUpdateLegalHint() { const val = $('TERM_JENIS').value; const box = $('TERM_LEGAL_BOX'); const txt = $('TERM_LEGAL_TEXT'); if(!val) { box.classList.add('hide'); return; } let html = ''; if(val === 'Resign Sukarela') html = 'Karyawan mengundurkan diri sukarela: berhak atas Uang Penggantian Hak (UPH) dan Uang Pisah.'; else if(val === 'PHK - Efisiensi / Kerugian') html = 'PHK Efisiensi: berhak Uang Pesangon (0.5-1x), UPMK, UPH.'; else if(val === 'PHK - Pelanggaran Berat') html = 'PHK Pelanggaran Berat: TIDAK mendapatkan Uang Pesangon & UPMK. Hanya UPH & Uang Pisah.'; else if(val === 'Habis Kontrak (PKWT)') html = 'Habis Kontrak: Perusahaan wajib Uang Kompensasi PKWT = (Masa Kerja/12) x Gaji Pokok.'; else if(val === 'Pensiun') html = 'Pensiun: Pesangon (1.75x), UPMK (1x), UPH.'; txt.innerHTML = html; box.classList.remove('hide'); }
-on('FM_ONBOARDING', 'submit', async e => { e.preventDefault(); const b = $('BTN_ONB_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Menyimpan...'; const res = await api({action: 'submit_onboarding', user:CU, nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, cabang:$('ONB_CABANG').value, atasan:$('ONB_ATASAN').value, tglJoin:$('ONB_TGL').value, status:$('ONB_STATUS').value, email:$('ONB_EMAIL').value, hp:$('ONB_HP').value, alamat:$('ONB_ALAMAT').value}); b.disabled = false; b.innerHTML = o; if(res.success){ toast(res.message); $('FM_ONBOARDING').reset(); prefetchDD(); } else toast(res.message, true); });
-on('FM_TERMINASI', 'submit', async e => { e.preventDefault(); const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value, lHtml = $('TERM_LEGAL_TEXT').innerHTML; if(!confirm(`PERINGATAN FINAL!\nAnda memproses ${j} untuk ${k}.\nStatus akan NONAKTIF.`)) return; const b = $('BTN_TERM_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Mengeksekusi...'; const res = await api({action: 'submit_terminasi', user: CU, namaKaryawan: k, tglEfektif: t, jenis: j, alasan: a, legalHtml: lHtml}); b.disabled = false; b.innerHTML = o; if(res.success){ toast(res.message); $('FM_TERMINASI').reset(); hrUpdateLegalHint(); } else toast(res.message, true); });
 
+on('FM_ONBOARDING', 'submit', async e => { 
+  e.preventDefault(); const b = $('BTN_ONB_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
+  const res = await api({action: 'submit_onboarding', user:CU, nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, cabang:$('ONB_CABANG').value, atasan:$('ONB_ATASAN').value, tglJoin:$('ONB_TGL').value, status:$('ONB_STATUS').value, email:$('ONB_EMAIL').value, hp:$('ONB_HP').value, alamat:$('ONB_ALAMAT').value}); 
+  b.disabled = false; b.innerHTML = o; if(res.success){ toast(res.message); $('FM_ONBOARDING').reset(); prefetchDD(); } else toast(res.message, true); 
+});
+
+on('FM_TERMINASI', 'submit', async e => { 
+  e.preventDefault(); const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value, lHtml = $('TERM_LEGAL_TEXT').innerHTML; 
+  if(!confirm(`PERINGATAN FINAL!\nAnda memproses ${j} untuk ${k}.\nStatus akan NONAKTIF.`)) return; 
+  const b = $('BTN_TERM_SUBMIT'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengeksekusi...'; 
+  const res = await api({action: 'submit_terminasi', user: CU, namaKaryawan: k, tglEfektif: t, jenis: j, alasan: a, legalHtml: lHtml}); 
+  b.disabled = false; b.innerHTML = o; 
+  if(res.success){ toast(res.message); $('FM_TERMINASI').reset(); hrUpdateLegalHint(); loadDashboard(); } else toast(res.message, true); 
+});
+
+let CURRENT_OFFBOARD = null;
+async function openOffboarding(id) {
+  showL('Memuat Data Offboarding...');
+  const res = await api({action: 'get_offboarding', id: id}); hideL();
+  if(!res.success) return toast(res.message, true);
+  
+  CURRENT_OFFBOARD = res.data;
+  $('MOFF_ID').value = id;
+  $('MOFF_NAMA').textContent = CURRENT_OFFBOARD.Nama_Karyawan + ' ('+CURRENT_OFFBOARD.Jabatan+')';
+  $('MOFF_TGL').textContent = fmtDate(CURRENT_OFFBOARD.TglEfektif);
+  $('MOFF_MASA').textContent = res.masaKerja;
+  $('MOFF_JENIS').value = CURRENT_OFFBOARD.Jenis_Terminasi;
+  $('MOFF_STATUS').value = CURRENT_OFFBOARD.Status_Clearance || 'PROSES CLEARANCE';
+  
+  try {
+    const chk = JSON.parse(CURRENT_OFFBOARD.Checklist_JSON || '{}');
+    $('CHK_HANDOVER').checked = chk.handover || false;
+    $('CHK_LAPTOP').checked = chk.aset_laptop || false;
+    $('CHK_IDCARD').checked = chk.aset_idcard || false;
+    $('CHK_BPJS_TK').checked = chk.bpjs_tk || false;
+    $('CHK_BPJS_KES').checked = chk.bpjs_kes || false;
+  } catch(e){}
+
+  $('MOFF_GAJI').value = ''; $('MOFF_PESANGON_TXT').value = CURRENT_OFFBOARD.Pesangon_Info || 'Silakan isi Gaji Pokok untuk kalkulasi otomatis.';
+  $('UP_RESIGN').value = ''; $('UP_PHK').value = '';
+  
+  openM('MOFFBOARD');
+}
+
+function parseTahun(masaKerjaStr) { const m = masaKerjaStr.match(/(\d+)\s*Tahun/i); return m ? parseInt(m[1]) : 0; }
+function kalkulasiPesangon() {
+  const gaji = parseFloat($('MOFF_GAJI').value) || 0;
+  if(gaji === 0) { $('MOFF_PESANGON_TXT').value = 'Gaji kosong.'; return; }
+  const jenis = $('MOFF_JENIS').value, thnKerja = parseTahun($('MOFF_MASA').textContent);
+  let mulPesangon = 0, mulUPMK = 0, mulPisah = 0;
+
+  if(thnKerja < 1) mulPesangon = 1; else if(thnKerja < 2) mulPesangon = 2; else if(thnKerja < 3) mulPesangon = 3; else if(thnKerja < 4) mulPesangon = 4; else if(thnKerja < 5) mulPesangon = 5; else if(thnKerja < 6) mulPesangon = 6; else if(thnKerja < 7) mulPesangon = 7; else if(thnKerja < 8) mulPesangon = 8; else mulPesangon = 9;
+  if(thnKerja >= 3 && thnKerja < 6) mulUPMK = 2; else if(thnKerja >= 6 && thnKerja < 9) mulUPMK = 3; else if(thnKerja >= 9 && thnKerja < 12) mulUPMK = 4; else if(thnKerja >= 12 && thnKerja < 15) mulUPMK = 5; else if(thnKerja >= 15 && thnKerja < 18) mulUPMK = 6; else if(thnKerja >= 18 && thnKerja < 21) mulUPMK = 7; else if(thnKerja >= 21 && thnKerja < 24) mulUPMK = 8; else if(thnKerja >= 24) mulUPMK = 10;
+  if(thnKerja >= 3 && thnKerja < 6) mulPisah = 2; else if(thnKerja >= 6 && thnKerja < 9) mulPisah = 3; else if(thnKerja >= 9) mulPisah = 4;
+
+  let txt = `Dasar Perhitungan (Masa Kerja: ${thnKerja} Tahun)\nJenis Terminasi: ${jenis}\n---------------------------------\n`;
+  let total = 0;
+  if (jenis.includes('Resign Sukarela') || jenis.includes('Pelanggaran Berat')) {
+     let uPisah = mulPisah * gaji, uph = uPisah * 0.15; total = uPisah + uph;
+     txt += `Uang Pesangon & UPMK : Tidak Ada\nUang Pisah (${mulPisah}x)      : Rp ${uPisah.toLocaleString('id-ID')}\nUang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  } else if (jenis.includes('Efisiensi')) { 
+     let pesangon = (mulPesangon * 0.5) * gaji, upmk = mulUPMK * gaji, uph = (pesangon + upmk) * 0.15; total = pesangon + upmk + uph;
+     txt += `Uang Pesangon (0.5x) : Rp ${pesangon.toLocaleString('id-ID')}\nU. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\nUang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  } else { 
+     let pesangon = mulPesangon * gaji, upmk = mulUPMK * gaji, uph = (pesangon + upmk) * 0.15; total = pesangon + upmk + uph;
+     txt += `Uang Pesangon (${mulPesangon}x)  : Rp ${pesangon.toLocaleString('id-ID')}\nU. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\nUang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  }
+  txt += `---------------------------------\nTOTAL DITERIMA       : Rp ${total.toLocaleString('id-ID')}`;
+  $('MOFF_PESANGON_TXT').value = txt;
+}
+async function submitOffboardingTask() {
+  const b = $('BTN_MOFF_SAVE'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan & Mengirim Email...';
+  let docR = null, docP = null;
+  const fR = $('UP_RESIGN'); if(fR.files.length) docR = {name: fR.files[0].name, data: await b64(fR.files[0])};
+  const fP = $('UP_PHK'); if(fP.files.length) docP = {name: fP.files[0].name, data: await b64(fP.files[0])};
+  const chk = { handover: $('CHK_HANDOVER').checked, aset_laptop: $('CHK_LAPTOP').checked, aset_idcard: $('CHK_IDCARD').checked, bpjs_tk: $('CHK_BPJS_TK').checked, bpjs_kes: $('CHK_BPJS_KES').checked };
+  const statusVal = $('MOFF_STATUS').value;
+
+  if(statusVal === 'SELESAI') {
+     if(!chk.handover || !chk.aset_laptop || !chk.bpjs_tk || !chk.bpjs_kes) {
+        b.disabled = false; b.innerHTML = o; return toast('Semua aset & BPJS wajib ditandai Selesai sebelum menutup Clearance!', true);
+     }
+  }
+  const res = await api({ action: 'update_offboarding_task', user: CU, id: $('MOFF_ID').value, nama: $('MOFF_NAMA').textContent.split(' (')[0], chk: chk, docResign: docR, docPHK: docP, statusClearance: statusVal, pesangonInfo: $('MOFF_PESANGON_TXT').value });
+  b.disabled = false; b.innerHTML = o;
+  if(res.success) { toast(res.message); closeM('MOFFBOARD'); loadDashboard(); } else toast(res.message, true);
+}
+
+// --- FORM BUILDER & SP ---
 function hrSpSetTab(t) { $('FMSP').classList.toggle('hide', t !== 'sp'); }
 on('FMSP', 'submit', async e => { e.preventDefault(); const b = e.target.querySelector('button'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Mengirim SP...'; const r = await api({ action: 'send_pemanggilan', user: CU, nama: $('SPKARY').value, jenis: $('SPJENIS').value, tgl: $('SPTGL').value, alasan: $('SPALASAN').value, catat: $('SPCATAT').value }); b.disabled = false; b.innerHTML = o; if(r.success) { toast(r.message); e.target.reset(); } else toast(r.message, true); });
 
@@ -1915,6 +1997,7 @@ function fbRenderFieldsList(){ $('FB_FIELDS_LIST').innerHTML=FB_STATE.fields.map
 function fbAddField(){ FB_STATE.fields.push({name:'baru',label:'Baru',type:'text'}); fbRenderFieldsList(); }
 async function saveForm(){ let allowed = 'ALL'; if(!$('FB_ALL_KARY').checked) { const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value); if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true); allowed = checked.join(','); } const b = document.activeElement; if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed, notifyRoles:$('FBNOTIFY').value}); if(b) b.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi'; if(res.success){ toast('Disimpan'); await loadForms(); loadFBList(); } }
 
+// --- KENDARAAN & INVENTORY ---
 function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').value=''; $('KF_ST').value='TERSEDIA'; openM('MKEND'); }
 async function loadKend(){ const res=await api({action:'get_kendaraan'}); KEND_DATA=res.data||[]; $('KENDGRID').innerHTML=KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); }
 function openKendDetail(i){ const k=KEND_DATA[i]; $('MKD_NOPOL').textContent=k['No. Polisi']||k['No Polisi']; $('MKD_NOPOL_VAL').value=k['No. Polisi']||k['No Polisi']; const sk=['_rowIndex'], keys=Object.keys(k).filter(x=>!sk.includes(x)); $('MKD_DYNAMIC_FIELDS').innerHTML = keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kend-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-emerald-500" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join(''); mkdSetTab('info'); openM('MKEND_DETAIL'); }
@@ -1945,10 +2028,11 @@ async function submitOpname() { let items = []; document.querySelectorAll('.so-f
 function openExportModal() { openM('MEXPORT'); }
 async function doExportData() { const t=$('EXP_DATA').value, f=$('EXP_FMT').value; const b=$('BTN_EXPORT'); b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'get_export_data', type:t}); b.disabled=false; b.innerHTML='Download File'; if(!res.success||!res.data||!res.data.length) return toast('Data Kosong',true); const ws=XLSX.utils.json_to_sheet(res.data), wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Export"); XLSX.writeFile(wb, `Export_${t}.${f==='CSV'?'csv':'xlsx'}`); toast('Selesai diunduh.'); closeM('MEXPORT'); }
 
-['MDETAIL','MAPPROVE_ACTION','MKARY','MKEND','MKEND_DETAIL','MINV','MKONTRAK','MPENILAIAN','MEXPORT','MBC_DETAIL','MCUTI_DETAIL','MCUTI_MANUAL','MEDIT_LOG_INV'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); }); });
+['MDETAIL','MAPPROVE_ACTION','MKARY','MKEND','MKEND_DETAIL','MINV','MKONTRAK','MPENILAIAN','MEXPORT','MBC_DETAIL','MCUTI_DETAIL','MCUTI_MANUAL','MEDIT_LOG_INV','MOFFBOARD'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); }); });
 
+// --- PROFIL DIRI (SELF-SERVICE CHECKLIST) ---
 let MY_PROFILE_DATA = null;
-  
+
 async function openMyProfile() {
   $('MPROF_AVATAR').textContent = (CU.Nama||'U').charAt(0).toUpperCase();
   $('MPROF_BODY').innerHTML = '<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>';
@@ -1958,8 +2042,7 @@ async function openMyProfile() {
   if(!res.success) { $('MPROF_BODY').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold">${res.message}</p>`; return; }
   
   const k = res.data; 
-  MY_PROFILE_DATA = k; // Simpan ke memory untuk fitur checklist
-  
+  MY_PROFILE_DATA = k; 
   const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU', 'username', 'IsAtasan']; 
   const keys = Object.keys(k).filter(x => !sk.includes(x));
   
@@ -1976,28 +2059,15 @@ async function openMyProfile() {
 function openReqProfile() { 
   closeM('MPROFILE'); 
   const container = $('REQ_PROF_FIELDS');
-  
   if(!MY_PROFILE_DATA) {
      container.innerHTML = '<p class="text-sm text-red-500 font-bold text-center">Gagal memuat profil. Tutup dan coba lagi.</p>';
   } else {
-     // Jangan tampilkan data-data sensitif yang tidak boleh diubah sendiri oleh karyawan
      const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU', 'username', 'IsAtasan', 'SisaCuti', 'SisaKhusus', 'SisaAkumulasi', 'JatahTahunan', 'KontrakHabis', 'MasaKerja', 'TemplateKPI', 'NIK']; 
      const keys = Object.keys(MY_PROFILE_DATA).filter(x => !sk.includes(x));
      
      container.innerHTML = keys.map((key, i) => {
         let oldVal = (MY_PROFILE_DATA[key] != null ? MY_PROFILE_DATA[key] : '').toString().replace(/"/g, '&quot;');
-        return `
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm transition hover:border-blue-300">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" class="req-prof-cb w-5 h-5 text-blue-600 rounded" onchange="document.getElementById('REQ_INP_${i}').classList.toggle('hide', !this.checked); if(this.checked) document.getElementById('REQ_INP_${i}').focus();" data-key="${key}" data-old="${oldVal}">
-            <div>
-              <span class="text-xs font-black text-slate-700 uppercase tracking-wider block">${key}</span>
-              <span class="text-[10px] font-bold text-slate-400">Data saat ini: ${oldVal || '-'}</span>
-            </div>
-          </label>
-          <input type="text" id="REQ_INP_${i}" class="inp mt-3 !py-2.5 text-sm hide font-bold border-blue-200 focus:border-blue-500 bg-blue-50" placeholder="Ketik data ${key} yang baru disini...">
-        </div>
-        `;
+        return `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm transition hover:border-blue-300"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="req-prof-cb w-5 h-5 text-blue-600 rounded" onchange="document.getElementById('REQ_INP_${i}').classList.toggle('hide', !this.checked); if(this.checked) document.getElementById('REQ_INP_${i}').focus();" data-key="${key}" data-old="${oldVal}"><div><span class="text-xs font-black text-slate-700 uppercase tracking-wider block">${key}</span><span class="text-[10px] font-bold text-slate-400">Data saat ini: ${oldVal || '-'}</span></div></label><input type="text" id="REQ_INP_${i}" class="inp mt-3 !py-2.5 text-sm hide font-bold border-blue-200 focus:border-blue-500 bg-blue-50" placeholder="Ketik data ${key} yang baru disini..."></div>`;
      }).join('');
   }
   openM('MREQ_PROFILE'); 
@@ -2005,152 +2075,20 @@ function openReqProfile() {
 
 on('FM_REQ_PROFIL', 'submit', async e => {
   e.preventDefault(); 
-  
   let changes = [];
   document.querySelectorAll('.req-prof-cb:checked').forEach((cb) => {
     let inp = cb.closest('div').querySelector('input[type="text"]');
-    let key = cb.dataset.key;
-    let oldVal = cb.dataset.old || '-';
-    let newVal = inp.value.trim();
-    
-    if(newVal && newVal !== oldVal) {
-       changes.push(`➤ ${key.toUpperCase()}\n   Data Baru: ${newVal}\n   Data Lama: ${oldVal}`);
-    }
+    let key = cb.dataset.key; let oldVal = cb.dataset.old || '-'; let newVal = inp.value.trim();
+    if(newVal && newVal !== oldVal) { changes.push(`➤ ${key.toUpperCase()}\n   Data Baru: ${newVal}\n   Data Lama: ${oldVal}`); }
   });
-
   if(changes.length === 0) return toast('Pilih dan isi minimal 1 data baru yang berbeda!', true);
-
   const pesanFormatted = "PENGAJUAN PEMBARUAN DATA MASTER:\n\n" + changes.join('\n\n');
-
   const b = $('BTN_REQ_PROF'), o = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim...';
   const res = await api({action: 'req_update_profile', user: CU, pesan: pesanFormatted});
   b.disabled = false; b.innerHTML = o;
-  
   if(res.success){ toast(res.message); closeM('MREQ_PROFILE'); } else toast(res.message, true);
 });
 
-// --- FUNGSI OFFBOARDING TRACKER & KALKULATOR PESANGON ---
-let CURRENT_OFFBOARD = null;
-
-async function openOffboarding(id) {
-  showL('Memuat Data Offboarding...');
-  const res = await api({action: 'get_offboarding', id: id}); hideL();
-  if(!res.success) return toast(res.message, true);
-  
-  CURRENT_OFFBOARD = res.data;
-  $('MOFF_ID').value = id;
-  $('MOFF_NAMA').textContent = CURRENT_OFFBOARD.Nama_Karyawan + ' ('+CURRENT_OFFBOARD.Jabatan+')';
-  $('MOFF_TGL').textContent = fmtDate(CURRENT_OFFBOARD.TglEfektif);
-  $('MOFF_MASA').textContent = res.masaKerja;
-  $('MOFF_JENIS').value = CURRENT_OFFBOARD.Jenis_Terminasi;
-  $('MOFF_STATUS').value = CURRENT_OFFBOARD.Status_Clearance || 'PROSES CLEARANCE';
-  
-  try {
-    const chk = JSON.parse(CURRENT_OFFBOARD.Checklist_JSON || '{}');
-    $('CHK_HANDOVER').checked = chk.handover || false;
-    $('CHK_LAPTOP').checked = chk.aset_laptop || false;
-    $('CHK_IDCARD').checked = chk.aset_idcard || false;
-    $('CHK_BPJS_TK').checked = chk.bpjs_tk || false;
-    $('CHK_BPJS_KES').checked = chk.bpjs_kes || false;
-  } catch(e){}
-
-  $('MOFF_GAJI').value = ''; $('MOFF_PESANGON_TXT').value = CURRENT_OFFBOARD.Pesangon_Info || 'Silakan isi Gaji Pokok untuk kalkulasi otomatis.';
-  $('UP_RESIGN').value = ''; $('UP_PHK').value = '';
-  
-  openM('MOFFBOARD');
-}
-
-function parseTahun(masaKerjaStr) {
-  // Ekstrak angka "Tahun" dari string "X Tahun, Y Bulan, Z Hari"
-  const m = masaKerjaStr.match(/(\d+)\s*Tahun/i);
-  return m ? parseInt(m[1]) : 0;
-}
-
-function kalkulasiPesangon() {
-  const gaji = parseFloat($('MOFF_GAJI').value) || 0;
-  if(gaji === 0) { $('MOFF_PESANGON_TXT').value = 'Gaji kosong.'; return; }
-  
-  const jenis = $('MOFF_JENIS').value;
-  const thnKerja = parseTahun($('MOFF_MASA').textContent);
-  
-  let mulPesangon = 0, mulUPMK = 0, mulPisah = 0;
-
-  // Rumus Pesangon Pasal 58 UU
-  if(thnKerja < 1) mulPesangon = 1; else if(thnKerja < 2) mulPesangon = 2; else if(thnKerja < 3) mulPesangon = 3; else if(thnKerja < 4) mulPesangon = 4; else if(thnKerja < 5) mulPesangon = 5; else if(thnKerja < 6) mulPesangon = 6; else if(thnKerja < 7) mulPesangon = 7; else if(thnKerja < 8) mulPesangon = 8; else mulPesangon = 9;
-
-  // Rumus UPMK Pasal 59 UU
-  if(thnKerja >= 3 && thnKerja < 6) mulUPMK = 2; else if(thnKerja >= 6 && thnKerja < 9) mulUPMK = 3; else if(thnKerja >= 9 && thnKerja < 12) mulUPMK = 4; else if(thnKerja >= 12 && thnKerja < 15) mulUPMK = 5; else if(thnKerja >= 15 && thnKerja < 18) mulUPMK = 6; else if(thnKerja >= 18 && thnKerja < 21) mulUPMK = 7; else if(thnKerja >= 21 && thnKerja < 24) mulUPMK = 8; else if(thnKerja >= 24) mulUPMK = 10;
-
-  // Rumus Uang Pisah Pasal 61 & 62 (Peraturan Perusahaan)
-  if(thnKerja >= 3 && thnKerja < 6) mulPisah = 2; else if(thnKerja >= 6 && thnKerja < 9) mulPisah = 3; else if(thnKerja >= 9) mulPisah = 4;
-
-  let txt = `Dasar Perhitungan (Masa Kerja: ${thnKerja} Tahun)\nJenis Terminasi: ${jenis}\n---------------------------------\n`;
-  let total = 0;
-
-  if (jenis.includes('Resign Sukarela') || jenis.includes('Pelanggaran Berat')) {
-     let uPisah = mulPisah * gaji;
-     let uph = uPisah * 0.15; // Asumsi UPH standard 15%
-     total = uPisah + uph;
-     txt += `Uang Pesangon & UPMK : Tidak Ada\n`;
-     txt += `Uang Pisah (${mulPisah}x)      : Rp ${uPisah.toLocaleString('id-ID')}\n`;
-     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
-  } 
-  else if (jenis.includes('Efisiensi')) { // 0.5x Pesangon
-     let pesangon = (mulPesangon * 0.5) * gaji;
-     let upmk = mulUPMK * gaji;
-     let uph = (pesangon + upmk) * 0.15;
-     total = pesangon + upmk + uph;
-     txt += `Uang Pesangon (0.5x) : Rp ${pesangon.toLocaleString('id-ID')}\n`;
-     txt += `U. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\n`;
-     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
-  }
-  else { // Pensiun / Lainnya (1x Normal)
-     let pesangon = mulPesangon * gaji;
-     let upmk = mulUPMK * gaji;
-     let uph = (pesangon + upmk) * 0.15;
-     total = pesangon + upmk + uph;
-     txt += `Uang Pesangon (${mulPesangon}x)  : Rp ${pesangon.toLocaleString('id-ID')}\n`;
-     txt += `U. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\n`;
-     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
-  }
-
-  txt += `---------------------------------\nTOTAL DITERIMA       : Rp ${total.toLocaleString('id-ID')}`;
-  $('MOFF_PESANGON_TXT').value = txt;
-}
-
-async function submitOffboardingTask() {
-  const b = $('BTN_MOFF_SAVE'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Menyimpan...';
-  
-  let docR = null, docP = null;
-  const fR = $('UP_RESIGN'); if(fR.files.length) docR = {name: fR.files[0].name, data: await b64(fR.files[0])};
-  const fP = $('UP_PHK'); if(fP.files.length) docP = {name: fP.files[0].name, data: await b64(fP.files[0])};
-
-  const chk = {
-    handover: $('CHK_HANDOVER').checked, aset_laptop: $('CHK_LAPTOP').checked,
-    aset_idcard: $('CHK_IDCARD').checked, bpjs_tk: $('CHK_BPJS_TK').checked, bpjs_kes: $('CHK_BPJS_KES').checked
-  };
-
-  const statusVal = $('MOFF_STATUS').value;
-
-  // Validasi: Jika diubah ke SELESAI, BPJS dan Handover harus dicentang
-  if(statusVal === 'SELESAI') {
-     if(!chk.handover || !chk.aset_laptop || !chk.bpjs_tk || !chk.bpjs_kes) {
-        b.disabled = false; b.innerHTML = o;
-        return toast('Pastikan seluruh aset & BPJS telah ditandai Selesai sebelum menutup Clearance!', true);
-     }
-  }
-
-  const res = await api({
-    action: 'update_offboarding_task', user: CU, id: $('MOFF_ID').value, nama: $('MOFF_NAMA').textContent.split(' (')[0],
-    chk: chk, docResign: docR, docPHK: docP,
-    statusClearance: statusVal,
-    pesangonInfo: $('MOFF_PESANGON_TXT').value
-  });
-  
-  b.disabled = false; b.innerHTML = o;
-  if(res.success) { toast(res.message); closeM('MOFFBOARD'); loadDashboard(); } else toast(res.message, true);
-}
-
-</script>
+</script>  
 </body>
 </html>
