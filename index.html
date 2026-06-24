@@ -1428,7 +1428,7 @@ tailwind.config = {
 <!-- ========================================================================= -->
 <script>
 // ⚠️ PASTIKAN URL INI BENAR MENGARAH KE DEPLOYMENT APPS SCRIPT ANDA ⚠️
-const API = 'https://script.google.com/macros/s/AKfycbxF2-NgChvua38uJPA7T-NjZSDl51KndushOPy-HTFWWFqJgyuH9qkeq_zNL0-17uCf/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzRNH8I5EzjMxeGeduU_ZrOCWzvbcOReML4phKVHC01UbCKdjg_CUkLBRbTZGM_mc60SQ/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1595,8 +1595,10 @@ async function loadDashboard() {
     rwEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Belum ada riwayat.</div>`; 
   }
   
-  // 6. Render Peringatan Kontrak (Diri Sendiri & Widget Atasan/HRD)
+  // 6. Render Peringatan Kontrak (HANYA MUNCUL UNTUK HRD & GM)
   $('ALERT_KB').classList.add('hide'); 
+  const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
+  
   if(res.alertKontrak && res.alertKontrak.length){ 
     const mine = res.alertKontrak.find(k => k.Nama.toUpperCase() === CU.Nama.toUpperCase()); 
     if(mine){ 
@@ -1604,16 +1606,28 @@ async function loadDashboard() {
       $('ALERT_KB_LIST').innerHTML = `<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}.</p>`; 
     } 
     WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
-    if(WGT_KB_DATA.length > 0){ 
+    
+    if(WGT_KB_DATA.length > 0 && isHrdOrGm && $('WGT_KB')){ 
       $('WGT_KB').classList.remove('hide'); 
       $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
       $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => { 
         const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
         return `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Cabang||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs font-bold">${fmtDate(k.KontrakHabis)}</td><td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td><td class="px-6 py-4 text-center"><button class="text-[10px] font-black text-orange-600 bg-orange-100 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg transition shadow-sm">Tindak Lanjut</button></td></tr>`; 
       }).join(''); 
-    } 
-  } else {
-    if($('WGT_KB')) $('WGT_KB').classList.add('hide');
+    } else if ($('WGT_KB')) {
+      $('WGT_KB').classList.add('hide');
+    }
+  } else if ($('WGT_KB')) {
+    $('WGT_KB').classList.add('hide');
+  }
+
+  // 7. MENGISI WIDGET OFFBOARDING TRACKER (KHUSUS HRD)
+  if(res.offboardingTasks && res.offboardingTasks.length > 0 && CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
+    $('WGT_OFF').classList.remove('hide');
+    $('WGT_OFF_N').textContent = res.offboardingTasks.length;
+    $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-slate-800">${t.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${t.Jenis}</td><td class="px-6 py-4 font-bold text-red-600 text-xs">${fmtDate(t.TglEfektif)}</td><td class="px-6 py-4 text-center"><button class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-[10px] font-black hover:scale-105 transition shadow-sm">Proses Clearance</button></td></tr>`).join('');
+  } else if($('WGT_OFF')) {
+    $('WGT_OFF').classList.add('hide');
   }
 
   // 7. MENGISI WIDGET OFFBOARDING HRD
@@ -1699,10 +1713,10 @@ on('DYNFORM','submit',async e=>{
     } else det[x.name]=el.value; 
   } 
   if(proms.length) await Promise.all(proms); 
-  const b=$('BTNSUBMIT'); b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim...'; 
+  const b=$('BTNSUBMIT'); b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan... (Harap Tunggu)'; 
   const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det},'Menyimpan...'); 
   b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
-  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); }else toast(res.message,true); 
+  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(): }else toast(res.message,true); 
 });
 
 async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
@@ -1771,13 +1785,18 @@ let WGT_KB_MODE='konseling', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_pen
 
 function mkontrakSetMode(m){ 
   WGT_KB_MODE=m; 
-  document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white'); 
-  $('MKONTRAK_TAB_'+m).className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700'; 
-  $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; 
-  if(m === 'dokumen') { $('MKONTRAK_FILE_WRAP').classList.remove('hide'); $('MKONTRAK_DESC').textContent = "Penting: HRD wajib melampirkan file Draft Kontrak berbentuk PDF."; }
-  else { $('MKONTRAK_FILE_WRAP').classList.add('hide'); $('MKONTRAK_DESC').textContent = "Pilih tindakan di atas. Sistem mengirim notifikasi email otomatis ke target bersangkutan."; }
-}  
-  
+  document.querySelectorAll('.mkontrak-tab').forEach(x=>x.className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 bg-white transition flex flex-col items-center gap-2 text-center'); 
+  if($('MKONTRAK_TAB_'+m)) $('MKONTRAK_TAB_'+m).className='mkontrak-tab px-3 py-4 rounded-2xl text-xs font-black border-2 border-orange-500 bg-orange-50 text-orange-700 transition flex flex-col items-center gap-2 text-center'; 
+  if($('MKONTRAK_CATATAN_WRAP')) $('MKONTRAK_CATATAN_WRAP').style.display=m==='penilaian'?'none':'block'; 
+  if(m === 'dokumen') { 
+    if($('MKONTRAK_FILE_WRAP')) $('MKONTRAK_FILE_WRAP').classList.remove('hide'); 
+    if($('MKONTRAK_DESC')) $('MKONTRAK_DESC').textContent = "Penting: HRD wajib melampirkan file Draft Kontrak berbentuk PDF."; 
+  } else { 
+    if($('MKONTRAK_FILE_WRAP')) $('MKONTRAK_FILE_WRAP').classList.add('hide'); 
+    if($('MKONTRAK_DESC')) $('MKONTRAK_DESC').textContent = "Pilih tindakan di atas. Sistem mengirim notifikasi email otomatis ke target bersangkutan."; 
+  }
+}
+
 function openKontrakAction(i){ 
   const k=WGT_KB_DATA[i]; 
   if(!k)return; 
@@ -1787,6 +1806,7 @@ function openKontrakAction(i){
   mkontrakSetMode('konseling'); 
   openM('MKONTRAK'); 
 }
+  
 let KPI_CURRENT_QUESTIONS = [];
 async function openPenilaianForm(i){ 
   const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
