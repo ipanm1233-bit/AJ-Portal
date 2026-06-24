@@ -380,6 +380,29 @@ tailwind.config = {
           </div>
         </div>
 
+        <!-- WGT OFFBOARDING TRACKER (Dashboard HRD) -->
+        <div id="WGT_OFF" class="hide bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex-col mt-6 border-t-4 border-t-slate-800">
+          <div class="px-6 py-5 border-b border-slate-50 flex items-center gap-4 bg-slate-100/50">
+            <div class="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-person-walking-arrow-right text-slate-700 text-sm"></i></div>
+            <div>
+              <h3 class="font-black text-slate-800 text-sm tracking-wide">Tracking Proses Offboarding</h3>
+              <p class="text-[10px] font-bold text-slate-400 mt-0.5">Karyawan resign/terminasi yang masih dalam proses Clearance.</p>
+            </div>
+            <span id="WGT_OFF_N" class="ml-auto bg-slate-800 text-white text-[10px] font-black px-3 py-1.5 rounded-lg">0</span>
+          </div>
+          <div class="table-container max-h-[300px]">
+            <table class="w-full text-sm whitespace-nowrap min-w-[600px]">
+              <thead class="sticky top-0 z-10"><tr class="bg-white border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th class="px-6 py-4 text-left">Nama Karyawan</th>
+                <th class="px-6 py-4 text-left">Jenis Terminasi</th>
+                <th class="px-6 py-4 text-left">Tgl Efektif Keluar</th>
+                <th class="px-6 py-4 text-center">Aksi / Checklist</th>
+              </tr></thead>
+              <tbody id="WGT_OFF_BODY" class="divide-y divide-slate-50 bg-slate-50/30"></tbody>
+            </table>
+          </div>
+        </div>
+
       </div> <!-- AKHIR DARI V-dashboard -->
       <!-- ================== BUAT PENGAJUAN (CARD UI & SEARCH) ================== -->
       <div id="V-pengajuan" class="app-view hide fade h-full pb-4">
@@ -1282,6 +1305,68 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- Modal: Checklist Offboarding -->
+<div id="MOFFBOARD" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden fade border-t-8 border-t-slate-800 flex flex-col max-h-[95vh]">
+    <div class="px-8 py-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+      <div><h3 class="font-black text-slate-800 text-lg">Clearance & Offboarding</h3><p id="MOFF_NAMA" class="text-xs font-bold text-slate-500 mt-1"></p></div>
+      <button onclick="closeM('MOFFBOARD')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+    <div class="p-8 flex-1 overflow-y-auto space-y-6">
+      <input type="hidden" id="MOFF_ID"> <input type="hidden" id="MOFF_JENIS">
+      
+      <!-- Box Informasi Dasar -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><p class="text-[10px] font-black text-slate-400 uppercase">Tgl Efektif</p><p id="MOFF_TGL" class="font-bold text-red-600 mt-1"></p></div>
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200"><p class="text-[10px] font-black text-slate-400 uppercase">Total Masa Kerja</p><p id="MOFF_MASA" class="font-bold text-slate-800 mt-1"></p></div>
+      </div>
+
+      <!-- Checklist Aset & Pekerjaan -->
+      <div>
+        <h4 class="font-black text-slate-800 text-sm mb-3 border-b pb-2"><i class="fa-solid fa-box-open mr-2 text-slate-500"></i>Handover & Pengembalian Aset</h4>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" id="CHK_HANDOVER" class="w-5 h-5 text-slate-800"> <div><p class="text-sm font-bold">Serah Terima Pekerjaan (Handover)</p><p class="text-[10px] text-slate-500">Form handover telah ditandatangani Atasan.</p></div></label>
+          <label class="flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" id="CHK_LAPTOP" class="w-5 h-5 text-slate-800"> <div><p class="text-sm font-bold">Pengembalian Laptop / PC / Aset Kerja</p></div></label>
+          <label class="flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" id="CHK_IDCARD" class="w-5 h-5 text-slate-800"> <div><p class="text-sm font-bold">Pengembalian ID Card & Seragam</p></div></label>
+        </div>
+      </div>
+
+      <!-- Dokumen & BPJS -->
+      <div>
+        <h4 class="font-black text-slate-800 text-sm mb-3 border-b pb-2"><i class="fa-solid fa-file-shield mr-2 text-slate-500"></i>Dokumen Hukum & Status BPJS</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label class="flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer"><input type="checkbox" id="CHK_BPJS_TK" class="w-5 h-5 text-slate-800"> <span class="text-xs font-bold">Nonaktif BPJS Ketenagakerjaan</span></label>
+          <label class="flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer"><input type="checkbox" id="CHK_BPJS_KES" class="w-5 h-5 text-slate-800"> <span class="text-xs font-bold">Nonaktif BPJS Kesehatan</span></label>
+          <div class="sm:col-span-2 border border-slate-200 p-4 rounded-xl bg-slate-50">
+            <label class="lbl">Scan Surat Resign (Jika Resign Sukarela)</label>
+            <input type="file" id="UP_RESIGN" class="inp text-xs p-1 bg-white mb-3" accept=".pdf,.jpg,.png">
+            <label class="lbl">Srt Pernyataan Tanggung Jawab Mutlak (Lap. PHK)</label>
+            <input type="file" id="UP_PHK" class="inp text-xs p-1 bg-white" accept=".pdf">
+          </div>
+        </div>
+      </div>
+
+      <!-- Kalkulator Hak Normatif -->
+      <div>
+        <h4 class="font-black text-slate-800 text-sm mb-3 border-b pb-2"><i class="fa-solid fa-calculator mr-2 text-slate-500"></i>Kalkulator Hak Normatif (PP 35/2021 & Peraturan Perusahaan)</h4>
+        <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-xl">
+          <div class="flex items-center gap-4 mb-3">
+             <div class="w-full"><label class="lbl">Gaji Pokok + Tunj. Tetap (Rp)</label><input type="number" id="MOFF_GAJI" class="inp font-black text-emerald-700" placeholder="Masukkan Nominal Gaji" onkeyup="kalkulasiPesangon()"></div>
+          </div>
+          <label class="lbl">Rincian Perhitungan (Akan diemail ke Finance)</label>
+          <textarea id="MOFF_PESANGON_TXT" rows="5" class="inp resize-none !text-xs font-mono font-bold bg-white" readonly></textarea>
+          <p class="text-[10px] font-bold text-emerald-700 mt-2"><i class="fa-solid fa-info-circle mr-1"></i>Paklaring akan otomatis diterbitkan 1 bulan setelah tanggal efektif.</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="px-8 py-5 bg-white border-t border-slate-100 flex justify-between items-center">
+      <select id="MOFF_STATUS" class="inp !py-2 w-48 font-black shadow-sm"><option value="PROSES CLEARANCE">Sedang Proses</option><option value="SELESAI">Selesai & Kirim Finance</option></select>
+      <div class="flex gap-2"><button onclick="closeM('MOFFBOARD')" class="px-6 py-2.5 bg-slate-100 rounded-xl text-sm font-bold text-slate-600">Tutup</button><button onclick="submitOffboardingTask()" id="BTN_MOFF_SAVE" class="bg-slate-800 text-white px-6 py-2.5 rounded-xl text-sm font-black shadow-lg">Simpan Progress</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Input Cuti Manual (HRD) -->
 <div id="MCUTI_MANUAL" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-corp">
@@ -1451,13 +1536,70 @@ function nav(vId) {
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
 async function loadDashboard() {
-  $('DSISA_TAHUNAN').textContent = CU.SisaCuti||0; $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan||0;
-  $('DSISA_KHUSUS').textContent = CU.SisaKhusus||0; $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi||0;
-  const res = await api({action:'get_dashboard', user:CU}); if(!res.success) return;
-  const ctEl=$('DCUTI_TODAY'); if(res.cutiHariIni&&res.cutiHariIni.length){ ctEl.innerHTML=res.cutiHariIni.map(c=>`<div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex items-center justify-center"><i class="fa-solid fa-user"></i></div><div><p class="font-black text-slate-800 text-sm">${c.Nama}</p><p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p></div></div>`).join(''); }else{ ctEl.innerHTML=`<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; }
-  const bcEl=$('DBC'); DASH_BC_DATA=res.broadcasts||[]; if(DASH_BC_DATA.length){ bcEl.innerHTML=DASH_BC_DATA.map((b,i)=>`<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer group"><div class="flex justify-between items-start mb-1.5"><p class="font-black text-slate-800 text-sm group-hover:text-corp transition">${b.Judul||''}</p><span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">${fmtDate(b.Tanggal)}</span></div><div class="text-xs text-slate-500 font-medium line-clamp-2">${(b.Isi||'').replace(/<[^>]+>/g, '')}</div></div>`).join(''); }else bcEl.innerHTML=`<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Tidak ada pengumuman.</div>`;
-  const rwEl=$('DRWYT'); if(res.riwayat_singkat&&res.riwayat_singkat.length){ rwEl.innerHTML=res.riwayat_singkat.map(r=>`<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join(''); }else rwEl.innerHTML=`<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Belum ada riwayat.</div>`;
-  $('ALERT_KB').classList.add('hide'); if(res.alertKontrak&&res.alertKontrak.length){ const mine=res.alertKontrak.find(k=>k.Nama.toUpperCase()===CU.Nama.toUpperCase()); if(mine){ $('ALERT_KB').classList.remove('hide'); $('ALERT_KB_LIST').innerHTML=`<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}.</p>`; } WGT_KB_DATA=res.alertKontrak.filter(k=>k.Nama.toUpperCase()!==CU.Nama.toUpperCase()); if(WGT_KB_DATA.length>0){ $('WGT_KB').classList.remove('hide'); $('WGT_KB_N').textContent=WGT_KB_DATA.length; $('WGT_KB_BODY').innerHTML=WGT_KB_DATA.map((k,i)=>{ const cls=k.SisaHari<0?'text-red-600':k.SisaHari<=7?'text-orange-600':'text-yellow-600'; return `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Cabang||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs font-bold">${fmtDate(k.KontrakHabis)}</td><td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td><td class="px-6 py-4 text-center"><button class="text-[10px] font-black text-orange-600 bg-orange-100 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg">Tindak Lanjut</button></td></tr>`; }).join(''); } }
+  // 1. Update Sisa Cuti UI
+  $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
+  $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
+  $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
+  $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
+  
+  // 2. Tarik Data dari Server
+  const res = await api({action:'get_dashboard', user:CU}); 
+  if(!res.success) return;
+  
+  // 3. Render Daftar Karyawan Cuti Hari Ini
+  const ctEl = $('DCUTI_TODAY'); 
+  if(res.cutiHariIni && res.cutiHariIni.length){ 
+    ctEl.innerHTML = res.cutiHariIni.map(c => `<div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex items-center justify-center"><i class="fa-solid fa-user"></i></div><div><p class="font-black text-slate-800 text-sm">${c.Nama}</p><p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p></div></div>`).join(''); 
+  } else { 
+    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
+  }
+  
+  // 4. Render Broadcast / Memo
+  const bcEl = $('DBC'); 
+  DASH_BC_DATA = res.broadcasts || []; 
+  if(DASH_BC_DATA.length){ 
+    bcEl.innerHTML = DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer group"><div class="flex justify-between items-start mb-1.5"><p class="font-black text-slate-800 text-sm group-hover:text-corp transition">${b.Judul||''}</p><span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">${fmtDate(b.Tanggal)}</span></div><div class="text-xs text-slate-500 font-medium line-clamp-2">${(b.Isi||'').replace(/<[^>]+>/g, '')}</div></div>`).join(''); 
+  } else { 
+    bcEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Tidak ada pengumuman.</div>`; 
+  }
+  
+  // 5. Render Aktivitas / Riwayat Singkat 360
+  const rwEl = $('DRWYT'); 
+  if(res.riwayat_singkat && res.riwayat_singkat.length){ 
+    rwEl.innerHTML = res.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join(''); 
+  } else { 
+    rwEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm h-full flex items-center justify-center">Belum ada riwayat.</div>`; 
+  }
+  
+  // 6. Render Peringatan Kontrak (Diri Sendiri & Widget Atasan/HRD)
+  $('ALERT_KB').classList.add('hide'); 
+  if(res.alertKontrak && res.alertKontrak.length){ 
+    const mine = res.alertKontrak.find(k => k.Nama.toUpperCase() === CU.Nama.toUpperCase()); 
+    if(mine){ 
+      $('ALERT_KB').classList.remove('hide'); 
+      $('ALERT_KB_LIST').innerHTML = `<p>Kontrak Anda berakhir pada <strong>${fmtDate(mine.KontrakHabis)}</strong> — ${mine.SisaHari>0?mine.SisaHari+' hari lagi':'sudah habis'}.</p>`; 
+    } 
+    WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
+    if(WGT_KB_DATA.length > 0){ 
+      $('WGT_KB').classList.remove('hide'); 
+      $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
+      $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => { 
+        const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
+        return `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs">${k.Cabang||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs font-bold">${fmtDate(k.KontrakHabis)}</td><td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td><td class="px-6 py-4 text-center"><button class="text-[10px] font-black text-orange-600 bg-orange-100 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg transition shadow-sm">Tindak Lanjut</button></td></tr>`; 
+      }).join(''); 
+    } 
+  } else {
+    if($('WGT_KB')) $('WGT_KB').classList.add('hide');
+  }
+
+  // 7. MENGISI WIDGET OFFBOARDING HRD
+  if(res.offboardingTasks && res.offboardingTasks.length > 0 && $('WGT_OFF')) {
+    $('WGT_OFF').classList.remove('hide');
+    $('WGT_OFF_N').textContent = res.offboardingTasks.length;
+    $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-slate-800">${t.Nama}</td><td class="px-6 py-4 text-slate-600 text-xs">${t.Jenis}</td><td class="px-6 py-4 font-bold text-red-600 text-xs">${fmtDate(t.TglEfektif)}</td><td class="px-6 py-4 text-center"><button class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-[10px] font-black hover:scale-105 transition shadow-sm">Proses Clearance</button></td></tr>`).join('');
+  } else if($('WGT_OFF')) {
+    $('WGT_OFF').classList.add('hide');
+  }
 }
 function openBroadcast(i){ const b=DASH_BC_DATA[i]; if(!b) return; $('MBC_TITLE').textContent=b.Judul; $('MBC_DATE').textContent=fmtDate(b.Tanggal); $('MBC_CONTENT').innerHTML=b.Isi; $('MBC_LINK').innerHTML=b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-black text-sm rounded-xl">Unduh Lampiran</a>`:''; openM('MBC_DETAIL'); }
 function bcToggleTarget(){ const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL'), txt=$('BCTARGET_TEXT'), sNik=$('BCTARGET_SELECT_NIK'), sCab=$('BCTARGET_SELECT_CABANG'), h=$('BC_MULTIPLE_HINT'); txt.classList.add('hide'); sNik.classList.add('hide'); sCab.classList.add('hide'); h.classList.add('hide'); if(t==='GENERAL') w.classList.add('hide'); else if(t==='NIK'){ w.classList.remove('hide'); l.textContent='Pilih Karyawan (Bisa Lebih dari Satu)'; sNik.classList.remove('hide'); h.classList.remove('hide'); if(!sNik.dataset.loaded){ sNik.innerHTML=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); sNik.dataset.loaded='1'; } } else if(t==='CABANG'){ w.classList.remove('hide'); l.textContent='Pilih Cabang'; sCab.classList.remove('hide'); } else{ w.classList.remove('hide'); l.textContent='Nama Divisi'; txt.classList.remove('hide'); } }
@@ -1713,6 +1855,128 @@ on('FM_REQ_PROFIL', 'submit', async e => {
   b.disabled = false; b.innerHTML = o;
   if(res.success){ toast(res.message); closeM('MREQ_PROFILE'); } else toast(res.message, true);
 });
+
+// --- FUNGSI OFFBOARDING TRACKER & KALKULATOR PESANGON ---
+let CURRENT_OFFBOARD = null;
+
+async function openOffboarding(id) {
+  showL('Memuat Data Offboarding...');
+  const res = await api({action: 'get_offboarding', id: id}); hideL();
+  if(!res.success) return toast(res.message, true);
+  
+  CURRENT_OFFBOARD = res.data;
+  $('MOFF_ID').value = id;
+  $('MOFF_NAMA').textContent = CURRENT_OFFBOARD.Nama_Karyawan + ' ('+CURRENT_OFFBOARD.Jabatan+')';
+  $('MOFF_TGL').textContent = fmtDate(CURRENT_OFFBOARD.TglEfektif);
+  $('MOFF_MASA').textContent = res.masaKerja;
+  $('MOFF_JENIS').value = CURRENT_OFFBOARD.Jenis_Terminasi;
+  $('MOFF_STATUS').value = CURRENT_OFFBOARD.Status_Clearance || 'PROSES CLEARANCE';
+  
+  try {
+    const chk = JSON.parse(CURRENT_OFFBOARD.Checklist_JSON || '{}');
+    $('CHK_HANDOVER').checked = chk.handover || false;
+    $('CHK_LAPTOP').checked = chk.aset_laptop || false;
+    $('CHK_IDCARD').checked = chk.aset_idcard || false;
+    $('CHK_BPJS_TK').checked = chk.bpjs_tk || false;
+    $('CHK_BPJS_KES').checked = chk.bpjs_kes || false;
+  } catch(e){}
+
+  $('MOFF_GAJI').value = ''; $('MOFF_PESANGON_TXT').value = CURRENT_OFFBOARD.Pesangon_Info || 'Silakan isi Gaji Pokok untuk kalkulasi otomatis.';
+  $('UP_RESIGN').value = ''; $('UP_PHK').value = '';
+  
+  openM('MOFFBOARD');
+}
+
+function parseTahun(masaKerjaStr) {
+  // Ekstrak angka "Tahun" dari string "X Tahun, Y Bulan, Z Hari"
+  const m = masaKerjaStr.match(/(\d+)\s*Tahun/i);
+  return m ? parseInt(m[1]) : 0;
+}
+
+function kalkulasiPesangon() {
+  const gaji = parseFloat($('MOFF_GAJI').value) || 0;
+  if(gaji === 0) { $('MOFF_PESANGON_TXT').value = 'Gaji kosong.'; return; }
+  
+  const jenis = $('MOFF_JENIS').value;
+  const thnKerja = parseTahun($('MOFF_MASA').textContent);
+  
+  let mulPesangon = 0, mulUPMK = 0, mulPisah = 0;
+
+  // Rumus Pesangon Pasal 58 UU
+  if(thnKerja < 1) mulPesangon = 1; else if(thnKerja < 2) mulPesangon = 2; else if(thnKerja < 3) mulPesangon = 3; else if(thnKerja < 4) mulPesangon = 4; else if(thnKerja < 5) mulPesangon = 5; else if(thnKerja < 6) mulPesangon = 6; else if(thnKerja < 7) mulPesangon = 7; else if(thnKerja < 8) mulPesangon = 8; else mulPesangon = 9;
+
+  // Rumus UPMK Pasal 59 UU
+  if(thnKerja >= 3 && thnKerja < 6) mulUPMK = 2; else if(thnKerja >= 6 && thnKerja < 9) mulUPMK = 3; else if(thnKerja >= 9 && thnKerja < 12) mulUPMK = 4; else if(thnKerja >= 12 && thnKerja < 15) mulUPMK = 5; else if(thnKerja >= 15 && thnKerja < 18) mulUPMK = 6; else if(thnKerja >= 18 && thnKerja < 21) mulUPMK = 7; else if(thnKerja >= 21 && thnKerja < 24) mulUPMK = 8; else if(thnKerja >= 24) mulUPMK = 10;
+
+  // Rumus Uang Pisah Pasal 61 & 62 (Peraturan Perusahaan)
+  if(thnKerja >= 3 && thnKerja < 6) mulPisah = 2; else if(thnKerja >= 6 && thnKerja < 9) mulPisah = 3; else if(thnKerja >= 9) mulPisah = 4;
+
+  let txt = `Dasar Perhitungan (Masa Kerja: ${thnKerja} Tahun)\nJenis Terminasi: ${jenis}\n---------------------------------\n`;
+  let total = 0;
+
+  if (jenis.includes('Resign Sukarela') || jenis.includes('Pelanggaran Berat')) {
+     let uPisah = mulPisah * gaji;
+     let uph = uPisah * 0.15; // Asumsi UPH standard 15%
+     total = uPisah + uph;
+     txt += `Uang Pesangon & UPMK : Tidak Ada\n`;
+     txt += `Uang Pisah (${mulPisah}x)      : Rp ${uPisah.toLocaleString('id-ID')}\n`;
+     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  } 
+  else if (jenis.includes('Efisiensi')) { // 0.5x Pesangon
+     let pesangon = (mulPesangon * 0.5) * gaji;
+     let upmk = mulUPMK * gaji;
+     let uph = (pesangon + upmk) * 0.15;
+     total = pesangon + upmk + uph;
+     txt += `Uang Pesangon (0.5x) : Rp ${pesangon.toLocaleString('id-ID')}\n`;
+     txt += `U. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\n`;
+     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  }
+  else { // Pensiun / Lainnya (1x Normal)
+     let pesangon = mulPesangon * gaji;
+     let upmk = mulUPMK * gaji;
+     let uph = (pesangon + upmk) * 0.15;
+     total = pesangon + upmk + uph;
+     txt += `Uang Pesangon (${mulPesangon}x)  : Rp ${pesangon.toLocaleString('id-ID')}\n`;
+     txt += `U. Pnghargaan (UPMK) : Rp ${upmk.toLocaleString('id-ID')}\n`;
+     txt += `Uang Pengganti Hak   : Rp ${uph.toLocaleString('id-ID')}\n`;
+  }
+
+  txt += `---------------------------------\nTOTAL DITERIMA       : Rp ${total.toLocaleString('id-ID')}`;
+  $('MOFF_PESANGON_TXT').value = txt;
+}
+
+async function submitOffboardingTask() {
+  const b = $('BTN_MOFF_SAVE'), o = b.innerHTML; b.disabled = true; b.innerHTML = 'Menyimpan...';
+  
+  let docR = null, docP = null;
+  const fR = $('UP_RESIGN'); if(fR.files.length) docR = {name: fR.files[0].name, data: await b64(fR.files[0])};
+  const fP = $('UP_PHK'); if(fP.files.length) docP = {name: fP.files[0].name, data: await b64(fP.files[0])};
+
+  const chk = {
+    handover: $('CHK_HANDOVER').checked, aset_laptop: $('CHK_LAPTOP').checked,
+    aset_idcard: $('CHK_IDCARD').checked, bpjs_tk: $('CHK_BPJS_TK').checked, bpjs_kes: $('CHK_BPJS_KES').checked
+  };
+
+  const statusVal = $('MOFF_STATUS').value;
+
+  // Validasi: Jika diubah ke SELESAI, BPJS dan Handover harus dicentang
+  if(statusVal === 'SELESAI') {
+     if(!chk.handover || !chk.aset_laptop || !chk.bpjs_tk || !chk.bpjs_kes) {
+        b.disabled = false; b.innerHTML = o;
+        return toast('Pastikan seluruh aset & BPJS telah ditandai Selesai sebelum menutup Clearance!', true);
+     }
+  }
+
+  const res = await api({
+    action: 'update_offboarding_task', user: CU, id: $('MOFF_ID').value, nama: $('MOFF_NAMA').textContent.split(' (')[0],
+    chk: chk, docResign: docR, docPHK: docP,
+    statusClearance: statusVal,
+    pesangonInfo: $('MOFF_PESANGON_TXT').value
+  });
+  
+  b.disabled = false; b.innerHTML = o;
+  if(res.success) { toast(res.message); closeM('MOFFBOARD'); loadDashboard(); } else toast(res.message, true);
+}
 
 </script>
 </body>
