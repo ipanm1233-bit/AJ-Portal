@@ -1468,6 +1468,29 @@ tailwind.config = {
     </form>
   </div>
 </div>
+
+<div id="MAKSI_KONTRAK" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-orange-500">
+    <div class="px-6 py-5 border-b border-slate-100 bg-orange-50">
+      <h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3>
+      <p class="text-xs text-slate-500 font-bold mt-1" id="MAK_NAMA"></p>
+    </div>
+    <div class="p-6 space-y-3">
+       <button onclick="kirimAksiKontrak('kpi')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 rounded-xl transition group shadow-sm">
+          <p class="font-black text-blue-700"><i class="fa-solid fa-clipboard-check mr-2"></i>Kirim Email Penilaian (Ke Atasan)</p>
+       </button>
+       <button onclick="kirimAksiKontrak('konseling')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-orange-500 hover:bg-orange-50 rounded-xl transition group shadow-sm">
+          <p class="font-black text-orange-700"><i class="fa-solid fa-comments mr-2"></i>Jadwalkan Konseling (Ke Karyawan)</p>
+       </button>
+       <button onclick="kirimAksiKontrak('ttd')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 rounded-xl transition group shadow-sm">
+          <p class="font-black text-emerald-700"><i class="fa-solid fa-pen-nib mr-2"></i>Jadwal TTD Kontrak (Ke Karyawan)</p>
+       </button>
+    </div>
+    <div class="px-6 py-4 bg-slate-50 text-right">
+       <button onclick="closeM('MAKSI_KONTRAK')" class="px-5 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl text-sm font-bold transition">Tutup</button>
+    </div>
+  </div>
+</div>  
 <!-- ========================================================================= -->
 <!-- ================== SCRIPT JAVASCRIPT UTAMA (FAST-LOAD) ================== -->
 <!-- ========================================================================= -->
@@ -1476,7 +1499,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbwYPMTFrInKpxiqfJ7OjPq2CmiO-pK2XwydoFzbZAlcwF_zT4yy0NJQG91cjwtPVOgcQQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwb0dN7I3uMYRG6tWWHNFtOyeKew9WodHf2OiozgLZMIkTJWOzj-2v4tHZM8RoOlkp3/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1637,7 +1660,7 @@ async function loadDashboard() {
         <div>
           <p class="font-black text-slate-800 text-sm">${c.Nama}</p>
           <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p>
-          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || 'Tidak ada keterangan'}"</p>
+          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || c.AlasanCuti || 'Tidak ada keterangan/alasan khusus'}"</p>
         </div>
       </div>`).join(''); 
   } else { 
@@ -1660,7 +1683,15 @@ async function loadDashboard() {
     $('WGT_KB').classList.remove('hide'); 
     WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
     $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
-    $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => `<tr class="hover:bg-slate-50 cursor-pointer" onclick="openKontrakAction(${i})"><td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td><td class="px-6 py-4 text-xs">${k.Jabatan||'-'}</td><td class="px-6 py-4 text-right text-xs font-black">${k.SisaHari} hr</td></tr>`).join(''); 
+    $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
+      const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
+      return `<tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-50">
+        <td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td>
+        <td class="px-6 py-4 text-xs">${k.Jabatan||'-'}</td>
+        <td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td>
+        <td class="px-6 py-4 text-center"><button onclick="bukaAksiKontrak(${i})" class="bg-orange-100 text-orange-600 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg text-[10px] font-black transition shadow-sm"><i class="fa-solid fa-bolt mr-1"></i>Tindak Lanjut</button></td>
+      </tr>`;
+    }).join(''); 
   }
   
   // Widget Offboarding (Hanya HRD)
@@ -1882,15 +1913,36 @@ function openKontrakAction(i){ const k=WGT_KB_DATA[i]; if(!k)return; $('MKONTRAK
 async function loadPenilaian() { 
   $('PNL_GRID').innerHTML = `<div class="col-span-full text-center text-slate-400 py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>`; 
   $('PNL_EMPTY').classList.add('hide'); 
-  const res = await api({action:'get_bawahan', user:CU}); 
+  
+  // LOGIKA CERDAS: Cek apakah user adalah HRD
+  const isHRD = CU.Role.toUpperCase().includes('HRD');
+  
+  // Jika HRD, tarik semua data Master Karyawan. Jika Atasan biasa, tarik bawahan saja.
+  const actionCall = isHRD ? 'get_master_karyawan' : 'get_bawahan';
+  
+  const res = await api({action: actionCall, user: CU}); 
   if(!res.success) { $('PNL_GRID').innerHTML = ''; $('PNL_EMPTY').classList.remove('hide'); return; } 
-  PNL_BAWAHAN_DATA = res.data || []; 
+  
+  let rawData = res.data || [];
+  
+  // Filter Data: Jika HRD, sembunyikan dirinya sendiri dari daftar penilaian
+  if(isHRD) {
+      PNL_BAWAHAN_DATA = rawData.filter(k => {
+          let n = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '';
+          return n.toUpperCase() !== CU.Nama.toUpperCase();
+      });
+  } else {
+      PNL_BAWAHAN_DATA = rawData;
+  }
+  
   if(!PNL_BAWAHAN_DATA.length) { $('PNL_GRID').innerHTML = ''; $('PNL_EMPTY').classList.remove('hide'); return; } 
+  
   $('PNL_GRID').innerHTML = PNL_BAWAHAN_DATA.map((k, i) => {
     let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
-    let jabatanBawahan = k.Jabatan || k.Posisi || '-';
+    let jabatanBawahan = k.Jabatan || k.JABATAN || k.Posisi || '-';
     let templateKpiBawahan = k.TemplateKPI || k.TEMPLATE_KPI || k['Template KPI'] || 'Default (General)';
     let inisial = namaBawahan.charAt(0).toUpperCase();
+    
     return `
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col hover:border-purple-300 transition">
       <div class="flex items-center gap-4 mb-4">
@@ -1909,7 +1961,6 @@ async function loadPenilaian() {
     </div>`;
   }).join(''); 
 }
-
 let KPI_CURRENT_QUESTIONS = [];
 async function openPenilaianForm(i){ 
   const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
@@ -2252,8 +2303,36 @@ on('FMSP', 'submit', async e => { e.preventDefault(); const b = e.target.querySe
 function renderFBKaryList() { $('FB_KARY_LIST').innerHTML = DD_KARY.map(k => `<label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition"><input type="checkbox" class="fb-kary-cb w-3.5 h-3.5 text-corp" value="${k.nama}"> <span class="truncate">${k.nama}</span></label>`).join(''); }
 function toggleAllFBKary(isAll) { document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.disabled = isAll; if(isAll) cb.checked = false; }); }
 function loadFBEditor(id){ const c=FORMS.find(f=>f.FormID===id); $('FBID').value=id; $('FBNAMA').value=c.NamaForm; $('FBNOTIFY').value=c.NotifyRoles || 'HRD, GM, FINANCE'; const allowed = (c.AllowedRoles||'ALL').toUpperCase(); if(allowed === 'ALL') { $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); } else { $('FB_ALL_KARY').checked = false; toggleAllFBKary(false); const allowedArr = allowed.split(',').map(x=>x.trim()); document.querySelectorAll('.fb-kary-cb').forEach(cb => { cb.checked = allowedArr.includes(cb.value.toUpperCase()); }); } try{FB_STATE.flow=JSON.parse(c.ApprovalFlowJson||'[]');}catch(e){} try{FB_STATE.fields=JSON.parse(c.FieldsJSON||'[]');}catch(e){} fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
-function openNewForm(){ $('FBID').value='FORM-'+Date.now(); $('FBNAMA').value=''; $('FBNOTIFY').value='HRD, GM, FINANCE'; $('FB_ALL_KARY').checked = true; toggleAllFBKary(true); FB_STATE.flow=['HRD']; FB_STATE.fields=[{name:'alasan',label:'Alasan',type:'text',required:true}]; fbRenderFlowChips(); fbRenderFieldsList(); $('FBEMPTY').classList.add('hide'); $('FBEDIT').classList.remove('hide'); }
-let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; const FB_FIELD_TYPES=[{type:'text',label:'Teks'},{type:'textarea',label:'Teks Panjang'},{type:'date',label:'Tanggal'},{type:'time',label:'Jam'},{type:'select',label:'Dropdown'},{type:'file',label:'Upload Dokumen'},{type:'karyawan',label:'Pilih Karyawan'},{type:'kendaraan',label:'Pilih Kendaraan'},{type:'inventory',label:'Pilih Barang Aset'}];
+function openNewForm(){ 
+  $('FBID').value='FORM-'+Date.now(); 
+  $('FBNAMA').value=''; 
+  $('FBNOTIFY').value='HRD, GM, FINANCE'; 
+  $('FB_ALL_KARY').checked = true; 
+  toggleAllFBKary(true); 
+  FB_STATE.flow=['HRD']; 
+  FB_STATE.fields=[{name:'alasan',label:'Alasan',type:'text',required:true}]; 
+  fbRenderFlowChips(); 
+  fbRenderFieldsList(); 
+  $('FBEMPTY').classList.add('hide'); 
+  $('FBEDIT').classList.remove('hide'); 
+}
+let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; 
+
+// Mengaktifkan opsi Tabel Multi-Baris, Dropdown Periode Otomatis, dan Angka di Form Builder
+const FB_FIELD_TYPES=[
+  {type:'text',label:'Teks Singkat'},
+  {type:'textarea',label:'Teks Panjang'},
+  {type:'number',label:'Angka'},
+  {type:'date',label:'Tanggal'},
+  {type:'time',label:'Jam'},
+  {type:'select',label:'Dropdown'},
+  {type:'file',label:'Upload Dokumen'},
+  {type:'karyawan',label:'Pilih Karyawan'},
+  {type:'kendaraan',label:'Pilih Kendaraan'},
+  {type:'inventory',label:'Pilih Barang Aset'},
+  {type:'tabel',label:'Tabel Multi-Baris (Klaim)'},
+  {type:'periode',label:'Dropdown Periode Otomatis'}
+];
 function loadFBList(){ const ul=$('FBLIST'); if(!FORMS.length){ul.innerHTML='<li class="p-6 text-center text-slate-400">Kosong</li>';return;} ul.innerHTML=FORMS.map(f=>`<li><button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left p-4 hover:bg-slate-50"><p class="font-black">${f.NamaForm}</p></button></li>`).join(''); }
 function fbRenderFlowChips(){ $('FB_FLOW_CHIPS').innerHTML=FB_STATE.flow.map((r,i)=>`<span class="bg-white border px-3 py-1.5 rounded-lg text-xs font-black mr-2 mb-2 inline-block">${i+1}. ${r} <button onclick="fbRemoveFlowRole(${i})" class="text-red-500 ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 function fbAddFlowRole(){ FB_STATE.flow.push($('FB_FLOW_ADD_ROLE').value); fbRenderFlowChips(); } function fbRemoveFlowRole(i){ FB_STATE.flow.splice(i,1); fbRenderFlowChips(); }
