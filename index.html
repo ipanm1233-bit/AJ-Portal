@@ -625,8 +625,8 @@ tailwind.config = {
               </select>
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <form onsubmit="event.preventDefault(); loadKaryawan();" class="w-full sm:w-auto">
-                   <input type="text" id="SEARCHKARY" oninput="loadKaryawan()" placeholder="Cari NIK / Nama / Jabatan..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none">
+                <form onsubmit="event.preventDefault(); filterKaryawan();" class="w-full sm:w-auto">
+                  <input type="text" id="SEARCHKARY" oninput="filterKaryawan()" placeholder="Cari NIK / Nama / Jabatan..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none">
                 </form>
               </div>
             </div>
@@ -1046,7 +1046,7 @@ tailwind.config = {
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <form onsubmit="event.preventDefault(); filterKendaraan();" class="w-full sm:w-auto">
-                   <input type="text" id="SEARCHKEND" oninput="filterKendaraan()" placeholder="Cari No Polisi / Merk..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-emerald-500 outline-none">
+                  <input type="text" id="SEARCHKEND" oninput="filterKendaraan()" placeholder="Cari No Polisi / Merk..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-emerald-500 outline-none">
                 </form>
               </div>
               <button onclick="openKendM(null)" class="w-full sm:w-auto bcorp px-5 py-2.5 rounded-xl text-xs font-black shadow flex items-center justify-center gap-2 hover:scale-105 transition"><i class="fa-solid fa-plus"></i>Kendaraan Baru</button>
@@ -2010,32 +2010,56 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
   } else toast(res.message, true);
 });
 
-// --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK) ---
+// --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK & INSTANT SEARCH) ---
+let MASTER_KARYAWAN_DATA = [];
+
+// 1. Tarik data dari server (HANYA 1 KALI saat menu dibuka)
 async function loadKaryawan(){ 
   $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
   
-  // Ambil nilai dengan AMAN agar tidak error jika elemen dropdown/input HTML tidak ada
   const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
-  const valSearch = $('SEARCHKARY') ? $('SEARCHKARY').value : '';
   
-  const res = await api({action:'get_master_karyawan', user:CU, cabang: valCabang, search: valSearch}); 
+  // Perhatikan: Kita TIDAK mengirimkan parameter search lagi ke server
+  const res = await api({action:'get_master_karyawan', user:CU, cabang: valCabang}); 
   if(!res.success) { $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">${res.message}</div>`; return; } 
   
-  const d = res.data || []; 
-  if($('TOTALKARY')) $('TOTALKARY').textContent = res.total || d.length; 
+  MASTER_KARYAWAN_DATA = res.data || []; 
+  if($('TOTALKARY')) $('TOTALKARY').textContent = res.total || MASTER_KARYAWAN_DATA.length; 
   
-  if(!d.length){
+  renderKaryawanGrid(MASTER_KARYAWAN_DATA);
+}
+
+// 2. Fungsi menggambar kartu karyawan ke layar
+function renderKaryawanGrid(data) {
+  if(!data.length){
      $('KARYGRID').innerHTML='<div class="col-span-full text-center text-slate-400 font-bold p-8">Data Karyawan Kosong / Tidak Ditemukan.</div>';
      return;
   } 
   
-  $('KARYGRID').innerHTML = d.map(k => {
+  $('KARYGRID').innerHTML = data.map(k => {
     let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Unknown';
     let jabK = k.JABATAN || k.Jabatan || k.Posisi || '-';
     let inisial = namaK.charAt(0).toUpperCase();
     return `<div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:border-corp transition"><div class="flex items-start gap-4 mb-5"><div class="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center font-black">${inisial}</div><div><p class="font-black text-slate-900">${namaK}</p><p class="text-[10px] font-black text-slate-400 uppercase">${jabK}</p></div></div><button onclick='openKaryDetail(${JSON.stringify(k).replace(/'/g,"&apos;")})' class="w-full text-xs font-black text-corp bg-corpl py-2.5 rounded-xl hover:bg-corp hover:text-white transition">Detail Karyawan</button></div>`;
   }).join(''); 
 }
+
+// 3. Fungsi yang dipanggil saat Anda MENGETIK di kotak pencarian HTML
+function filterKaryawan() {
+  const q = $('SEARCHKARY') ? $('SEARCHKARY').value.toLowerCase() : '';
+  
+  // Jika kotak kosong, kembalikan ke data awal
+  if(!q) { 
+     renderKaryawanGrid(MASTER_KARYAWAN_DATA); 
+     return; 
+  } 
+  
+  // Saring data langsung di memori Browser (Sangat Cepat)
+  const filtered = MASTER_KARYAWAN_DATA.filter(k => JSON.stringify(k).toLowerCase().includes(q));
+  renderKaryawanGrid(filtered);
+}
+
+// 4. Detail Karyawan (Tetap sama seperti milik Anda)
 function openKaryDetail(k){ 
   let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '';
   $('MKARY_TITLE').textContent=namaK; 
@@ -2060,7 +2084,17 @@ function openKaryDetail(k){
   $('MKARY').dataset.editNik=k.NIK_Karyawan || k.NIK || ''; 
   openM('MKARY'); 
 }
-async function saveKaryawanEdit(){ const u={}; document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); if(document.querySelector('.kary-akses-cb')) { let h=[]; document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); u['AKSES_MENU'] = h.join(','); } const res=await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); if(res.success){toast('Disimpan.');closeM('MKARY');loadKaryawan();} }
+
+async function saveKaryawanEdit(){ 
+  const u={}; 
+  document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); 
+  if(document.querySelector('.kary-akses-cb')) { 
+     let h=[]; document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); 
+     u['AKSES_MENU'] = h.join(','); 
+  } 
+  const res=await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
+  if(res.success){toast('Disimpan.');closeM('MKARY');loadKaryawan();} 
+}
 
 // --- SIKLUS KARYAWAN & OFFBOARDING TRACKER ---
 function hrCycleSetTab(t) { $('FM_ONBOARDING').classList.toggle('hide', t !== 'on'); $('FM_TERMINASI').classList.toggle('hide', t !== 'off'); $('TAB_BTN_ON').className = t === 'on' ? 'px-5 py-2 text-xs font-black rounded-lg bg-blue-600 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; $('TAB_BTN_OFF').className = t === 'off' ? 'px-5 py-2 text-xs font-black rounded-lg bg-slate-800 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; if(t === 'on' && $('ONB_ATASAN').children.length === 1) { $('ONB_ATASAN').innerHTML += DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } if(t === 'off' && $('TERM_KARY').children.length === 0) { $('TERM_KARY').innerHTML = '<option value="">— Pilih Karyawan —</option>' + DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } }
@@ -2243,23 +2277,37 @@ async function saveForm(){ let allowed = 'ALL'; if(!$('FB_ALL_KARY').checked) { 
 
 // --- KENDARAAN & INVENTORY ---
 function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').value=''; $('KF_ST').value='TERSEDIA'; openM('MKEND'); }
-async function loadKend(){ const res=await api({action:'get_kendaraan'}); KEND_DATA=res.data||[]; $('KENDGRID').innerHTML=KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); }
-// --- FILTER PENCARIAN KENDARAAN ---
+
+// 1. Tarik Data Kendaraan (1 Kali)
+async function loadKend(){ 
+  $('KENDGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>';
+  const res = await api({action:'get_kendaraan'}); 
+  KEND_DATA = res.data || []; 
+  renderKendaraanGrid(KEND_DATA);
+}
+
+// 2. Render Kartu Kendaraan ke Layar
+function renderKendaraanGrid(data) {
+  if(!data || !data.length) {
+      $('KENDGRID').innerHTML = '<div class="col-span-full p-8 text-center text-slate-400 font-bold">Kendaraan tidak ditemukan.</div>';
+      return;
+  }
+  $('KENDGRID').innerHTML = data.map((k) => {
+      // Cari index asli dari KEND_DATA agar saat di-klik tidak salah buka modal
+      const origIndex = KEND_DATA.findIndex(orig => orig === k);
+      return `<div onclick="openKendDetail(${origIndex})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`;
+  }).join('');
+}
+
+// 3. Filter Pencarian Kendaraan (Instan)
 function filterKendaraan() {
   const q = $('SEARCHKEND') ? $('SEARCHKEND').value.toLowerCase() : '';
-  if(!q) { 
-    $('KENDGRID').innerHTML = KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); 
-    return; 
-  }
+  if(!q) { renderKendaraanGrid(KEND_DATA); return; }
   
-  const filtered = KEND_DATA.filter(k => {
-    const np = (k['No. Polisi']||k['No Polisi']||'').toLowerCase();
-    const mr = (k['Merk']||k['Merk / Tipe']||'').toLowerCase();
-    return np.includes(q) || mr.includes(q);
-  });
-  
-  $('KENDGRID').innerHTML = filtered.length ? filtered.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join('') : '<div class="col-span-full p-8 text-center text-slate-400 font-bold">Kendaraan tidak ditemukan.</div>';
-}  
+  const filtered = KEND_DATA.filter(k => JSON.stringify(k).toLowerCase().includes(q));
+  renderKendaraanGrid(filtered);
+}
+
 function openKendDetail(i){ const k=KEND_DATA[i]; $('MKD_NOPOL').textContent=k['No. Polisi']||k['No Polisi']; $('MKD_NOPOL_VAL').value=k['No. Polisi']||k['No Polisi']; const sk=['_rowIndex'], keys=Object.keys(k).filter(x=>!sk.includes(x)); $('MKD_DYNAMIC_FIELDS').innerHTML = keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kend-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-emerald-500" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join(''); mkdSetTab('info'); openM('MKEND_DETAIL'); }
 async function saveKendDetail(){ const u={}; document.querySelectorAll('.kend-edit-field').forEach(e=>u[e.dataset.field]=e.value); const res=await api({action:'save_kendaraan',user:CU,updates:u}); if(res.success){toast('Identitas armada diperbarui.');closeM('MKEND_DETAIL');loadKend();} }
 function mkdSetTab(t){ ['info','fuel','service','compliance','riwayat'].forEach(x=>{ $('MKD_TAB_'+x).classList.toggle('border-emerald-500',x===t); $('MKD_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='riwayat')loadKendRiwayat(); }
