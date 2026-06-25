@@ -1470,24 +1470,46 @@ tailwind.config = {
 </div>
 
 <div id="MAKSI_KONTRAK" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-orange-500">
-    <div class="px-6 py-5 border-b border-slate-100 bg-orange-50">
-      <h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3>
-      <p class="text-xs text-slate-500 font-bold mt-1" id="MAK_NAMA"></p>
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-orange-500 flex flex-col">
+    <div class="px-6 py-5 border-b border-slate-100 bg-orange-50 flex items-center justify-between">
+      <div>
+        <h3 class="font-black text-slate-800 text-lg">Tindak Lanjut Kontrak</h3>
+        <p class="text-[10px] text-slate-500 font-bold mt-1 uppercase tracking-widest" id="MAK_NAMA"></p>
+      </div>
+      <div class="w-10 h-10 bg-orange-200 text-orange-600 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-file-signature"></i></div>
     </div>
-    <div class="p-6 space-y-3">
-       <button onclick="kirimAksiKontrak('kpi')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 rounded-xl transition group shadow-sm">
-          <p class="font-black text-blue-700"><i class="fa-solid fa-clipboard-check mr-2"></i>Kirim Email Penilaian (Ke Atasan)</p>
+    
+    <div class="p-6 space-y-3 bg-slate-50">
+       <!-- Tombol Email KPI -->
+       <button onclick="kirimAksiKontrak('kpi')" class="w-full flex items-center gap-4 p-4 bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md rounded-2xl transition group text-left">
+          <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-clipboard-check"></i></div>
+          <div>
+            <p class="font-black text-slate-700 group-hover:text-blue-700 transition text-sm">Email Penilaian KPI</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight">Kirim instruksi pengisian form evaluasi kinerja ke Atasan</p>
+          </div>
        </button>
-       <button onclick="kirimAksiKontrak('konseling')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-orange-500 hover:bg-orange-50 rounded-xl transition group shadow-sm">
-          <p class="font-black text-orange-700"><i class="fa-solid fa-comments mr-2"></i>Jadwalkan Konseling (Ke Karyawan)</p>
+       
+       <!-- Tombol Konseling -->
+       <button onclick="kirimAksiKontrak('konseling')" class="w-full flex items-center gap-4 p-4 bg-white border border-slate-200 hover:border-orange-500 hover:shadow-md rounded-2xl transition group text-left">
+          <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-xl group-hover:bg-orange-600 group-hover:text-white transition"><i class="fa-solid fa-comments"></i></div>
+          <div>
+            <p class="font-black text-slate-700 group-hover:text-orange-700 transition text-sm">Jadwal Konseling</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight">Panggil karyawan ke ruangan HRD untuk evaluasi akhir</p>
+          </div>
        </button>
-       <button onclick="kirimAksiKontrak('ttd')" class="w-full text-left p-4 bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 rounded-xl transition group shadow-sm">
-          <p class="font-black text-emerald-700"><i class="fa-solid fa-pen-nib mr-2"></i>Jadwal TTD Kontrak (Ke Karyawan)</p>
+       
+       <!-- Tombol TTD Kontrak -->
+       <button onclick="kirimAksiKontrak('ttd')" class="w-full flex items-center gap-4 p-4 bg-white border border-slate-200 hover:border-emerald-500 hover:shadow-md rounded-2xl transition group text-left">
+          <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition"><i class="fa-solid fa-pen-nib"></i></div>
+          <div>
+            <p class="font-black text-slate-700 group-hover:text-emerald-700 transition text-sm">TTD Kontrak Baru</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight">Jadwalkan penandatanganan perpanjangan kontrak</p>
+          </div>
        </button>
     </div>
-    <div class="px-6 py-4 bg-slate-50 text-right">
-       <button onclick="closeM('MAKSI_KONTRAK')" class="px-5 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl text-sm font-bold transition">Tutup</button>
+    
+    <div class="px-6 py-4 bg-white border-t border-slate-100 flex justify-end">
+       <button onclick="closeM('MAKSI_KONTRAK')" class="px-6 py-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 rounded-xl text-sm font-black transition">Tutup</button>
     </div>
   </div>
 </div>  
@@ -1499,7 +1521,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbz9cneaqObuRRaJY5P8keiemzVk_0oQIyyS3kDb7mzV6g1RgbsdgN8HVk7OtLgfYNVYmA/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxcQjrjtrw-AHL8K2zWDlbFj-DA-LX-I4AnHNmTLwtbnx2jxtDOE6qwlDtlz7PVUIk3FA/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
