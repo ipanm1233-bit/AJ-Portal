@@ -625,7 +625,9 @@ tailwind.config = {
               </select>
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input id="SEARCHKARY" type="text" placeholder="Cari NIK / Nama / Jabatan..." oninput="loadKaryawan()" class="inp pl-9 !py-2.5 text-xs w-full font-semibold shadow-sm">
+                <form onsubmit="event.preventDefault(); loadKaryawan();" class="w-full sm:w-auto">
+                   <input type="text" id="SEARCHKARY" oninput="loadKaryawan()" placeholder="Cari NIK / Nama / Jabatan..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none">
+                </form>
               </div>
             </div>
           </div>
@@ -1043,7 +1045,9 @@ tailwind.config = {
             <div class="md:ml-auto flex flex-col sm:flex-row items-center gap-3">
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input id="SEARCHKEND" type="text" placeholder="Cari No Polisi / Merk..." oninput="filterKendaraan(this.value)" class="inp pl-9 !py-2.5 text-xs w-full font-semibold shadow-sm">
+                <form onsubmit="event.preventDefault(); filterKendaraan();" class="w-full sm:w-auto">
+                   <input type="text" id="SEARCHKEND" oninput="filterKendaraan()" placeholder="Cari No Polisi / Merk..." class="w-full sm:w-64 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-slate-50 focus:border-emerald-500 outline-none">
+                </form>
               </div>
               <button onclick="openKendM(null)" class="w-full sm:w-auto bcorp px-5 py-2.5 rounded-xl text-xs font-black shadow flex items-center justify-center gap-2 hover:scale-105 transition"><i class="fa-solid fa-plus"></i>Kendaraan Baru</button>
             </div>
@@ -1369,15 +1373,49 @@ tailwind.config = {
 
 <!-- Modal: Input Cuti Manual (HRD) -->
 <div id="MCUTI_MANUAL" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-corp">
-    <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50"><h3 class="font-black text-slate-800 text-lg">Input Cuti Manual</h3><p class="text-xs text-slate-500 font-bold mt-1">Buat form PDF & potong jatah untuk <span id="MCM_NAMA" class="text-corp"></span></p></div>
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden fade border-t-8 border-t-blue-500">
+    <div class="px-8 py-6 border-b border-slate-100 bg-blue-50">
+      <h3 class="font-black text-slate-800 text-lg">Input Cuti Manual</h3>
+      <p class="text-xs text-slate-500 font-bold mt-1">Karyawan: <span id="MCM_NAMA" class="text-blue-600"></span></p>
+    </div>
     <form id="FM_CUTI_MANUAL" class="p-8 space-y-5">
       <input type="hidden" id="MCM_NAMA_VAL">
-      <div><label class="lbl">Jenis Cuti / Izin <span class="text-red-500">*</span></label><select id="MCM_JENIS" class="inp !py-2.5 font-bold shadow-sm" required><option value="">— Pilih Jenis Cuti —</option><option value="Cuti Tahunan">Cuti Tahunan</option><option value="Sakit (Surat Dokter)">Sakit (Surat Dokter)</option><option value="Sakit (Tanpa Surat)">Sakit (Tanpa Surat)</option><option value="Izin Terlambat">Izin Terlambat</option><option value="Izin Pulang Cepat">Izin Pulang Cepat</option><option value="Izin Keluar Kantor">Izin Keluar Kantor</option><option value="Cuti Khusus">Cuti Khusus</option></select></div>
-      <div class="grid grid-cols-2 gap-4"><div><label class="lbl">Tgl Mulai <span class="text-red-500">*</span></label><input type="date" id="MCM_TGL_M" class="inp !py-2.5 text-xs font-bold shadow-sm" required></div><div><label class="lbl">Tgl Selesai <span class="text-red-500">*</span></label><input type="date" id="MCM_TGL_S" class="inp !py-2.5 text-xs font-bold shadow-sm" required></div></div>
-      <div><label class="lbl">Alasan / Keterangan <span class="text-red-500">*</span></label><textarea id="MCM_ALASAN" rows="3" class="inp resize-none font-medium text-sm shadow-sm" required></textarea></div>
-      <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl mt-2 flex items-start gap-3"><i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i><p class="text-[10px] text-blue-800 font-bold leading-relaxed">Form ini langsung berstatus Approved. PDF Titimangsa otomatis tercetak dan terkirim ke email karyawan.</p></div>
-      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeM('MCUTI_MANUAL')" class="px-6 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-bold text-slate-600 shadow-sm">Batal</button><button type="submit" id="MCM_BTN" class="bcorp px-6 py-2.5 rounded-xl text-sm font-black shadow-lg">Simpan & Cetak PDF</button></div>
+      <div>
+        <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Jenis Cuti / Izin <span class="text-red-500">*</span></label>
+        <select id="MCM_JENIS" onchange="toggleSetengahHari()" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none">
+          <option value="">— Pilih Jenis Cuti —</option>
+          <option value="C" data-potong="1">C - Cuti Tahunan (Potong: 1)</option>
+          <option value="C1/2" data-potong="0.5">C1/2 - Cuti Tahunan Setengah Hari (Potong: 0.5)</option>
+          <option value="C+_Izin" data-potong="0">C+ - Cuti Khusus / Izin (Potong: 0)</option>
+          <option value="C+_Khusus" data-potong="1">C+ - Cuti Khusus (Potong: 1)</option>
+          <option value="C+1/2" data-potong="0.5">C+1/2 - Cuti Khusus Setengah Hari (Potong: 0.5)</option>
+          <option value="S" data-potong="0">S - Cuti Sakit Dengan Surat Dokter (Potong: 0)</option>
+          <option value="S-" data-potong="1">S- - Sakit Tanpa Keterangan Dokter (Potong: 1)</option>
+          <option value="CB" data-potong="1">CB - Cuti Bersama (Potong: 1)</option>
+          <option value="C-" data-potong="1">C- - Cuti Potong Gaji (Potong: 1)</option>
+          <option value="CS" data-potong="1">CS - Cuti Sisa (Potong: 1)</option>
+          <option value="D" data-potong="0">D - Dinas Luar Kota (Potong: 0)</option>
+        </select>
+      </div>
+
+      <!-- DROPDOWN PAGI/SIANG (DISEMBUNYIKAN SECARA DEFAULT) -->
+      <div id="WRAP_SETENGAH_HARI" class="hide bg-blue-50 border border-blue-200 p-3 rounded-xl">
+        <label class="text-xs font-black text-blue-700 uppercase tracking-widest block mb-2"><i class="fa-solid fa-clock mr-1"></i>Pilih Waktu Setengah Hari <span class="text-red-500">*</span></label>
+        <select id="MCM_WAKTU_SETENGAH" class="w-full border border-blue-200 rounded-lg px-4 py-2 text-sm font-bold bg-white focus:border-blue-500 outline-none">
+          <option value="Pagi Hari (08:00 - 12:00)">Pagi Hari (08:00 - 12:00)</option>
+          <option value="Siang Hari (13:00 - 17:00)">Siang Hari (13:00 - 17:00)</option>
+        </select>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Tgl Mulai <span class="text-red-500">*</span></label><input type="date" id="MCM_TGL_M" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none"></div>
+        <div><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Tgl Selesai <span class="text-red-500">*</span></label><input type="date" id="MCM_TGL_S" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none"></div>
+      </div>
+      <div><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Alasan / Keterangan <span class="text-red-500">*</span></label><textarea id="MCM_ALASAN" rows="2" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-slate-50 focus:border-blue-500 outline-none resize-none"></textarea></div>
+      <div class="pt-4 flex justify-end gap-3">
+        <button type="button" onclick="closeM('MCUTI_MANUAL')" class="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition">Batal</button>
+        <button type="submit" id="MCM_BTN" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-500/30 hover:scale-105 transition"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan & Cetak</button>
+      </div>
     </form>
   </div>
 </div>
@@ -1431,7 +1469,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbzE8yyVFVmyGPr2zTSkoCu_VJaJquY2rghLTuEc9lD2sCcrc30t979hnEadvVog-ExQqg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyJxy12r5p5vSmAJWy_k1R4kFLooUoBeW77i_vjC7yUcB_dbxcvof2p3fJdbNLTd3ykuw/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1586,7 +1624,15 @@ async function loadDashboard() {
   // Render Cuti Hari Ini
   const ctEl = $('DCUTI_TODAY'); 
   if(res.cutiHariIni && res.cutiHariIni.length){ 
-    ctEl.innerHTML = res.cutiHariIni.map(c => `<div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex items-center justify-center"><i class="fa-solid fa-user"></i></div><div><p class="font-black text-slate-800 text-sm">${c.Nama}</p><p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p></div></div>`).join(''); 
+    ctEl.innerHTML = res.cutiHariIni.map(c => `
+      <div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex flex-shrink-0 items-center justify-center mt-1"><i class="fa-solid fa-user"></i></div>
+        <div>
+          <p class="font-black text-slate-800 text-sm">${c.Nama}</p>
+          <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p>
+          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || 'Tidak ada keterangan'}"</p>
+        </div>
+      </div>`).join(''); 
   } else { 
     ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
   }
@@ -1655,33 +1701,95 @@ function openDynForm(id) { $('SELFORM').value = id; $('FORM_LIST_VIEW').classLis
 function closeDynForm() { $('FORM_LIST_VIEW').classList.remove('hide'); $('FORM_FILL_VIEW').classList.add('hide'); $('DYNFORM').reset(); $('DYNFORM').classList.add('hide'); $('KBWARN').classList.add('hide'); $('DYNFIELDS').innerHTML = ''; }
 async function prefetchDD(){ const [kr,kd,iv]=await Promise.all([api({action:'get_dropdown_karyawan',user:CU}),api({action:'get_dropdown_kendaraan'}),api({action:'get_dropdown_inventory'})]); if(kr.success) { DD_KARY=kr.data||[]; renderFBKaryList(); } if(kd.success) DD_KEND=kd.data||[]; if(iv.success) DD_INV=iv.data||[]; }
 
+// --- DYNAMIC FORM ENGINE (LOGIC & CALCULATOR) ---
+let CURRENT_FORM_FIELDS = []; // Memori untuk menyimpan struktur form saat sedang diisi
+
 function renderDynFormFields(){ 
   const fid=$('SELFORM').value, df=$('DYNFORM'), dfld=$('DYNFIELDS'), kw=$('KBWARN'); 
   df.classList.add('hide'); kw.classList.add('hide'); dfld.innerHTML=''; if(!fid) return; 
   const cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return; 
   const nm=(cfg.NamaForm||'').toLowerCase(); 
+  
   if(nm.includes('kasbon')){ 
     if(!CU.TanggalJoin){ kw.classList.remove('hide'); return; } 
     if((new Date()-new Date(CU.TanggalJoin))/31557600000 < 1){ kw.classList.remove('hide'); return; } 
   } 
+  
   let f=[]; try{f=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){return;} 
+  CURRENT_FORM_FIELDS = f; // Simpan ke memori global
+  
   const B='inp !py-2.5 font-semibold text-sm shadow-sm'; 
   f.forEach(x=>{ 
     const req=x.required?'required':'', st=x.required?'<span class="text-red-500">*</span>':'', fl=(x.type==='textarea'||x.fullWidth)?'sm:col-span-2':''; 
+    const ev = `oninput="runDynLogic()" onchange="runDynLogic()"`; // Pemicu logika
+    const isRO = x.formula ? 'readonly' : ''; // Jika ada rumus, form jadi readonly
+    const extraClass = x.formula ? 'bg-blue-50 text-blue-700 border-blue-300 focus:border-blue-500 cursor-not-allowed font-black' : 'bg-white';
+    
     let i=''; 
     switch(x.type){ 
-      case'textarea': i=`<textarea id="DF_${x.name}" rows="3" ${req} class="${B} resize-none"></textarea>`; break; 
-      case'select': case'dropdownlist': i=`<select id="DF_${x.name}" ${req} class="${B}"><option value="">— Pilih —</option>${(x.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`; break; 
-      case'file': i=`<input type="file" id="DF_${x.name}" ${req} class="inp p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer bg-white">`; break; 
-      case'karyawan': i=`<select id="DF_${x.name}" ${req} class="${B}"><option value="">— Pilih Karyawan —</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select>`; break; 
-      case'kendaraan': i=`<select id="DF_${x.name}" ${req} class="${B}"><option value="">— Pilih Kendaraan —</option>${DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} — ${k.merkTipe}</option>`).join('')}</select>`; break; 
-      case'inventory': i=`<select id="DF_${x.name}" ${req} class="${B}"><option value="">— Pilih Barang —</option>${DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok} ${k.satuan})</option>`).join('')}</select>`; break; 
-      default: i=`<input type="${x.type||'text'}" id="DF_${x.name}" ${req} class="${B}">`; break; 
+      case'textarea': i=`<textarea id="DF_${x.name}" rows="3" ${req} ${ev} ${isRO} class="${B} ${extraClass} resize-none"></textarea>`; break; 
+      case'select': case'dropdownlist': i=`<select id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}"><option value="">— Pilih —</option>${(x.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`; break; 
+      case'file': i=`<input type="file" id="DF_${x.name}" ${req} ${ev} class="inp p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer bg-white">`; break; 
+      case'karyawan': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Karyawan —</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select>`; break; 
+      case'kendaraan': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Kendaraan —</option>${DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} — ${k.merkTipe}</option>`).join('')}</select>`; break; 
+      case'inventory': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Barang —</option>${DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok} ${k.satuan})</option>`).join('')}</select>`; break; 
+      default: i=`<input type="${x.type||'text'}" id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}">`; break; 
     } 
-    dfld.insertAdjacentHTML('beforeend',`<div class="${fl}"><label class="lbl">${x.label} ${st}</label>${i}</div>`); 
+    // Bungkus dengan DFW (Dynamic Form Wrapper) agar bisa di hide/show
+    dfld.insertAdjacentHTML('beforeend',`<div id="DFW_${x.name}" class="${fl} transition-all duration-300"><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">${x.label} ${st}</label>${i}</div>`); 
   }); 
   df.classList.remove('hide'); 
+  setTimeout(runDynLogic, 200); // Jalankan logika saat form pertama dibuka
 }
+
+window.runDynLogic = function() {
+  if(!CURRENT_FORM_FIELDS || CURRENT_FORM_FIELDS.length === 0) return;
+  
+  CURRENT_FORM_FIELDS.forEach(f => {
+     // 1. EVALUASI SYARAT TAMPIL (SHOW/HIDE LOGIC)
+     if(f.showIfField && f.showIfValue) {
+        const targetEl = document.getElementById('DF_' + f.showIfField);
+        const wrapEl = document.getElementById('DFW_' + f.name);
+        const myInput = document.getElementById('DF_' + f.name);
+        
+        if(targetEl && wrapEl) {
+           // Jika nilai input target sesuai dengan syarat
+           if(targetEl.value.toLowerCase() === f.showIfValue.toLowerCase()) {
+              wrapEl.classList.remove('hide');
+              if(myInput && myInput.hasAttribute('data-was-required')) myInput.required = true;
+           } else {
+              wrapEl.classList.add('hide');
+              if(myInput) { 
+                if(myInput.required) { myInput.dataset.wasRequired = 'true'; myInput.required = false; } 
+                if(myInput.type !== 'file') myInput.value = ''; // Kosongkan jika tersembunyi
+              }
+           }
+        }
+     }
+     
+     // 2. EVALUASI RUMUS MATEMATIKA (CALCULATOR LOGIC)
+     if(f.formula) {
+        try {
+           let eq = f.formula;
+           // Ganti [nama_field] dengan nilai aslinya di input form
+           const regex = /\[(.*?)\]/g;
+           eq = eq.replace(regex, function(match, fieldName) {
+              const el = document.getElementById('DF_' + fieldName);
+              return el ? (parseFloat(el.value) || 0) : 0;
+           });
+           
+           // Kalkulasi rumus secara matematis
+           const result = new Function('return ' + eq)();
+           const myInput = document.getElementById('DF_' + f.name);
+           if(myInput) {
+             let finalRes = isNaN(result) || !isFinite(result) ? 0 : result;
+             // Cek apakah hasilnya desimal, jika tidak, bulatkan
+             myInput.value = finalRes % 1 === 0 ? finalRes : finalRes.toFixed(2);
+           }
+        } catch(e) { console.log('Formula error', e); }
+     }
+  });
+};
 
 on('DYNFORM','submit',async e=>{ 
   e.preventDefault(); 
@@ -1855,8 +1963,23 @@ async function openCutiDetail(nama) {
   }).join('');
 }
 function openFormCutiManual(){ $('FM_CUTI_MANUAL').reset(); closeM('MCUTI_DETAIL'); openM('MCUTI_MANUAL'); }
+function toggleSetengahHari() {
+  const val = $('MCM_JENIS').value;
+  if(val.includes('1/2')) {
+    $('WRAP_SETENGAH_HARI').classList.remove('hide');
+  } else {
+    $('WRAP_SETENGAH_HARI').classList.add('hide');
+  }
+}  
 on('FM_CUTI_MANUAL', 'submit', async e => {
   e.preventDefault(); 
+  const selOpt = $('MCM_JENIS').options[$('MCM_JENIS').selectedIndex];
+  const potongCount = parseFloat(selOpt.getAttribute('data-potong')) || 0;
+  const jenisText = selOpt.text; 
+  
+  // Tangkap nilai pagi/siang jika form setengah hari terbuka
+  const valWaktuSetengah = !$('WRAP_SETENGAH_HARI').classList.contains('hide') ? $('MCM_WAKTU_SETENGAH').value : '-';
+
   const b=$('MCM_BTN'), o=b.innerHTML; 
   b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencetak PDF...';
   
@@ -1864,12 +1987,12 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
     action: 'input_cuti_manual', 
     user: CU, 
     namaKaryawan: $('MCM_NAMA_VAL').value, 
-    jenisCuti: $('MCM_JENIS').value, 
-    jenisSetengahHari: $('MCM_JENIS_SETENGAH') ? $('MCM_JENIS_SETENGAH').value : '-',
+    jenisCuti: jenisText, 
+    jenisSetengahHari: valWaktuSetengah, // Dikirim ke PDF Generator Backend
+    potongan: potongCount, 
     tglMulai: $('MCM_TGL_M').value, 
     tglSelesai: $('MCM_TGL_S').value, 
     alasan: $('MCM_ALASAN').value,
-    // Data untuk PDF Template
     cabang: CU.Cabang,
     jabatan: CU.Jabatan,
     alamat: CU.Alamat,
@@ -1881,7 +2004,7 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
   
   b.disabled=false; b.innerHTML=o; 
   if(res.success){ 
-    toast('Cuti berhasil terekam & PDF PDF telah dibuat!'); 
+    toast('Cuti berhasil terekam & PDF telah dibuat!'); 
     closeM('MCUTI_MANUAL'); 
     openCutiDetail($('MCM_NAMA_VAL').value); 
   } else toast(res.message, true);
@@ -1889,15 +2012,24 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
 
 // --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK) ---
 async function loadKaryawan(){ 
-  $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></div>'; 
-  const res=await api({action:'get_master_karyawan',user:CU,cabang:$('FILTCAB').value,search:$('SEARCHKARY').value}); 
+  $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
+  
+  // Ambil nilai dengan AMAN agar tidak error jika elemen dropdown/input HTML tidak ada
+  const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
+  const valSearch = $('SEARCHKARY') ? $('SEARCHKARY').value : '';
+  
+  const res = await api({action:'get_master_karyawan', user:CU, cabang: valCabang, search: valSearch}); 
   if(!res.success) { $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">${res.message}</div>`; return; } 
   
-  const d=res.data||[]; 
-  $('TOTALKARY').textContent=res.total||d.length; 
-  if(!d.length){$('KARYGRID').innerHTML='<div class="col-span-full text-center text-slate-400 font-bold">Data Karyawan Kosong / Tidak Ditemukan.</div>';return;} 
+  const d = res.data || []; 
+  if($('TOTALKARY')) $('TOTALKARY').textContent = res.total || d.length; 
   
-  $('KARYGRID').innerHTML=d.map(k=> {
+  if(!d.length){
+     $('KARYGRID').innerHTML='<div class="col-span-full text-center text-slate-400 font-bold p-8">Data Karyawan Kosong / Tidak Ditemukan.</div>';
+     return;
+  } 
+  
+  $('KARYGRID').innerHTML = d.map(k => {
     let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Unknown';
     let jabK = k.JABATAN || k.Jabatan || k.Posisi || '-';
     let inisial = namaK.charAt(0).toUpperCase();
@@ -2076,13 +2208,58 @@ let FB_STATE={flow:[],fields:[]}, fbFieldIdCounter=0; const FB_FIELD_TYPES=[{typ
 function loadFBList(){ const ul=$('FBLIST'); if(!FORMS.length){ul.innerHTML='<li class="p-6 text-center text-slate-400">Kosong</li>';return;} ul.innerHTML=FORMS.map(f=>`<li><button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left p-4 hover:bg-slate-50"><p class="font-black">${f.NamaForm}</p></button></li>`).join(''); }
 function fbRenderFlowChips(){ $('FB_FLOW_CHIPS').innerHTML=FB_STATE.flow.map((r,i)=>`<span class="bg-white border px-3 py-1.5 rounded-lg text-xs font-black mr-2 mb-2 inline-block">${i+1}. ${r} <button onclick="fbRemoveFlowRole(${i})" class="text-red-500 ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 function fbAddFlowRole(){ FB_STATE.flow.push($('FB_FLOW_ADD_ROLE').value); fbRenderFlowChips(); } function fbRemoveFlowRole(i){ FB_STATE.flow.splice(i,1); fbRenderFlowChips(); }
-function fbRenderFieldsList(){ $('FB_FIELDS_LIST').innerHTML=FB_STATE.fields.map((f,i)=>`<div class="bg-slate-50 border p-4 rounded-xl mb-2 flex flex-col gap-3"><div class="flex gap-3"><input type="text" class="inp" value="${f.label}" onchange="FB_STATE.fields[${i}].label=this.value; FB_STATE.fields[${i}].name=this.value.replace(/\\s+/g,'_').toLowerCase();"><select class="inp" onchange="FB_STATE.fields[${i}].type=this.value; fbRenderFieldsList();">${FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===f.type?'selected':''}>${t.label}</option>`).join('')}</select><button onclick="FB_STATE.fields.splice(${i},1);fbRenderFieldsList()" class="bg-red-100 text-red-600 px-4 rounded-xl"><i class="fa-solid fa-trash"></i></button></div>${f.type === 'select' ? `<input type="text" class="inp !py-2 text-xs font-bold text-blue-700 bg-blue-50 border-blue-200" placeholder="Ketik pilihan dipisah dengan koma (Cth: Laki-laki, Perempuan)" value="${(f.options||[]).join(', ')}" onchange="FB_STATE.fields[${i}].options=this.value.split(',').map(x=>x.trim());">` : ''}</div>`).join(''); }
+function fbRenderFieldsList() { 
+  $('FB_FIELDS_LIST').innerHTML = FB_STATE.fields.map((f,i) => `
+  <div class="bg-white border-2 border-slate-200 p-5 rounded-2xl mb-3 flex flex-col gap-3 shadow-sm relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-1.5 h-full bg-corp"></div>
+    <div class="flex gap-3 items-end">
+      <div class="flex-1"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Label / Pertanyaan</label><input type="text" class="inp" value="${f.label}" onchange="FB_STATE.fields[${i}].label=this.value; FB_STATE.fields[${i}].name=this.value.replace(/[^a-zA-Z0-9]/g,'_').toLowerCase(); fbRenderFieldsList();"></div>
+      <div class="w-1/3"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipe Jawaban</label><select class="inp" onchange="FB_STATE.fields[${i}].type=this.value; fbRenderFieldsList();">${FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===f.type?'selected':''}>${t.label}</option>`).join('')}</select></div>
+      <div class="flex items-center gap-2 mb-2"><label class="text-xs font-bold text-slate-500"><input type="checkbox" onchange="FB_STATE.fields[${i}].required=this.checked;" ${f.required?'checked':''}> Wajib Diisi</label></div>
+      <button onclick="FB_STATE.fields.splice(${i},1);fbRenderFieldsList()" class="bg-red-50 hover:bg-red-500 hover:text-white text-red-600 px-4 py-2.5 rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    
+    <div class="text-xs font-mono font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start">ID Unik: [${f.name}]</div>
+
+    ${f.type === 'select' ? `<div class="mt-1"><label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1"><i class="fa-solid fa-list mr-1"></i>Opsi Dropdown (Pisahkan dengan koma)</label><input type="text" class="inp !py-2 text-xs font-bold text-blue-700 bg-blue-50 border-blue-200" placeholder="Cth: Hotel, Kos Sales" value="${(f.options||[]).join(', ')}" onchange="FB_STATE.fields[${i}].options=this.value.split(',').map(x=>x.trim());"></div>` : ''}
+    
+    <div class="mt-2 p-4 bg-orange-50/50 border border-orange-200 rounded-xl">
+      <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3"><i class="fa-solid fa-bolt mr-1"></i>Logika Dinamis & Kalkulasi Otomatis</p>
+      
+      <div class="grid grid-cols-2 gap-3 mb-3 pb-3 border-b border-orange-100">
+         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Munculkan field ini jika field berikut:</label><input type="text" class="inp !py-1.5 text-xs font-mono" placeholder="Ketik ID Unik (Cth: akomodasi)" value="${f.showIfField||''}" onchange="FB_STATE.fields[${i}].showIfField=this.value;"></div>
+         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Berisi Nilai / Jawaban:</label><input type="text" class="inp !py-1.5 text-xs" placeholder="Cth: Hotel" value="${f.showIfValue||''}" onchange="FB_STATE.fields[${i}].showIfValue=this.value;"></div>
+      </div>
+      
+      <div>
+         <label class="text-[10px] font-bold text-slate-500 block mb-1">Rumus Matematika Otomatis (Gunakan tanda [] untuk ID Unik)</label>
+         <input type="text" class="inp !py-1.5 text-xs font-mono font-black text-emerald-700 bg-emerald-50 border-emerald-200" placeholder="Cth: ([km_akhir] - [km_awal]) * (10000/25)" value="${f.formula||''}" onchange="FB_STATE.fields[${i}].formula=this.value;">
+      </div>
+    </div>
+  </div>`).join(''); 
+}
 function fbAddField(){ FB_STATE.fields.push({name:'baru',label:'Baru',type:'text'}); fbRenderFieldsList(); }
 async function saveForm(){ let allowed = 'ALL'; if(!$('FB_ALL_KARY').checked) { const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value); if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true); allowed = checked.join(','); } const b = document.activeElement; if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed, notifyRoles:$('FBNOTIFY').value}); if(b) b.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi'; if(res.success){ toast('Disimpan'); await loadForms(); loadFBList(); } }
 
 // --- KENDARAAN & INVENTORY ---
 function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').value=''; $('KF_ST').value='TERSEDIA'; openM('MKEND'); }
 async function loadKend(){ const res=await api({action:'get_kendaraan'}); KEND_DATA=res.data||[]; $('KENDGRID').innerHTML=KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); }
+// --- FILTER PENCARIAN KENDARAAN ---
+function filterKendaraan() {
+  const q = $('SEARCHKEND') ? $('SEARCHKEND').value.toLowerCase() : '';
+  if(!q) { 
+    $('KENDGRID').innerHTML = KEND_DATA.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join(''); 
+    return; 
+  }
+  
+  const filtered = KEND_DATA.filter(k => {
+    const np = (k['No. Polisi']||k['No Polisi']||'').toLowerCase();
+    const mr = (k['Merk']||k['Merk / Tipe']||'').toLowerCase();
+    return np.includes(q) || mr.includes(q);
+  });
+  
+  $('KENDGRID').innerHTML = filtered.length ? filtered.map((k,i)=>`<div onclick="openKendDetail(${i})" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-emerald-500 transition shadow-sm"><p class="font-black text-xl text-slate-800">${k['No. Polisi']||k['No Polisi']||'-'}</p><p class="text-xs font-bold text-slate-400 mt-1">${k['Merk']||k['Merk / Tipe']||'-'} (${k['Status']||'TERSEDIA'})</p></div>`).join('') : '<div class="col-span-full p-8 text-center text-slate-400 font-bold">Kendaraan tidak ditemukan.</div>';
+}  
 function openKendDetail(i){ const k=KEND_DATA[i]; $('MKD_NOPOL').textContent=k['No. Polisi']||k['No Polisi']; $('MKD_NOPOL_VAL').value=k['No. Polisi']||k['No Polisi']; const sk=['_rowIndex'], keys=Object.keys(k).filter(x=>!sk.includes(x)); $('MKD_DYNAMIC_FIELDS').innerHTML = keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kend-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-emerald-500" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join(''); mkdSetTab('info'); openM('MKEND_DETAIL'); }
 async function saveKendDetail(){ const u={}; document.querySelectorAll('.kend-edit-field').forEach(e=>u[e.dataset.field]=e.value); const res=await api({action:'save_kendaraan',user:CU,updates:u}); if(res.success){toast('Identitas armada diperbarui.');closeM('MKEND_DETAIL');loadKend();} }
 function mkdSetTab(t){ ['info','fuel','service','compliance','riwayat'].forEach(x=>{ $('MKD_TAB_'+x).classList.toggle('border-emerald-500',x===t); $('MKD_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='riwayat')loadKendRiwayat(); }
