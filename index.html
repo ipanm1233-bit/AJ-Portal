@@ -1521,7 +1521,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbxcQjrjtrw-AHL8K2zWDlbFj-DA-LX-I4AnHNmTLwtbnx2jxtDOE6qwlDtlz7PVUIk3FA/exec';
+const API = 'https://script.google.com/macros/s/AKfycbww8Rt1cJmhoDZ14DRtrTlPUFHLbXf8Y-F1uaOKAMplTmSt1YUVDevA9dD5IlDVCZz57A/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1701,17 +1701,30 @@ async function loadDashboard() {
   // Widget Kontrak (Hanya HRD/GM)
   const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
   $('WGT_KB').classList.add('hide');
+  
   if(res.alertKontrak && res.alertKontrak.length > 0 && isHrdOrGm){ 
     $('WGT_KB').classList.remove('hide'); 
     WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
     $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
+    
+    // Render Tabel Kontrak dengan Desain Modern
     $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
-      const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
-      return `<tr class="hover:bg-slate-50 border-b border-slate-100">
-        <td class="px-4 py-3 font-bold text-slate-800 text-sm w-1/3">${k.Nama}</td>
-        <td class="px-4 py-3 text-xs text-slate-500 w-1/4">${k.Jabatan||'-'}</td>
-        <td class="px-4 py-3 text-right text-xs font-black ${cls} w-1/6">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td>
-        <td class="px-4 py-3 text-center w-1/4"><button type="button" onclick="bukaAksiKontrak(${i})" class="bg-orange-100 text-orange-700 hover:bg-orange-500 hover:text-white px-3 py-1.5 rounded text-xs font-black transition w-full shadow-sm">Tindak Lanjut</button></td>
+      const isLewat = k.SisaHari < 0;
+      const clsBadges = isLewat ? 'text-red-700 bg-red-100 border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-100 border-orange-200' : 'text-yellow-700 bg-yellow-100 border-yellow-200'); 
+      const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' hr' : k.SisaHari + ' hr';
+      
+      return `
+      <tr class="hover:bg-slate-50 border-b border-slate-100 transition group">
+        <td class="px-5 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
+        <td class="px-5 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Jabatan||'-'}</td>
+        <td class="px-5 py-4 text-center whitespace-nowrap">
+           <span class="px-3 py-1.5 rounded-lg text-xs font-black border ${clsBadges}">${txtHari}</span>
+        </td>
+        <td class="px-5 py-4 text-right whitespace-nowrap">
+           <button type="button" onclick="bukaAksiKontrak(${i})" class="inline-flex items-center justify-center gap-2 bg-slate-800 text-white hover:bg-corp px-4 py-2 rounded-xl text-xs font-black transition shadow-sm group-hover:shadow-md">
+             <i class="fa-solid fa-bolt text-yellow-400"></i> Tindak Lanjut
+           </button>
+        </td>
       </tr>`;
     }).join(''); 
   }
