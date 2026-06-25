@@ -1499,7 +1499,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbwb0dN7I3uMYRG6tWWHNFtOyeKew9WodHf2OiozgLZMIkTJWOzj-2v4tHZM8RoOlkp3/exec';
+const API = 'https://script.google.com/macros/s/AKfycbz9cneaqObuRRaJY5P8keiemzVk_0oQIyyS3kDb7mzV6g1RgbsdgN8HVk7OtLgfYNVYmA/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1660,11 +1660,11 @@ async function loadDashboard() {
         <div>
           <p class="font-black text-slate-800 text-sm">${c.Nama}</p>
           <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p>
-          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || c.AlasanCuti || 'Tidak ada keterangan/alasan khusus'}"</p>
+          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || c.AlasanCuti || c.Keperluan || 'Tidak ada keterangan khusus'}"</p>
         </div>
       </div>`).join(''); 
   } else { 
-    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
+    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin hari ini.</div>`; 
   }
   
   // Render Broadcast
@@ -1685,11 +1685,11 @@ async function loadDashboard() {
     $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
     $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
       const cls = k.SisaHari<0 ? 'text-red-600' : k.SisaHari<=7 ? 'text-orange-600' : 'text-yellow-600'; 
-      return `<tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-50">
-        <td class="px-6 py-4 font-bold text-slate-800">${k.Nama}</td>
-        <td class="px-6 py-4 text-xs">${k.Jabatan||'-'}</td>
-        <td class="px-6 py-4 text-right text-xs font-black ${cls}">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td>
-        <td class="px-6 py-4 text-center"><button onclick="bukaAksiKontrak(${i})" class="bg-orange-100 text-orange-600 hover:bg-orange-600 hover:text-white px-4 py-2 rounded-lg text-[10px] font-black transition shadow-sm"><i class="fa-solid fa-bolt mr-1"></i>Tindak Lanjut</button></td>
+      return `<tr class="hover:bg-slate-50 border-b border-slate-100">
+        <td class="px-4 py-3 font-bold text-slate-800 text-sm w-1/3">${k.Nama}</td>
+        <td class="px-4 py-3 text-xs text-slate-500 w-1/4">${k.Jabatan||'-'}</td>
+        <td class="px-4 py-3 text-right text-xs font-black ${cls} w-1/6">${k.SisaHari<0?'Lewat '+Math.abs(k.SisaHari)+' hr':k.SisaHari+' hr'}</td>
+        <td class="px-4 py-3 text-center w-1/4"><button type="button" onclick="bukaAksiKontrak(${i})" class="bg-orange-100 text-orange-700 hover:bg-orange-500 hover:text-white px-3 py-1.5 rounded text-xs font-black transition w-full shadow-sm">Tindak Lanjut</button></td>
       </tr>`;
     }).join(''); 
   }
@@ -1705,6 +1705,28 @@ async function loadDashboard() {
     }
   }
 }
+
+window.bukaAksiKontrak = function(idx) {
+   if(!WGT_KB_DATA || !WGT_KB_DATA[idx]) return;
+   window.TARGET_KONTRAK_IDX = idx;
+   $('MAK_NAMA').textContent = "Karyawan: " + WGT_KB_DATA[idx].Nama;
+   openM('MAKSI_KONTRAK');
+}
+
+window.kirimAksiKontrak = async function(jenis) {
+   const kar = WGT_KB_DATA[window.TARGET_KONTRAK_IDX];
+   if(!kar) return;
+   
+   const btn = event.currentTarget;
+   const btnHtml = btn.innerHTML;
+   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+   
+   const res = await api({action: 'aksi_kontrak_email', user: CU, namaTarget: kar.Nama, aksi: jenis});
+   
+   btn.innerHTML = btnHtml;
+   if(res.success) { toast(res.message); closeM('MAKSI_KONTRAK'); } 
+   else toast(res.message, true);
+}  
 
 function openBroadcast(i){ const b=DASH_BC_DATA[i]; if(!b) return; $('MBC_TITLE').textContent=b.Judul; $('MBC_DATE').textContent=fmtDate(b.Tanggal); $('MBC_CONTENT').innerHTML=b.Isi; $('MBC_LINK').innerHTML=b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-black text-sm rounded-xl">Unduh Lampiran</a>`:''; openM('MBC_DETAIL'); }
 function bcToggleTarget(){ const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL'), txt=$('BCTARGET_TEXT'), sNik=$('BCTARGET_SELECT_NIK'), sCab=$('BCTARGET_SELECT_CABANG'), h=$('BC_MULTIPLE_HINT'); txt.classList.add('hide'); sNik.classList.add('hide'); sCab.classList.add('hide'); h.classList.add('hide'); if(t==='GENERAL') w.classList.add('hide'); else if(t==='NIK'){ w.classList.remove('hide'); l.textContent='Pilih Karyawan (Bisa Lebih dari Satu)'; sNik.classList.remove('hide'); h.classList.remove('hide'); if(!sNik.dataset.loaded){ sNik.innerHTML=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); sNik.dataset.loaded='1'; } } else if(t==='CABANG'){ w.classList.remove('hide'); l.textContent='Pilih Cabang'; sCab.classList.remove('hide'); } else{ w.classList.remove('hide'); l.textContent='Nama Divisi'; txt.classList.remove('hide'); } }
@@ -1962,22 +1984,36 @@ async function loadPenilaian() {
   }).join(''); 
 }
 let KPI_CURRENT_QUESTIONS = [];
-async function openPenilaianForm(i){ 
-  const k=PNL_BAWAHAN_DATA[i]; if(!k)return; 
-  let namaBawahan = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || 'Tanpa Nama';
-  $('MPNL_NAMA').textContent=namaBawahan; $('MPNL_SUB').textContent=(k.Jabatan||'-')+' — '+(k.Divisi||'-'); 
-  $('MPNL_NIK').value=k.NIK_Karyawan||k.NIK||''; $('MPNL_NAMA_VAL').value=namaBawahan; $('MPNL_JABATAN').value=k.Jabatan||''; $('MPNL_TEMPLATE').value=k.TemplateKPI||k.TEMPLATE_KPI||k['Template KPI']||'';
-  $('MPNL_NILAI').value=''; $('MPNL_CATATAN').value=''; $('MPNL_TOTAL_SKOR').textContent='0.00';
-  $('MPNL_KPI_WRAP').innerHTML=`<p class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencari Indikator Penilaian...</p>`;
-  openM('MPENILAIAN'); 
+function openPenilaianForm(idx) {
+  const b = PNL_BAWAHAN_DATA[idx];
+  $('FORM_KPI_NAMA').textContent = b.Nama_Karyawan || b['Nama Karyawan'] || b.Nama;
+  $('FORM_KPI_POS').textContent = b.Jabatan || b.Posisi || '-';
+  
+  // Jika database KPI_QUESTIONS tidak ada atau kosong, kita buat Fallback Soal General
+  let templateSoal = [
+    { kategori: 'KEDISIPLINAN', soal: 'Tingkat kehadiran dan ketepatan waktu datang ke kantor.', bobot: 20 },
+    { kategori: 'TANGGUNG JAWAB', soal: 'Penyelesaian tugas sesuai dengan deadline dan standar perusahaan.', bobot: 30 },
+    { kategori: 'KERJA SAMA TIM', soal: 'Kemampuan berkomunikasi dan bekerja sama dengan rekan divisi/cabang.', bobot: 20 },
+    { kategori: 'INISIATIF & SIKAP', soal: 'Proaktif dalam mencari solusi dan menjaga sikap profesional.', bobot: 30 }
+  ];
 
-  const res = await api({action: 'get_kpi_questions', templateKpi: $('MPNL_TEMPLATE').value, jabatan: k.Jabatan});
-  KPI_CURRENT_QUESTIONS = res.data || [];
-  if(!KPI_CURRENT_QUESTIONS.length) { $('MPNL_KPI_WRAP').innerHTML=`<div class="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center">Master Soal KPI untuk jabatan/template ini kosong. Hubungi HRD.</div>`; return; }
-
-  $('MPNL_KPI_WRAP').innerHTML = KPI_CURRENT_QUESTIONS.map((q, idx) => {
-    return `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"><div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-2 py-1 rounded border border-purple-100">${q.ASPEK||'UMUM'}</span></div><span class="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded">Bobot: ${q.BOBOT||0}%</span></div><p class="font-bold text-slate-800 text-sm mb-4 leading-snug">${q.INDIKATOR||'-'}</p><div class="flex items-center justify-between border-t border-slate-50 pt-3"><label class="text-xs font-bold text-slate-500">Skor Anda (1 - 100):</label><input type="number" min="0" max="100" class="kpi-score-input border-2 border-slate-200 py-1.5 px-3 w-20 text-center font-black text-purple-700 shadow-inner bg-slate-50 rounded-lg outline-none focus:border-purple-500" data-idx="${idx}" placeholder="0" oninput="calcKPIScore()"></div></div>`;
-  }).join('');
+  // Render soal ke layar
+  $('FORM_KPI_BODY').innerHTML = templateSoal.map((s, i) => `
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+       <div class="flex justify-between items-center mb-3">
+          <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-widest">${s.kategori}</span>
+          <span class="text-[10px] font-black text-slate-400">Bobot: ${s.bobot}%</span>
+       </div>
+       <p class="text-sm font-bold text-slate-700 mb-4">${s.soal}</p>
+       <div class="flex items-center gap-3">
+          <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1 - 100):</label>
+          <input type="number" min="1" max="100" class="kpi-input-skor flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-purple-700 text-lg focus:border-purple-500 outline-none" placeholder="0" data-bobot="${s.bobot}">
+       </div>
+    </div>
+  `).join('');
+  
+  $('FORM_KPI_MODAL').dataset.targetId = idx;
+  openM('FORM_KPI_MODAL');
 }
 function calcKPIScore() {
   let total = 0;
