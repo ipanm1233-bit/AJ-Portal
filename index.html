@@ -668,6 +668,13 @@ tailwind.config = {
               </div>
               <div><label class="lbl">Alamat Lengkap</label><textarea id="ONB_ALAMAT" rows="2" class="inp resize-none"></textarea></div>
             </div>
+            <div class="col-span-full border-t border-slate-200 mt-4 pt-4">
+              <p class="text-xs font-black text-blue-600 uppercase tracking-widest mb-3">Pengaturan Onboarding (Welcoming Letter)</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Jadwal Kehadiran <span class="text-red-500">*</span></label><input type="text" id="ONB_JADWAL" required placeholder="Cth: Senin, 28 Juni 2026 Jam 08:00 WIB" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-white focus:border-blue-500 outline-none"></div>
+                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Persyaratan / Bawaan <span class="text-red-500">*</span></label><textarea id="ONB_DOKUMEN" required rows="2" placeholder="Cth: 1. Ijazah Asli&#10;2. KTP&#10;3. Laptop Pribadi" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-white focus:border-blue-500 outline-none resize-none"></textarea></div>
+              </div>
+            </div>
             <div class="flex justify-end"><button type="submit" id="BTN_ONB_SUBMIT" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-blue-600/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-save"></i>Simpan Karyawan Baru</button></div>
           </form>
 
@@ -1705,42 +1712,60 @@ async function prefetchDD(){ const [kr,kd,iv]=await Promise.all([api({action:'ge
 let CURRENT_FORM_FIELDS = []; // Memori untuk menyimpan struktur form saat sedang diisi
 
 function renderDynFormFields(){ 
-  const fid=$('SELFORM').value, df=$('DYNFORM'), dfld=$('DYNFIELDS'), kw=$('KBWARN'); 
-  df.classList.add('hide'); kw.classList.add('hide'); dfld.innerHTML=''; if(!fid) return; 
+  const fid=$('SELFORM').value, df=$('DYNFORM'), dfld=$('DYNFIELDS'); 
+  df.classList.add('hide'); dfld.innerHTML=''; if(!fid) return; 
   const cfg=FORMS.find(f=>f.FormID===fid); if(!cfg) return; 
-  const nm=(cfg.NamaForm||'').toLowerCase(); 
-  
-  if(nm.includes('kasbon')){ 
-    if(!CU.TanggalJoin){ kw.classList.remove('hide'); return; } 
-    if((new Date()-new Date(CU.TanggalJoin))/31557600000 < 1){ kw.classList.remove('hide'); return; } 
-  } 
   
   let f=[]; try{f=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){return;} 
-  CURRENT_FORM_FIELDS = f; // Simpan ke memori global
+  CURRENT_FORM_FIELDS = f; 
+  
+  // Fungsi Generate Teks Periode (Senin-Sabtu Minggu Ini)
+  const today = new Date(); const day = today.getDay(); 
+  const diffSenin = today.getDate() - day + (day === 0 ? -6 : 1);
+  const tglSenin = new Date(today.setDate(diffSenin));
+  const tglSabtu = new Date(today.setDate(diffSenin + 5));
+  const textPeriode = `${tglSenin.getDate()} - ${tglSabtu.getDate()} ${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][tglSabtu.getMonth()]} ${tglSabtu.getFullYear()}`;
   
   const B='inp !py-2.5 font-semibold text-sm shadow-sm'; 
   f.forEach(x=>{ 
-    const req=x.required?'required':'', st=x.required?'<span class="text-red-500">*</span>':'', fl=(x.type==='textarea'||x.fullWidth)?'sm:col-span-2':''; 
-    const ev = `oninput="runDynLogic()" onchange="runDynLogic()"`; // Pemicu logika
-    const isRO = x.formula ? 'readonly' : ''; // Jika ada rumus, form jadi readonly
-    const extraClass = x.formula ? 'bg-blue-50 text-blue-700 border-blue-300 focus:border-blue-500 cursor-not-allowed font-black' : 'bg-white';
+    const req=x.required?'required':'', st=x.required?'<span class="text-red-500">*</span>':'', fl=(x.type==='textarea'||x.fullWidth||x.type==='tabel')?'sm:col-span-2':''; 
+    const ev = `oninput="runDynLogic()" onchange="runDynLogic()"`; 
+    const isRO = x.formula ? 'readonly' : ''; 
+    const extraClass = x.formula ? 'bg-blue-50 text-blue-700 border-blue-300 font-black cursor-not-allowed' : 'bg-white';
     
     let i=''; 
     switch(x.type){ 
       case'textarea': i=`<textarea id="DF_${x.name}" rows="3" ${req} ${ev} ${isRO} class="${B} ${extraClass} resize-none"></textarea>`; break; 
       case'select': case'dropdownlist': i=`<select id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}"><option value="">— Pilih —</option>${(x.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`; break; 
       case'file': i=`<input type="file" id="DF_${x.name}" ${req} ${ev} class="inp p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer bg-white">`; break; 
-      case'karyawan': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Karyawan —</option>${DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join('')}</select>`; break; 
-      case'kendaraan': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Kendaraan —</option>${DD_KEND.map(k=>`<option value="${k.noPolisi}">${k.noPolisi} — ${k.merkTipe}</option>`).join('')}</select>`; break; 
-      case'inventory': i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="">— Pilih Barang —</option>${DD_INV.map(k=>`<option value="${k.idBarang}">${k.namaBarang} (Stok: ${k.stok} ${k.satuan})</option>`).join('')}</select>`; break; 
+      // FITUR BARU: Tabel Dinamis Multi-Baris
+      case'tabel': 
+        i=`<div class="border rounded-xl overflow-hidden bg-slate-50 p-2"><table class="w-full text-xs text-left" id="DF_TBL_${x.name}">
+           <thead class="text-slate-500 uppercase tracking-widest"><tr><th class="p-2">Tgl / Tujuan</th><th class="p-2">Nominal</th><th class="p-2">Aksi</th></tr></thead>
+           <tbody id="TBODY_${x.name}">
+             <tr><td class="p-1"><input type="text" class="inp !py-1" placeholder="Senin, Tujuan..."></td><td class="p-1"><input type="number" class="inp !py-1 dyn-nominal" placeholder="Rp"></td><td class="p-1 text-center">-</td></tr>
+           </tbody>
+           </table><button type="button" onclick="addDynRow('${x.name}')" class="text-xs font-black text-blue-600 px-2 py-2 w-full text-left bg-blue-50 mt-2 rounded">+ Tambah Baris Transaksi</button></div>`; 
+        break;
+      // FITUR BARU: Periode Otomatis
+      case'periode':
+        i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="${textPeriode}">${textPeriode} (Otomatis)</option></select>`; break;
       default: i=`<input type="${x.type||'text'}" id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}">`; break; 
     } 
-    // Bungkus dengan DFW (Dynamic Form Wrapper) agar bisa di hide/show
     dfld.insertAdjacentHTML('beforeend',`<div id="DFW_${x.name}" class="${fl} transition-all duration-300"><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">${x.label} ${st}</label>${i}</div>`); 
   }); 
-  df.classList.remove('hide'); 
-  setTimeout(runDynLogic, 200); // Jalankan logika saat form pertama dibuka
+  df.classList.remove('hide'); setTimeout(runDynLogic, 200); 
 }
+
+// Fungsi Menambah Baris Tabel
+window.addDynRow = function(name) {
+  const tbody = document.getElementById('TBODY_' + name);
+  if(tbody) {
+     const tr = document.createElement('tr');
+     tr.innerHTML = `<td class="p-1"><input type="text" class="inp !py-1" placeholder="Selasa, Tujuan..."></td><td class="p-1"><input type="number" class="inp !py-1 dyn-nominal" placeholder="Rp"></td><td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-500 font-black px-2 hover:bg-red-50 rounded">X</button></td>`;
+     tbody.appendChild(tr);
+  }
+};
 
 window.runDynLogic = function() {
   if(!CURRENT_FORM_FIELDS || CURRENT_FORM_FIELDS.length === 0) return;
@@ -1948,7 +1973,14 @@ async function loadCutiKaryawan() {
 }
 function renderCutiCards(data) {
   if(!data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
-  $('CUTIGRID').innerHTML = data.map(k => `<div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group"><div class="flex items-start gap-4 mb-3"><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black shadow-inner group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-umbrella-beach"></i></div><div><p class="font-black text-slate-800 leading-snug">${k.nama}</p><p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5">${k.cabang}</p></div></div><p class="text-[10px] text-blue-600 font-bold bg-blue-50 py-1.5 px-3 rounded-lg text-center mt-4 group-hover:bg-blue-100 transition">Buka & Kelola Cuti</p></div>`).join('');
+  
+  $('CUTIGRID').innerHTML = data.map(k => {
+    // Mencari data lengkap dari MASTER_KARYAWAN_DATA
+    const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === k.nama || x['Nama Karyawan'] === k.nama || x.Nama === k.nama) || {};
+    const pos = emp.Jabatan || emp.JABATAN || emp.Posisi || k.cabang || 'KARYAWAN';
+    
+    return `<div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group"><div class="flex items-start gap-4 mb-3"><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black shadow-inner group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-umbrella-beach"></i></div><div><p class="font-black text-slate-800 leading-snug">${k.nama}</p><p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5">${pos}</p></div></div><p class="text-[10px] text-blue-600 font-bold bg-blue-50 py-1.5 px-3 rounded-lg text-center mt-4 group-hover:bg-blue-100 transition">Buka & Kelola Cuti</p></div>`;
+  }).join('');
 }
 function filterCutiKaryawan(q){ if(!q){renderCutiCards(MASTER_CUTI_DATA);return;} const f=MASTER_CUTI_DATA.filter(k=>k.nama.toLowerCase().includes(q.toLowerCase())); renderCutiCards(f); }
 async function openCutiDetail(nama) {
@@ -1973,41 +2005,35 @@ function toggleSetengahHari() {
 }  
 on('FM_CUTI_MANUAL', 'submit', async e => {
   e.preventDefault(); 
+  const empName = $('MCM_NAMA_VAL').value;
+  // Cari data karyawan yang dipilih, BUKAN data CU (HRD)
+  const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === empName || x['Nama Karyawan'] === empName || x.Nama === empName) || {};
+  
   const selOpt = $('MCM_JENIS').options[$('MCM_JENIS').selectedIndex];
   const potongCount = parseFloat(selOpt.getAttribute('data-potong')) || 0;
   const jenisText = selOpt.text; 
-  
-  // Tangkap nilai pagi/siang jika form setengah hari terbuka
   const valWaktuSetengah = !$('WRAP_SETENGAH_HARI').classList.contains('hide') ? $('MCM_WAKTU_SETENGAH').value : '-';
 
   const b=$('MCM_BTN'), o=b.innerHTML; 
   b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencetak PDF...';
   
   const res = await api({ 
-    action: 'input_cuti_manual', 
-    user: CU, 
-    namaKaryawan: $('MCM_NAMA_VAL').value, 
-    jenisCuti: jenisText, 
-    jenisSetengahHari: valWaktuSetengah, // Dikirim ke PDF Generator Backend
-    potongan: potongCount, 
-    tglMulai: $('MCM_TGL_M').value, 
-    tglSelesai: $('MCM_TGL_S').value, 
-    alasan: $('MCM_ALASAN').value,
-    cabang: CU.Cabang,
-    jabatan: CU.Jabatan,
-    alamat: CU.Alamat,
-    hp: CU.HP,
-    sisaCutiTahunan: CU.SisaCuti,
-    sisaCutiKhusus: CU.SisaKhusus,
-    sisaCutiAkumulasi: CU.SisaAkumulasi
+    action: 'input_cuti_manual', user: CU, namaKaryawan: empName, 
+    jenisCuti: jenisText, jenisSetengahHari: valWaktuSetengah, potongan: potongCount, 
+    tglMulai: $('MCM_TGL_M').value, tglSelesai: $('MCM_TGL_S').value, alasan: $('MCM_ALASAN').value,
+    
+    // Kirim data Karyawan Asli (emp) untuk Placeholder
+    cabang: emp.Cabang || emp.CABANG || '-',
+    jabatan: emp.Jabatan || emp.JABATAN || '-',
+    alamat: emp.Alamat || emp.ALAMAT || '-',
+    hp: emp['No HP'] || emp['No. HP'] || emp.HP || emp.NOHP || '-',
+    sisaCutiTahunan: emp.SisaCuti || emp['Sisa Cuti'] || '0',
+    sisaCutiKhusus: emp.SisaKhusus || '0',
+    sisaCutiAkumulasi: emp.SisaAkumulasi || '0'
   });
   
   b.disabled=false; b.innerHTML=o; 
-  if(res.success){ 
-    toast('Cuti berhasil terekam & PDF telah dibuat!'); 
-    closeM('MCUTI_MANUAL'); 
-    openCutiDetail($('MCM_NAMA_VAL').value); 
-  } else toast(res.message, true);
+  if(res.success){ toast('Cuti berhasil terekam & PDF telah dibuat!'); closeM('MCUTI_MANUAL'); openCutiDetail(empName); } else toast(res.message, true);
 });
 
 // --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK & INSTANT SEARCH) ---
@@ -2106,29 +2132,18 @@ on('FM_ONBOARDING', 'submit', async e => {
   b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
   
   const res = await api({
-    action: 'submit_onboarding', 
-    user:CU, 
-    nik:$('ONB_NIK').value, 
-    nama:$('ONB_NAMA').value, 
-    jabatan:$('ONB_JABATAN').value, 
-    divisi:$('ONB_DIVISI').value, 
-    cabang:$('ONB_CABANG').value, 
-    atasan:$('ONB_ATASAN').value, 
-    tglJoin:$('ONB_TGL').value, 
-    status:$('ONB_STATUS').value, 
-    email:$('ONB_EMAIL').value, 
-    hp:$('ONB_HP').value, 
-    alamat:$('ONB_ALAMAT').value
+    action: 'submit_onboarding', user:CU, nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, 
+    jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, cabang:$('ONB_CABANG').value, 
+    atasan:$('ONB_ATASAN').value, tglJoin:$('ONB_TGL').value, status:$('ONB_STATUS').value, 
+    email:$('ONB_EMAIL').value, hp:$('ONB_HP').value, alamat:$('ONB_ALAMAT').value,
+    // Data Tambahan untuk Email
+    jadwalOnb: $('ONB_JADWAL').value, dokumenOnb: $('ONB_DOKUMEN').value
   }); 
   
   b.disabled = false; b.innerHTML = o; 
-  if(res.success){ 
-    toast(res.message); 
-    $('FM_ONBOARDING').reset(); 
-    prefetchDD(); 
-  } else toast(res.message, true); 
+  if(res.success){ toast(res.message); $('FM_ONBOARDING').reset(); prefetchDD(); } else toast(res.message, true); 
 });
-
+  
 on('FM_TERMINASI', 'submit', async e => { 
   e.preventDefault(); 
   const k = $('TERM_KARY').value, t = $('TERM_TGL').value, j = $('TERM_JENIS').value, a = $('TERM_ALASAN').value, lHtml = $('TERM_LEGAL_TEXT').innerHTML; 
