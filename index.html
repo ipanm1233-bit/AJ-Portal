@@ -1676,17 +1676,24 @@ async function loadDashboard() {
   // Render Cuti Hari Ini
   const ctEl = $('DCUTI_TODAY'); 
   if(res.cutiHariIni && res.cutiHariIni.length){ 
-    ctEl.innerHTML = res.cutiHariIni.map(c => `
+    ctEl.innerHTML = res.cutiHariIni.map(c => {
+      // Membaca dari berbagai kemungkinan format penamaan kolom di Database Anda
+      const ket = c['Keterangan Cuti'] || c.Keterangan_Cuti || c.Keterangan || c.Alasan || c.AlasanCuti || c.Keperluan || 'Tidak ada keterangan khusus';
+      const jenis = c['Type Cuti'] || c.Type_Cuti || c.Jenis || c.JenisCuti || 'Cuti';
+      const namaKar = c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || 'Tanpa Nama';
+      
+      return `
       <div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-start gap-3">
         <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex flex-shrink-0 items-center justify-center mt-1"><i class="fa-solid fa-user"></i></div>
         <div>
-          <p class="font-black text-slate-800 text-sm">${c.Nama}</p>
-          <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c.Jenis}</p>
-          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c.Keterangan || c.Alasan || c.AlasanCuti || c.Keperluan || 'Tidak ada keterangan khusus'}"</p>
+          <p class="font-black text-slate-800 text-sm">${namaKar}</p>
+          <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${jenis}</p>
+          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${ket}"</p>
         </div>
-      </div>`).join(''); 
+      </div>`;
+    }).join(''); 
   } else { 
-    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin hari ini.</div>`; 
+    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
   }
   
   // Render Broadcast
@@ -1707,22 +1714,28 @@ async function loadDashboard() {
     WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
     $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
     
-    // Render Tabel Kontrak dengan Desain Modern
     $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
+      // Pewarnaan Badge Status
       const isLewat = k.SisaHari < 0;
-      const clsBadges = isLewat ? 'text-red-700 bg-red-100 border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-100 border-orange-200' : 'text-yellow-700 bg-yellow-100 border-yellow-200'); 
-      const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' hr' : k.SisaHari + ' hr';
+      const clsBadges = isLewat ? 'text-red-700 bg-red-50 border border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-50 border border-orange-200' : 'text-yellow-700 bg-yellow-50 border border-yellow-200'); 
+      const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' Hari' : k.SisaHari + ' Hari';
       
+      // Format Tanggal Habis Kontrak agar lebih mudah dibaca (Misal: 25 Jun 2026)
+      const tglHabis = k.KontrakHabis ? new Date(k.KontrakHabis).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+      
+      // Membuat persis 6 Kolom: Karyawan | Jabatan | Cabang | Kontrak Habis | Sisa Hari | Aksi
       return `
       <tr class="hover:bg-slate-50 border-b border-slate-100 transition group">
-        <td class="px-5 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
-        <td class="px-5 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Jabatan||'-'}</td>
-        <td class="px-5 py-4 text-center whitespace-nowrap">
-           <span class="px-3 py-1.5 rounded-lg text-xs font-black border ${clsBadges}">${txtHari}</span>
+        <td class="px-4 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
+        <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Jabatan||'-'}</td>
+        <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Cabang||'-'}</td>
+        <td class="px-4 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">${tglHabis}</td>
+        <td class="px-4 py-4 text-center whitespace-nowrap">
+           <span class="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-black ${clsBadges}">${txtHari}</span>
         </td>
-        <td class="px-5 py-4 text-right whitespace-nowrap">
-           <button type="button" onclick="bukaAksiKontrak(${i})" class="inline-flex items-center justify-center gap-2 bg-slate-800 text-white hover:bg-corp px-4 py-2 rounded-xl text-xs font-black transition shadow-sm group-hover:shadow-md">
-             <i class="fa-solid fa-bolt text-yellow-400"></i> Tindak Lanjut
+        <td class="px-4 py-4 text-right whitespace-nowrap">
+           <button type="button" onclick="bukaAksiKontrak(${i})" class="inline-flex items-center justify-center bg-white text-slate-500 border border-slate-200 hover:border-corp hover:bg-corp hover:text-white px-4 py-2 rounded-xl text-xs font-black transition shadow-sm">
+             Tindak Lanjut
            </button>
         </td>
       </tr>`;
