@@ -1603,7 +1603,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbw8sPS8ALgO2KfVfOAPFlrq4RWSC7Ua4FsLeh4ii-5Ubfsz3B2BlDK6qkgeRnTLI5Pt_A/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwpYEwXC2Y0NwckRJDM-3r5sbfC0ldKc-c2preN-gSvWVYriqY5cvH3KecPc7O5gJLBmg/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1998,7 +1998,8 @@ window.runDynLogic = function() {
         
         if(targetEl && wrapEl) {
            // Jika nilai input target sesuai dengan syarat
-           if(targetEl.value.toLowerCase() === f.showIfValue.toLowerCase()) {
+           const allowedList = f.showIfValue.toLowerCase().split(',').map(x => x.trim());
+           if(allowedList.includes(targetEl.value.toLowerCase())) {
               wrapEl.classList.remove('hide');
               if(myInput && myInput.hasAttribute('data-was-required')) myInput.required = true;
            } else {
