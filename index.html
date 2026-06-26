@@ -1569,7 +1569,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyVKqELf75XymmMKh_IVptPywWotS_kdE_O3ezAsJDvmlO8g7Uu19Lom3XJjpEOjKltow/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwKrAKxVYXwCyUQ1884_97z2AkQqDBM_-h26lxeNSKT064pNjUd8ECzePYCeQrz9XwH0A/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -2211,52 +2211,69 @@ async function loadPenilaian() {
 }
 let KPI_CURRENT_QUESTIONS = [];
 
-function openPenilaianForm(idx) {
+async function openPenilaianForm(idx) {
   const b = PNL_BAWAHAN_DATA[idx];
-  
-  // Sinkronisasi dengan ID yang ada di struktur HTML Modal MPENILAIAN
+  if(!b) return;
+
   const namaKar = b.Nama_Karyawan || b['Nama Karyawan'] || b.Nama || 'Tanpa Nama';
-  const posKar = b.Jabatan || b.Posisi || '-';
+  const posKar = b.Jabatan || b.JABATAN || '-';
   const nikKar = b.NIK_Karyawan || b.NIK || '';
   
-  // Masukkan teks ke header modal
+  // Ambil Template_KPI, jika kosong gunakan Jabatan sebagai fallback
+  const templateKPI = b.TEMPLATE_KPI || b['Template KPI'] || b.TemplateKPI || posKar;
+  
   $('MPNL_NAMA').textContent = namaKar;
   $('MPNL_SUB').textContent = posKar;
-  
-  // Masukkan data tersembunyi untuk kebutuhan Submit ke Server
   $('MPNL_NIK').value = nikKar;
   $('MPNL_NAMA_VAL').value = namaKar;
   $('MPNL_JABATAN').value = posKar;
-  $('MPNL_TOTAL_SKOR').textContent = "0.00"; // Reset skor
-  $('MPNL_NILAI').value = ""; // Reset dropdown keputusan
-  $('MPNL_CATATAN').value = ""; // Reset textarea
-  
-  // Template Soal Standar (Fallback jika tidak ada custom soal)
-  KPI_CURRENT_QUESTIONS = [
-    { ASPEK: 'KEDISIPLINAN', INDIKATOR: 'Tingkat kehadiran dan ketepatan waktu datang ke kantor.', BOBOT: 20 },
-    { ASPEK: 'TANGGUNG JAWAB', INDIKATOR: 'Penyelesaian tugas sesuai dengan deadline dan standar perusahaan.', BOBOT: 30 },
-    { ASPEK: 'KERJA SAMA TIM', INDIKATOR: 'Kemampuan berkomunikasi dan bekerja sama dengan rekan divisi/cabang.', BOBOT: 20 },
-    { ASPEK: 'INISIATIF & SIKAP', INDIKATOR: 'Proaktif dalam mencari solusi dan menjaga sikap profesional.', BOBOT: 30 }
-  ];
+  $('MPNL_TOTAL_SKOR').textContent = "0.00";
+  $('MPNL_NILAI').value = "";
+  $('MPNL_CATATAN').value = "";
 
-  // Render soal ke dalam wrapper MPNL_KPI_WRAP
-  $('MPNL_KPI_WRAP').innerHTML = KPI_CURRENT_QUESTIONS.map((s, i) => `
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+  // Munculkan Status Loading di Layar
+  $('MPNL_KPI_WRAP').innerHTML = '<div class="text-center py-12"><i class="fa-solid fa-spinner fa-spin text-4xl text-purple-500 mb-3"></i><p class="text-xs font-bold text-slate-400">Menarik Soal KPI dari Database...</p></div>';
+  openM('MPENILAIAN');
+
+  // Request soal dari backend
+  const res = await api({action: 'get_soal_kpi', templateName: templateKPI});
+  
+  let soalData = [];
+  if(res.success && res.data && res.data.length > 0) {
+      soalData = res.data;
+  } else {
+      $('MPNL_KPI_WRAP').innerHTML = '<div class="text-center py-8 text-red-500 font-bold text-sm">Gagal memuat soal. Pastikan Template KPI sesuai di Master.</div>';
+      return;
+  }
+
+  // Render HTML Soal
+  $('MPNL_KPI_WRAP').innerHTML = soalData.map((s, i) => `
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-4">
        <div class="flex justify-between items-center mb-3">
           <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-widest">${s.ASPEK}</span>
           <span class="text-[10px] font-black text-slate-400">Bobot: ${s.BOBOT}%</span>
        </div>
        <p class="text-sm font-bold text-slate-700 mb-4">${s.INDIKATOR}</p>
        <div class="flex items-center gap-3">
-          <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1 - 100):</label>
-          <input type="number" min="1" max="100" class="kpi-score-input flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-purple-700 text-lg focus:border-purple-500 outline-none" placeholder="0" data-idx="${i}" oninput="calcKPIScore()">
+          <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1-100):</label>
+          <input type="number" min="1" max="100" class="kpi-score-input flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-purple-700 text-lg focus:border-purple-500 outline-none" placeholder="0" data-idx="${i}" data-bobot="${s.BOBOT}" oninput="calcKPIScore()">
        </div>
     </div>
   `).join('');
-  
-  // Buka Modal Utama
-  openM('MPENILAIAN');
 }
+
+// 2. Kalkulator Live Skor KPI
+window.calcKPIScore = function() {
+    let total = 0;
+    document.querySelectorAll('.kpi-score-input').forEach(inp => {
+        let val = parseFloat(inp.value) || 0;
+        let bobot = parseFloat(inp.dataset.bobot) || 0;
+        if(val > 100) { inp.value = 100; val = 100; }
+        if(val < 0) { inp.value = 0; val = 0; }
+        total += (val * (bobot / 100));
+    });
+    $('MPNL_TOTAL_SKOR').textContent = total.toFixed(2);
+};
 function calcKPIScore() {
   let total = 0;
   document.querySelectorAll('.kpi-score-input').forEach(el => {
@@ -2810,35 +2827,38 @@ function prosesDirectLinkKpi() {
     const urlParams = new URLSearchParams(window.location.search);
     const targetKpi = urlParams.get('kpi_target');
     
-    if (targetKpi) {
+    // Pastikan CU (Current User) sudah ada dan valid sebelum pindah halaman
+    if (targetKpi && typeof CU !== 'undefined' && CU && CU.Nama) {
+        // Hapus parameter URL agar tidak berulang
         window.history.replaceState({}, document.title, window.location.pathname);
         
-        // Pindah otomatis ke menu Penilaian & Kontrak (ID Menu-nya adalah 'kontrak')
-        if(typeof nav === 'function') nav('kontrak');
+        // Pindah otomatis ke menu Penilaian
+        nav('penilaian');
         
         setTimeout(async () => {
-            if(typeof loadPenilaian === 'function') {
-                showL('Menyiapkan dokumen penilaian...');
-                await loadPenilaian();
-                hideL();
-                
-                const idx = PNL_BAWAHAN_DATA.findIndex(k => {
-                    const nama = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '').toUpperCase().trim();
-                    return nama === targetKpi.toUpperCase().trim();
-                });
-                
-                if(idx > -1) {
-                    openPenilaianForm(idx);
-                } else {
-                    toast('Gagal: Karyawan tidak ditemukan di daftar bawahan Anda.', true);
-                }
+            showL('Mencari data karyawan...');
+            await loadPenilaian(); // Tarik data bawahan
+            hideL();
+            
+            // Cari index karyawan di daftar bawahan Atasan yang sedang login
+            const targetName = targetKpi.toUpperCase().trim();
+            const idx = PNL_BAWAHAN_DATA.findIndex(k => {
+                const nama = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '').toUpperCase().trim();
+                return nama === targetName;
+            });
+            
+            if(idx > -1) {
+                openPenilaianForm(idx);
+            } else {
+                toast('Gagal: Karyawan tersebut tidak ada di daftar bawahan Anda.', true);
             }
         }, 1200); 
     }
 }
 
+// Deteksi otomatis setiap 1 detik. Hanya jalan jika sudah login penuh.
 const autoLinkDetector = setInterval(() => {
-    if (typeof CU !== 'undefined' && CU && CU.Nama) {
+    if (typeof CU !== 'undefined' && CU && CU.Nama && $('DASHBOARD').classList.contains('hide') === false) {
         clearInterval(autoLinkDetector);
         prosesDirectLinkKpi();
     }
