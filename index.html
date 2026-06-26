@@ -653,21 +653,68 @@ tailwind.config = {
           </div>
 
           <form id="FM_ONBOARDING" class="p-8 space-y-6">
+            
+            <!-- SECTION 1: DATA PEKERJAAN -->
             <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-5">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div><label class="lbl">Nama Lengkap <span class="text-red-500">*</span></label><input type="text" id="ONB_NAMA" class="inp font-bold" required></div>
+              <h3 class="font-black text-slate-800 border-b border-slate-200 pb-2"><i class="fa-solid fa-briefcase text-blue-600 mr-2"></i>Data Pekerjaan & Penempatan</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div><label class="lbl">NIK Karyawan <span class="text-red-500">*</span></label><input type="text" id="ONB_NIK" class="inp font-bold" required></div>
+                <div><label class="lbl">Nama Lengkap <span class="text-red-500">*</span></label><input type="text" id="ONB_NAMA" class="inp font-bold" required></div>
+                <div><label class="lbl">Cabang <span class="text-red-500">*</span></label><select id="ONB_CABANG" class="inp" required><option>CIREBON</option><option>MALANG</option></select></div>
+                
                 <div><label class="lbl">Jabatan <span class="text-red-500">*</span></label><input type="text" id="ONB_JABATAN" class="inp" required></div>
                 <div><label class="lbl">Divisi <span class="text-red-500">*</span></label><input type="text" id="ONB_DIVISI" class="inp" required></div>
-                <div><label class="lbl">Cabang (Penempatan) <span class="text-red-500">*</span></label><select id="ONB_CABANG" class="inp" required><option>CIREBON</option><option>MALANG</option></select></div>
-                <div><label class="lbl">Atasan Langsung</label><select id="ONB_ATASAN" class="inp"><option value="">— Tidak Ada —</option></select></div>
-                <div><label class="lbl">Tanggal Join (Masuk) <span class="text-red-500">*</span></label><input type="date" id="ONB_TGL" class="inp font-bold" required></div>
                 <div><label class="lbl">Status Pekerjaan <span class="text-red-500">*</span></label><select id="ONB_STATUS" class="inp" required><option>KONTRAK</option><option>PROBATION</option><option>TETAP</option></select></div>
-                <div><label class="lbl">Email Aktif (Notifikasi) <span class="text-red-500">*</span></label><input type="email" id="ONB_EMAIL" class="inp" required></div>
-                <div><label class="lbl">No HP / WhatsApp</label><input type="text" id="ONB_HP" class="inp"></div>
+                
+                <div><label class="lbl">Tanggal Join (Masuk) <span class="text-red-500">*</span></label><input type="date" id="ONB_TGLJOIN" class="inp font-bold" required></div>
+                <div><label class="lbl">Kontrak Habis</label><input type="date" id="ONB_TGLHABIS" class="inp text-slate-500"></div>
+                <div><label class="lbl">Jam Kerja / Shift</label><input type="text" id="ONB_JAMKERJA" class="inp text-slate-500" placeholder="Cth: Standar"></div>
+                
+                <div><label class="lbl">Finger Name</label><input type="text" id="ONB_FINGER" class="inp text-slate-500"></div>
+                <div><label class="lbl">Atasan Langsung</label><select id="ONB_ATASAN" class="inp"><option value="">— Tidak Ada —</option></select></div>
+                <div><label class="lbl">Template KPI</label><input type="text" id="ONB_KPI" class="inp text-slate-500" placeholder="Cth: Default"></div>
               </div>
-              <div><label class="lbl">Alamat Lengkap</label><textarea id="ONB_ALAMAT" rows="2" class="inp resize-none"></textarea></div>
             </div>
+
+            <!-- SECTION 2: DATA PRIBADI -->
+            <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-5">
+              <h3 class="font-black text-slate-800 border-b border-slate-200 pb-2"><i class="fa-solid fa-address-card text-emerald-600 mr-2"></i>Data Pribadi & Identitas</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div><label class="lbl">Jenis Kelamin <span class="text-red-500">*</span></label><select id="ONB_JK" class="inp" required><option value="L">Laki-Laki</option><option value="P">Perempuan</option></select></div>
+                <div><label class="lbl">Tanggal Lahir <span class="text-red-500">*</span></label><input type="date" id="ONB_TGLLAHIR" class="inp" required></div>
+                <div><label class="lbl">Pendidikan Terakhir</label><input type="text" id="ONB_PENDIDIKAN" class="inp text-slate-500"></div>
+                
+                <div><label class="lbl">Agama</label><input type="text" id="ONB_AGAMA" class="inp text-slate-500"></div>
+                <div><label class="lbl">Golongan Darah</label><select id="ONB_GOLDAR" class="inp"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="AB">AB</option><option value="O">O</option></select></div>
+                <div><label class="lbl">NIK KTP <span class="text-red-500">*</span></label><input type="text" id="ONB_KTP" class="inp" required></div>
+                
+                <div><label class="lbl">No Kartu Keluarga</label><input type="text" id="ONB_KK" class="inp text-slate-500"></div>
+                <div><label class="lbl">NPWP</label><input type="text" id="ONB_NPWP" class="inp text-slate-500"></div>
+                <div class="flex gap-2">
+                   <div class="w-1/2"><label class="lbl">Status Pajak</label><input type="text" id="ONB_STATUSPAJAK" class="inp text-slate-500" placeholder="TK/0"></div>
+                   <div class="w-1/2"><label class="lbl">Jml Anak</label><input type="number" id="ONB_ANAK" class="inp text-slate-500" value="0"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: KONTAK & BPJS -->
+            <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-5">
+              <h3 class="font-black text-slate-800 border-b border-slate-200 pb-2"><i class="fa-solid fa-phone text-orange-600 mr-2"></i>Kontak & BPJS</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="lbl">No HP Aktif (WA) <span class="text-red-500">*</span></label><input type="text" id="ONB_HP" class="inp font-bold text-slate-800" required></div>
+                <div><label class="lbl">Email Notifikasi <span class="text-red-500">*</span></label><input type="email" id="ONB_EMAIL" class="inp font-bold text-slate-800" required></div>
+                
+                <div><label class="lbl">Nama Kontak Darurat</label><input type="text" id="ONB_DARURATNAMA" class="inp text-slate-500"></div>
+                <div><label class="lbl">No HP Darurat</label><input type="text" id="ONB_DARURATHP" class="inp text-slate-500"></div>
+                
+                <div><label class="lbl">No BPJS Ketenagakerjaan</label><input type="text" id="ONB_BPJSTK" class="inp text-slate-500"></div>
+                <div><label class="lbl">No BPJS Kesehatan</label><input type="text" id="ONB_BPJSKES" class="inp text-slate-500"></div>
+                
+                <div class="sm:col-span-2"><label class="lbl">Alamat Lengkap (Domisili) <span class="text-red-500">*</span></label><textarea id="ONB_ALAMAT" rows="2" class="inp resize-none" required></textarea></div>
+              </div>
+            </div>
+
+            <!-- PENGATURAN EMAIL -->
             <div class="col-span-full border-t border-slate-200 mt-4 pt-4">
               <p class="text-xs font-black text-blue-600 uppercase tracking-widest mb-3">Pengaturan Onboarding (Welcoming Letter)</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -675,7 +722,8 @@ tailwind.config = {
                 <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Persyaratan / Bawaan <span class="text-red-500">*</span></label><textarea id="ONB_DOKUMEN" required rows="2" placeholder="Cth: 1. Ijazah Asli&#10;2. KTP&#10;3. Laptop Pribadi" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-white focus:border-blue-500 outline-none resize-none"></textarea></div>
               </div>
             </div>
-            <div class="flex justify-end"><button type="submit" id="BTN_ONB_SUBMIT" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-blue-600/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-save"></i>Simpan Karyawan Baru</button></div>
+            
+            <div class="flex justify-end"><button type="submit" id="BTN_ONB_SUBMIT" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl text-sm font-black shadow-lg shadow-blue-600/30 flex items-center gap-2 transition hover:scale-105"><i class="fa-solid fa-save"></i>Simpan Karyawan ke Database</button></div>
           </form>
 
           <form id="FM_TERMINASI" class="p-8 space-y-6 hide">
@@ -1521,7 +1569,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbww8Rt1cJmhoDZ14DRtrTlPUFHLbXf8Y-F1uaOKAMplTmSt1YUVDevA9dD5IlDVCZz57A/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyVKqELf75XymmMKh_IVptPywWotS_kdE_O3ezAsJDvmlO8g7Uu19Lom3XJjpEOjKltow/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1769,7 +1817,11 @@ window.kirimAksiKontrak = async function(jenis) {
    const btnHtml = btn.innerHTML;
    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
    
-   const res = await api({action: 'aksi_kontrak_email', user: CU, namaTarget: kar.Nama, aksi: jenis});
+   // Dapatkan URL dasar portal tanpa parameter di belakangnya
+   const portalUrl = window.location.href.split('?')[0];
+   
+   // Kirim appUrl ke backend
+   const res = await api({action: 'aksi_kontrak_email', user: CU, namaTarget: kar.Nama, aksi: jenis, appUrl: portalUrl});
    
    btn.innerHTML = btnHtml;
    if(res.success) { toast(res.message); closeM('MAKSI_KONTRAK'); } 
@@ -1841,12 +1893,28 @@ function renderDynFormFields(){
       case'file': i=`<input type="file" id="DF_${x.name}" ${req} ${ev} class="inp p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer bg-white">`; break; 
       // FITUR BARU: Tabel Dinamis Multi-Baris
       case'tabel': 
-        i=`<div class="border rounded-xl overflow-hidden bg-slate-50 p-2"><table class="w-full text-xs text-left" id="DF_TBL_${x.name}">
-           <thead class="text-slate-500 uppercase tracking-widest"><tr><th class="p-2">Tgl / Tujuan</th><th class="p-2">Nominal</th><th class="p-2">Aksi</th></tr></thead>
-           <tbody id="TBODY_${x.name}">
-             <tr><td class="p-1"><input type="text" class="inp !py-1" placeholder="Senin, Tujuan..."></td><td class="p-1"><input type="number" class="inp !py-1 dyn-nominal" placeholder="Rp"></td><td class="p-1 text-center">-</td></tr>
-           </tbody>
-           </table><button type="button" onclick="addDynRow('${x.name}')" class="text-xs font-black text-blue-600 px-2 py-2 w-full text-left bg-blue-50 mt-2 rounded">+ Tambah Baris Transaksi</button></div>`; 
+        let cols = [];
+        let rawCols = x.columns || 'Keterangan|text, Nominal|number';
+        cols = rawCols.split(',').map(c => {
+           let parts = c.split('|');
+           return {lbl: (parts[0]||'').trim(), tp: (parts[1]||'text').trim().toLowerCase()};
+        });
+        
+        let th = cols.map(c => `<th class="p-2 border border-slate-200">${c.lbl}</th>`).join('');
+        let tdTpl = cols.map(c => `<td class="p-1 border border-slate-200"><input type="${c.tp}" data-col="${c.lbl}" class="inp !py-2 !text-xs dyn-tbl-input_${x.name}" placeholder="${c.lbl}"></td>`).join('');
+        
+        // Simpan template baris agar bisa ditambahkan tanpa batas
+        window[`TBL_TPL_${x.name}`] = `<tr>${tdTpl}<td class="p-1 border border-slate-200 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-500 font-black px-2 hover:bg-red-50 rounded">X</button></td></tr>`;
+        
+        i=`<div class="border border-slate-200 rounded-xl overflow-x-auto bg-slate-50 p-2">
+             <table class="w-full text-xs text-left whitespace-nowrap min-w-max" id="DF_TBL_${x.name}">
+               <thead class="text-slate-600 bg-slate-200 uppercase tracking-widest font-black"><tr>${th}<th class="p-2 border border-slate-200 w-10 text-center">X</th></tr></thead>
+               <tbody id="TBODY_${x.name}">
+                 <tr>${tdTpl}<td class="p-1 border border-slate-200 text-center">-</td></tr>
+               </tbody>
+             </table>
+             <button type="button" onclick="addDynRowCustom('${x.name}')" class="text-xs font-black text-blue-700 px-4 py-2 w-full text-left bg-blue-100 hover:bg-blue-200 mt-2 rounded transition"><i class="fa-solid fa-plus mr-2"></i>Tambah Baris Tabel</button>
+           </div>`; 
         break;
       // FITUR BARU: Periode Otomatis
       case'periode':
@@ -1859,12 +1927,10 @@ function renderDynFormFields(){
 }
 
 // Fungsi Menambah Baris Tabel
-window.addDynRow = function(name) {
+window.addDynRowCustom = function(name) {
   const tbody = document.getElementById('TBODY_' + name);
-  if(tbody) {
-     const tr = document.createElement('tr');
-     tr.innerHTML = `<td class="p-1"><input type="text" class="inp !py-1" placeholder="Selasa, Tujuan..."></td><td class="p-1"><input type="number" class="inp !py-1 dyn-nominal" placeholder="Rp"></td><td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-500 font-black px-2 hover:bg-red-50 rounded">X</button></td>`;
-     tbody.appendChild(tr);
+  if(tbody && window[`TBL_TPL_${name}`]) {
+     tbody.insertAdjacentHTML('beforeend', window[`TBL_TPL_${name}`]);
   }
 };
 
@@ -1925,40 +1991,152 @@ on('DYNFORM','submit',async e=>{
   let f=[]; try{f=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){} 
   let det={}, proms=[]; 
   for(const x of f){ 
-    const el=$('DF_'+x.name); if(!el) continue; 
-    if(x.type==='file'){ 
-      if(el.files.length){ 
-        if(el.files[0].size>2097152) return toast('Maks 2MB',true); 
-        proms.push(b64(el.files[0]).then(d=>{det[x.name]={name:el.files[0].name,data:d};})); 
-      } 
-    } else det[x.name]=el.value; 
+    if(x.type==='tabel') {
+       // Tarik data tabel menjadi Array of Objects
+       let tableData = [];
+       document.querySelectorAll(`#TBODY_${x.name} tr`).forEach(tr => {
+          let rowObj = {}; let hasValue = false;
+          tr.querySelectorAll(`.dyn-tbl-input_${x.name}`).forEach(inp => { 
+             rowObj[inp.dataset.col] = inp.value; 
+             if(inp.value.trim() !== '') hasValue = true;
+          });
+          if(hasValue) tableData.push(rowObj);
+       });
+       det[x.name] = tableData; 
+    } else {
+       const el=$('DF_'+x.name); if(!el) continue; 
+       if(x.type==='file'){ 
+         if(el.files.length){ 
+           if(el.files[0].size>2097152) return toast('Maks 2MB',true); 
+           proms.push(b64(el.files[0]).then(d=>{det[x.name]={name:el.files[0].name,data:d};})); 
+         } 
+       } else det[x.name]=el.value; 
+    }
   } 
   if(proms.length) await Promise.all(proms); 
   
   const b=$('BTNSUBMIT'); 
-  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan... (Harap Tunggu)'; 
+  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan...'; 
   
-  const res=await api({
-    action:'submit_pengajuan',
-    user:CU,
-    formId:fid,
-    namaForm:cfg.NamaForm,
-    detail:det
-  },'Menyimpan...'); 
+  const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det}); 
   
   b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
-  if(res.success){ 
-    toast('Berhasil dikirim!'); 
-    closeDynForm(); 
-    checkApprovalStatus(); 
-    nav('riwayat'); 
-    loadRiwayat(); 
-  } else toast(res.message, true); 
+  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(); } else toast(res.message, true); 
 });
 
 async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
 function renderRiwayatTable(){ const f=$('RWYTFILTER').value, rows=f?CTX.filter(r=>r.Kategori===f):CTX; if(!rows.length){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-20 text-center text-slate-400">Kosong.</td></tr>`; return; } $('RWYTBODY').innerHTML=rows.map(r=>`<tr class="hover:bg-slate-50 border-l-4 border-transparent hover:border-corp"><td class="px-8 py-5">${kategoriBadge(r.Kategori)}</td><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${r.NamaForm||'-'}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-1">${r.ID||''}</p></td><td class="px-8 py-5 text-xs text-slate-500 font-semibold">${fmtDate(r.Tanggal)}</td><td class="px-8 py-5"><span class="text-[10px] uppercase bg-slate-100 text-slate-600 font-black px-3 py-1.5 rounded-lg border border-slate-200">${r.PosisiFlow||'-'}</span></td><td class="px-8 py-5">${badge(r.StatusFinal)}</td><td class="px-8 py-5 text-center"><button onclick="openDetail('${r.ID}')" class="text-xs font-black text-blue-600 bg-white hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl border border-blue-200">Detail</button></td></tr>`).join(''); }
-function openDetail(id){ const t=CTX.find(x=>x.ID===id); if(!t)return; $('MDET_ID').textContent=t.ID; $('MDET_NAMA').textContent=(t.NamaPemohon||'-'); $('MDET_FORM').textContent=t.NamaForm; $('MDET_TGL').textContent=fmtDate(t.Tanggal); $('MDET_ST').innerHTML=badge(t.StatusFinal); if(t.Catatan){$('MDET_CAT').textContent=t.Catatan;$('MDET_CATBOX').classList.remove('hide');}else $('MDET_CATBOX').classList.add('hide'); let d={}; try{d=JSON.parse(t.DetailJSON||'{}');}catch(e){} $('MDET_FIELDS').innerHTML=Object.keys(d).map(k=>{ const l=k.replace(/_/g,' ').toUpperCase(); if(d[k]&&d[k].data) return `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:col-span-2 flex justify-between items-center"><div class="flex items-center gap-3"><i class="fa-solid fa-file-pdf text-blue-500 text-2xl"></i><div><span class="text-[10px] font-black text-blue-500">${l}</span><span class="text-sm font-bold text-blue-900 block">${d[k].name}</span></div></div><a href="${d[k].data}" target="_blank" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black">Unduh PDF</a></div>`; if(k==='DetailKPI') { try{ const pnl=JSON.parse(d[k]); return `<div class="sm:col-span-2 border rounded-xl overflow-hidden mt-2"><table class="w-full text-xs text-left"><thead class="bg-purple-50 text-purple-700"><tr><th class="p-2 border">Aspek</th><th class="p-2 border">Indikator</th><th class="p-2 border text-center">Bobot</th><th class="p-2 border text-center">Skor</th></tr></thead><tbody>${pnl.map(x=>`<tr><td class="p-2 border">${x.aspek}</td><td class="p-2 border font-bold">${x.indikator}</td><td class="p-2 border text-center">${x.bobot}%</td><td class="p-2 border text-center font-black text-purple-700">${x.skor}</td></tr>`).join('')}</tbody></table></div>`; }catch(e){} } return `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4"><p class="text-[10px] text-slate-400 font-black mb-1.5">${l}</p><p class="font-bold text-slate-800 text-sm whitespace-pre-wrap">${d[k]||'-'}</p></div>`; }).join('')||'<p>Kosong.</p>'; let fl=[],st=[]; try{fl=JSON.parse(t.ApprovalFlowJson||'[]');st=JSON.parse(t.ApprovalStepsJSON||'[]');}catch(e){} $('MDET_FLOW').innerHTML=fl.map((r,i)=>{ const s=st[i]||'PENDING', c=s==='APPROVE'?'bg-emerald-50 text-emerald-700':s==='REJECT'?'bg-red-50 text-red-700':'bg-white text-slate-600'; return `<div class="flex items-center justify-between p-4 border rounded-2xl ${c}"><span class="font-black text-sm">Tahap ${i+1}: ${r}</span><span class="text-[10px] font-black px-3 py-1 rounded-lg bg-white">${s}</span></div>`; }).join('')||'<p>Tidak ada Flow (Auto).</p>'; openM('MDETAIL'); }
+// ====================================================================
+// FUNGSI MEMBUKA DETAIL PENGAJUAN (SUPPORT MULTI-BARIS & PDF)
+// ====================================================================
+function openDetail(id) {
+    const t = CTX.find(x => x.ID === id);
+    if (!t) return;
+    
+    // 1. Masukkan Informasi Utama ke Header Modal
+    $('MDET_ID').textContent = t.ID;
+    $('MDET_NAMA').textContent = (t.NamaPemohon || '-');
+    $('MDET_FORM').textContent = t.NamaForm;
+    $('MDET_TGL').textContent = fmtDate(t.Tanggal);
+    $('MDET_ST').innerHTML = badge(t.StatusFinal);
+    
+    // Tampilkan Catatan Otorisasi jika ada
+    if (t.Catatan) {
+        $('MDET_CAT').textContent = t.Catatan;
+        $('MDET_CATBOX').classList.remove('hide');
+    } else {
+        $('MDET_CATBOX').classList.add('hide');
+    }
+
+    // Parse data JSON detail inputan
+    let d = {};
+    try { d = JSON.parse(t.DetailJSON || '{}'); } catch(e) {}
+
+    // 2. Render Isi Form Dinamis
+    $('MDET_FIELDS').innerHTML = Object.keys(d).map(k => {
+        const l = k.replace(/_/g, ' ').toUpperCase();
+        
+        // A. Jika File Upload
+        if (d[k] && d[k].data) {
+            return `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:col-span-2 flex justify-between items-center shadow-sm">
+                      <div class="flex items-center gap-3">
+                         <i class="fa-solid fa-file-pdf text-blue-500 text-2xl"></i>
+                         <div>
+                           <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">${l}</span>
+                           <span class="text-sm font-bold text-blue-900 block mt-0.5">${d[k].name}</span>
+                         </div>
+                      </div>
+                      <a href="${d[k].data}" target="_blank" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black shadow-sm hover:bg-blue-700 transition">Unduh Lampiran</a>
+                    </div>`;
+        }
+        
+        // B. Jika Ditemukan Bukti Dokumen PDF dari Sistem (Seperti Form Cuti)
+        if (k.toUpperCase() === 'URL_PDF' || k.toUpperCase() === 'URL PDF') {
+            return `<div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:col-span-2 flex justify-between items-center shadow-sm">
+                      <div class="flex items-center gap-3">
+                         <i class="fa-solid fa-file-contract text-emerald-500 text-2xl"></i>
+                         <div>
+                           <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">DOKUMEN RESMI (PDF)</span>
+                           <span class="text-sm font-bold text-emerald-900 block mt-0.5">Surat Pengajuan System</span>
+                         </div>
+                      </div>
+                      <a href="${d[k]}" target="_blank" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black shadow-sm hover:bg-emerald-700 transition flex items-center gap-2"><i class="fa-solid fa-print"></i> Buka & Cetak</a>
+                    </div>`;
+        }
+
+        // Abaikan array khusus internal
+        if (k === 'DetailKPI') return ''; 
+
+        // C. Jika tipe data adalah Tabel Multi-baris (Array of Objects)
+        if (Array.isArray(d[k])) {
+            if(d[k].length === 0) return `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:col-span-2"><p class="text-[10px] text-slate-400 font-black mb-1.5 uppercase tracking-widest">${l}</p><p class="font-bold text-slate-800 text-sm">Tidak ada baris data diisi.</p></div>`;
+            
+            let cols = Object.keys(d[k][0]);
+            let th = cols.map(c => `<th class="p-3 border-b border-slate-200 bg-slate-100 text-slate-600 uppercase tracking-wider text-[10px] font-black">${c}</th>`).join('');
+            let trs = d[k].map(row => `<tr class="hover:bg-slate-50 transition">${cols.map(c => `<td class="p-3 border-b border-slate-100 font-bold text-slate-700 text-xs">${row[c] || '-'}</td>`).join('')}</tr>`).join('');
+            
+            return `<div class="bg-white border border-slate-200 rounded-2xl pt-1 sm:col-span-2 overflow-x-auto shadow-sm">
+                      <div class="px-5 py-4 border-b border-slate-100 bg-indigo-50/50 rounded-t-xl flex items-center gap-2">
+                         <i class="fa-solid fa-table-list text-indigo-500"></i>
+                         <p class="text-xs text-indigo-700 font-black uppercase tracking-widest">${l} (Rincian Tabel)</p>
+                      </div>
+                      <table class="w-full text-left border-collapse">
+                         <thead><tr>${th}</tr></thead>
+                         <tbody>${trs}</tbody>
+                      </table>
+                    </div>`;
+        }
+
+        // D. Jika Inputan Teks / Angka Biasa
+        return `<div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm">
+                  <p class="text-[10px] text-slate-400 font-black mb-1.5 uppercase tracking-widest">${l}</p>
+                  <p class="font-bold text-slate-800 text-sm whitespace-pre-wrap">${d[k] || '-'}</p>
+                </div>`; 
+                
+    }).join('') || '<p class="text-sm font-bold text-slate-400 col-span-full">Tidak ada rincian data / form kosong.</p>';
+
+    // 3. Render Status Jalur Persetujuan (Approval Flow)
+    let fl = [], st = [];
+    try { 
+        fl = JSON.parse(t.ApprovalFlowJson || '[]'); 
+        st = JSON.parse(t.ApprovalStepsJSON || '[]'); 
+    } catch(e) {}
+
+    $('MDET_FLOW').innerHTML = fl.map((r, i) => {
+        const s = st[i] || 'PENDING';
+        const c = s === 'APPROVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : s === 'REJECT' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-slate-50 text-slate-600 border-slate-200';
+        return `<div class="flex items-center justify-between p-4 border rounded-2xl ${c} shadow-sm transition hover:shadow-md">
+                  <div class="flex items-center gap-3">
+                     <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center font-black text-[10px] border border-inherit shadow-sm">${i + 1}</div>
+                     <span class="font-black text-sm">${r}</span>
+                  </div>
+                  <span class="text-[10px] font-black px-3 py-1.5 rounded-lg bg-white border border-inherit shadow-sm">${s}</span>
+                </div>`;
+    }).join('') || '<p class="text-sm font-bold text-slate-400 text-center border-dashed border-2 border-slate-200 p-4 rounded-xl">Persetujuan otomatis (Tidak ada alur otorisasi).</p>';
+
+    // Tampilkan Modal
+    openM('MDETAIL');
+}
 
 async function loadApproval(){ $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_approval_list',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; const b=$('BAPPR'); if(CTX.length){b.textContent=CTX.length;b.classList.remove('hide');}else b.classList.add('hide'); if(!CTX.length){$('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-20 text-center font-bold text-slate-400">Antrean Kosong.</td></tr>`;return;} $('APPRBODY').innerHTML=CTX.map(t=>`<tr class="hover:bg-slate-50"><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${t.NamaPemohon}</p></td><td class="px-8 py-5 text-xs">${fmtDate(t.Tanggal)}</td><td class="px-8 py-5 font-black text-corp text-sm">${t.NamaForm}</td><td class="px-8 py-5"><span class="text-[10px] bg-slate-100 font-black px-3 py-1.5 rounded-lg">${t.PosisiFlow}</span></td><td class="px-8 py-5 text-center"><button onclick="openDetail('${t.ID}')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 shadow-sm"><i class="fa-solid fa-eye"></i></button> <button onclick="openApproveAction('${t.ID}','APPROVE')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Setuju</button> <button onclick="openApproveAction('${t.ID}','REJECT')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Tolak</button></td></tr>`).join(''); }
 function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value=type; $('MAA_NOTE').value=''; $('MAA_TITLE').textContent = type==='APPROVE' ? 'Setujui Pengajuan' : 'Tolak Pengajuan'; $('MAA_ICON').className = type==='APPROVE' ? 'fa-solid fa-check text-emerald-600' : 'fa-solid fa-xmark text-red-600'; $('MAA_ICON_WRAP').className = type==='APPROVE' ? 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-emerald-100' : 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-red-100'; $('MAA_BORDER').className = type==='APPROVE' ? 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-emerald-500' : 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-red-500'; $('MAA_BTN').className = type==='APPROVE' ? 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-emerald-600' : 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-red-600'; openM('MAPPROVE_ACTION'); }
@@ -2032,36 +2210,52 @@ async function loadPenilaian() {
   }).join(''); 
 }
 let KPI_CURRENT_QUESTIONS = [];
+
 function openPenilaianForm(idx) {
   const b = PNL_BAWAHAN_DATA[idx];
-  $('FORM_KPI_NAMA').textContent = b.Nama_Karyawan || b['Nama Karyawan'] || b.Nama;
-  $('FORM_KPI_POS').textContent = b.Jabatan || b.Posisi || '-';
   
-  // Jika database KPI_QUESTIONS tidak ada atau kosong, kita buat Fallback Soal General
-  let templateSoal = [
-    { kategori: 'KEDISIPLINAN', soal: 'Tingkat kehadiran dan ketepatan waktu datang ke kantor.', bobot: 20 },
-    { kategori: 'TANGGUNG JAWAB', soal: 'Penyelesaian tugas sesuai dengan deadline dan standar perusahaan.', bobot: 30 },
-    { kategori: 'KERJA SAMA TIM', soal: 'Kemampuan berkomunikasi dan bekerja sama dengan rekan divisi/cabang.', bobot: 20 },
-    { kategori: 'INISIATIF & SIKAP', soal: 'Proaktif dalam mencari solusi dan menjaga sikap profesional.', bobot: 30 }
+  // Sinkronisasi dengan ID yang ada di struktur HTML Modal MPENILAIAN
+  const namaKar = b.Nama_Karyawan || b['Nama Karyawan'] || b.Nama || 'Tanpa Nama';
+  const posKar = b.Jabatan || b.Posisi || '-';
+  const nikKar = b.NIK_Karyawan || b.NIK || '';
+  
+  // Masukkan teks ke header modal
+  $('MPNL_NAMA').textContent = namaKar;
+  $('MPNL_SUB').textContent = posKar;
+  
+  // Masukkan data tersembunyi untuk kebutuhan Submit ke Server
+  $('MPNL_NIK').value = nikKar;
+  $('MPNL_NAMA_VAL').value = namaKar;
+  $('MPNL_JABATAN').value = posKar;
+  $('MPNL_TOTAL_SKOR').textContent = "0.00"; // Reset skor
+  $('MPNL_NILAI').value = ""; // Reset dropdown keputusan
+  $('MPNL_CATATAN').value = ""; // Reset textarea
+  
+  // Template Soal Standar (Fallback jika tidak ada custom soal)
+  KPI_CURRENT_QUESTIONS = [
+    { ASPEK: 'KEDISIPLINAN', INDIKATOR: 'Tingkat kehadiran dan ketepatan waktu datang ke kantor.', BOBOT: 20 },
+    { ASPEK: 'TANGGUNG JAWAB', INDIKATOR: 'Penyelesaian tugas sesuai dengan deadline dan standar perusahaan.', BOBOT: 30 },
+    { ASPEK: 'KERJA SAMA TIM', INDIKATOR: 'Kemampuan berkomunikasi dan bekerja sama dengan rekan divisi/cabang.', BOBOT: 20 },
+    { ASPEK: 'INISIATIF & SIKAP', INDIKATOR: 'Proaktif dalam mencari solusi dan menjaga sikap profesional.', BOBOT: 30 }
   ];
 
-  // Render soal ke layar
-  $('FORM_KPI_BODY').innerHTML = templateSoal.map((s, i) => `
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+  // Render soal ke dalam wrapper MPNL_KPI_WRAP
+  $('MPNL_KPI_WRAP').innerHTML = KPI_CURRENT_QUESTIONS.map((s, i) => `
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
        <div class="flex justify-between items-center mb-3">
-          <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-widest">${s.kategori}</span>
-          <span class="text-[10px] font-black text-slate-400">Bobot: ${s.bobot}%</span>
+          <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-widest">${s.ASPEK}</span>
+          <span class="text-[10px] font-black text-slate-400">Bobot: ${s.BOBOT}%</span>
        </div>
-       <p class="text-sm font-bold text-slate-700 mb-4">${s.soal}</p>
+       <p class="text-sm font-bold text-slate-700 mb-4">${s.INDIKATOR}</p>
        <div class="flex items-center gap-3">
           <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1 - 100):</label>
-          <input type="number" min="1" max="100" class="kpi-input-skor flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-purple-700 text-lg focus:border-purple-500 outline-none" placeholder="0" data-bobot="${s.bobot}">
+          <input type="number" min="1" max="100" class="kpi-score-input flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-purple-700 text-lg focus:border-purple-500 outline-none" placeholder="0" data-idx="${i}" oninput="calcKPIScore()">
        </div>
     </div>
   `).join('');
   
-  $('FORM_KPI_MODAL').dataset.targetId = idx;
-  openM('FORM_KPI_MODAL');
+  // Buka Modal Utama
+  openM('MPENILAIAN');
 }
 function calcKPIScore() {
   let total = 0;
@@ -2267,11 +2461,24 @@ on('FM_ONBOARDING', 'submit', async e => {
   b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
   
   const res = await api({
-    action: 'submit_onboarding', user:CU, nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, 
-    jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, cabang:$('ONB_CABANG').value, 
-    atasan:$('ONB_ATASAN').value, tglJoin:$('ONB_TGL').value, status:$('ONB_STATUS').value, 
-    email:$('ONB_EMAIL').value, hp:$('ONB_HP').value, alamat:$('ONB_ALAMAT').value,
-    // Data Tambahan untuk Email
+    action: 'submit_onboarding', user:CU, 
+    // Data Pekerjaan
+    nik:$('ONB_NIK').value, nama:$('ONB_NAMA').value, cabang:$('ONB_CABANG').value, 
+    jabatan:$('ONB_JABATAN').value, divisi:$('ONB_DIVISI').value, status:$('ONB_STATUS').value, 
+    tglJoin:$('ONB_TGLJOIN').value, tglHabis:$('ONB_TGLHABIS').value, jamKerja:$('ONB_JAMKERJA').value,
+    finger:$('ONB_FINGER').value, atasan:$('ONB_ATASAN').value, kpi:$('ONB_KPI').value,
+    
+    // Data Pribadi
+    jk:$('ONB_JK').value, tglLahir:$('ONB_TGLLAHIR').value, pendidikan:$('ONB_PENDIDIKAN').value, 
+    agama:$('ONB_AGAMA').value, goldar:$('ONB_GOLDAR').value, ktp:$('ONB_KTP').value, 
+    kk:$('ONB_KK').value, npwp:$('ONB_NPWP').value, statusPajak:$('ONB_STATUSPAJAK').value, anak:$('ONB_ANAK').value, 
+    
+    // Kontak & Darurat
+    hp:$('ONB_HP').value, email:$('ONB_EMAIL').value, daruratNama:$('ONB_DARURATNAMA').value, 
+    daruratHp:$('ONB_DARURATHP').value, bpjstk:$('ONB_BPJSTK').value, bpjskes:$('ONB_BPJSKES').value, 
+    alamat:$('ONB_ALAMAT').value, 
+    
+    // Data Tambahan Email
     jadwalOnb: $('ONB_JADWAL').value, dokumenOnb: $('ONB_DOKUMEN').value
   }); 
   
@@ -2427,24 +2634,24 @@ function fbRenderFieldsList() {
     <div class="flex gap-3 items-end">
       <div class="flex-1"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Label / Pertanyaan</label><input type="text" class="inp" value="${f.label}" onchange="FB_STATE.fields[${i}].label=this.value; FB_STATE.fields[${i}].name=this.value.replace(/[^a-zA-Z0-9]/g,'_').toLowerCase(); fbRenderFieldsList();"></div>
       <div class="w-1/3"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipe Jawaban</label><select class="inp" onchange="FB_STATE.fields[${i}].type=this.value; fbRenderFieldsList();">${FB_FIELD_TYPES.map(t=>`<option value="${t.type}" ${t.type===f.type?'selected':''}>${t.label}</option>`).join('')}</select></div>
-      <div class="flex items-center gap-2 mb-2"><label class="text-xs font-bold text-slate-500"><input type="checkbox" onchange="FB_STATE.fields[${i}].required=this.checked;" ${f.required?'checked':''}> Wajib Diisi</label></div>
+      <div class="flex items-center gap-2 mb-2"><label class="text-xs font-bold text-slate-500"><input type="checkbox" onchange="FB_STATE.fields[${i}].required=this.checked;" ${f.required?'checked':''}> Wajib</label></div>
       <button onclick="FB_STATE.fields.splice(${i},1);fbRenderFieldsList()" class="bg-red-50 hover:bg-red-500 hover:text-white text-red-600 px-4 py-2.5 rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
     </div>
     
     <div class="text-xs font-mono font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start">ID Unik: [${f.name}]</div>
 
-    ${f.type === 'select' ? `<div class="mt-1"><label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1"><i class="fa-solid fa-list mr-1"></i>Opsi Dropdown (Pisahkan dengan koma)</label><input type="text" class="inp !py-2 text-xs font-bold text-blue-700 bg-blue-50 border-blue-200" placeholder="Cth: Hotel, Kos Sales" value="${(f.options||[]).join(', ')}" onchange="FB_STATE.fields[${i}].options=this.value.split(',').map(x=>x.trim());"></div>` : ''}
+    ${f.type === 'select' ? `<div class="mt-1"><label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1"><i class="fa-solid fa-list mr-1"></i>Opsi Dropdown (Pisahkan koma)</label><input type="text" class="inp !py-2 text-xs font-bold text-blue-700 bg-blue-50 border-blue-200" placeholder="Cth: Hotel, Kos Sales" value="${(f.options||[]).join(', ')}" onchange="FB_STATE.fields[${i}].options=this.value.split(',').map(x=>x.trim());"></div>` : ''}
+    
+    ${f.type === 'tabel' ? `<div class="mt-2 bg-indigo-50 border border-indigo-200 p-4 rounded-xl"><label class="text-[10px] font-black text-indigo-700 uppercase tracking-widest block mb-2"><i class="fa-solid fa-table-columns mr-1"></i>Definisi Kolom Tabel (Format: Nama Kolom|tipe, pisahkan koma)</label><input type="text" class="inp !py-2 text-xs font-bold text-indigo-800 border-indigo-300" placeholder="Cth: Tanggal|date, Nama Barang|text, Qty|number, Estimasi Harga|number" value="${f.columns||'Keterangan|text, Nominal|number'}" onchange="FB_STATE.fields[${i}].columns=this.value;"><p class="text-[10px] font-bold text-indigo-500 mt-1">Pilihan tipe: text, number, date, time</p></div>` : ''}
     
     <div class="mt-2 p-4 bg-orange-50/50 border border-orange-200 rounded-xl">
       <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3"><i class="fa-solid fa-bolt mr-1"></i>Logika Dinamis & Kalkulasi Otomatis</p>
-      
       <div class="grid grid-cols-2 gap-3 mb-3 pb-3 border-b border-orange-100">
-         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Munculkan field ini jika field berikut:</label><input type="text" class="inp !py-1.5 text-xs font-mono" placeholder="Ketik ID Unik (Cth: akomodasi)" value="${f.showIfField||''}" onchange="FB_STATE.fields[${i}].showIfField=this.value;"></div>
-         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Berisi Nilai / Jawaban:</label><input type="text" class="inp !py-1.5 text-xs" placeholder="Cth: Hotel" value="${f.showIfValue||''}" onchange="FB_STATE.fields[${i}].showIfValue=this.value;"></div>
+         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Munculkan jika field berikut:</label><input type="text" class="inp !py-1.5 text-xs font-mono" placeholder="Ketik ID Unik (Cth: akomodasi)" value="${f.showIfField||''}" onchange="FB_STATE.fields[${i}].showIfField=this.value;"></div>
+         <div><label class="text-[10px] font-bold text-slate-500 block mb-1">Berisi Nilai:</label><input type="text" class="inp !py-1.5 text-xs" placeholder="Cth: Hotel" value="${f.showIfValue||''}" onchange="FB_STATE.fields[${i}].showIfValue=this.value;"></div>
       </div>
-      
       <div>
-         <label class="text-[10px] font-bold text-slate-500 block mb-1">Rumus Matematika Otomatis (Gunakan tanda [] untuk ID Unik)</label>
+         <label class="text-[10px] font-bold text-slate-500 block mb-1">Rumus Otomatis (Gunakan tanda [] untuk ID Unik)</label>
          <input type="text" class="inp !py-1.5 text-xs font-mono font-black text-emerald-700 bg-emerald-50 border-emerald-200" placeholder="Cth: ([km_akhir] - [km_awal]) * (10000/25)" value="${f.formula||''}" onchange="FB_STATE.fields[${i}].formula=this.value;">
       </div>
     </div>
@@ -2492,7 +2699,28 @@ function mkdSetTab(t){ ['info','fuel','service','compliance','riwayat'].forEach(
 async function submitLogFuel(){ const r=await api({action:'log_kendaraan_fuel',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggal:$('MKDF_TGL').value,namaDriver:$('MKDF_DRIVER').value,kmAwal:$('MKDF_KMAWAL').value,kmAkhir:$('MKDF_KMAKHIR').value,liter:$('MKDF_LITER').value,jenisBBM:$('MKDF_JENISBBM').value,totalBiaya:$('MKDF_BIAYA').value}); if(r.success){toast('BBM Dicatat');['MKDF_KMAWAL','MKDF_KMAKHIR','MKDF_LITER','MKDF_BIAYA'].forEach(id=>$(id).value='');} }
 async function submitLogService(){ const r=await api({action:'log_kendaraan_service',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggal:$('MKDS_TGL').value,namaDriver:$('MKDS_DRIVER').value,detailPerbaikan:$('MKDS_DETAIL').value,bengkel:$('MKDS_BENGKEL').value,noInvoice:$('MKDS_INVOICE').value,totalBiaya:$('MKDS_BIAYA').value}); if(r.success){toast('Servis Dicatat');['MKDS_DETAIL','MKDS_BENGKEL','MKDS_INVOICE','MKDS_BIAYA'].forEach(id=>$(id).value='');} }
 async function submitLogCompliance(){ const r=await api({action:'log_kendaraan_compliance',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggalBayar:new Date().toISOString(),namaDriver:$('MKDC_DRIVER').value,jenisDokumen:$('MKDC_JENIS').value,masaBerlaku:$('MKDC_MASA').value,vendor:$('MKDC_VENDOR').value,totalBiaya:$('MKDC_BIAYA').value}); if(r.success){toast('Kepatuhan Dicatat');['MKDC_MASA','MKDC_VENDOR','MKDC_BIAYA'].forEach(id=>$(id).value='');} }
-async function loadKendRiwayat(){ const res=await api({action:'get_riwayat_kendaraan',noPolisi:$('MKD_NOPOL_VAL').value}); $('MKD_RIWAYAT_LIST').innerHTML=(res.data||[]).map(r=>`<div class="bg-white border p-4 rounded-xl shadow-sm"><p class="font-black text-sm text-slate-800">${r.Kategori}: ${r.Ringkasan}</p><p class="text-[10px] font-bold text-slate-400 mt-1">Driver: ${r.Driver} · Biaya: Rp ${parseFloat(r.TotalBiaya).toLocaleString('id-ID')}</p></div>`).join(''); }
+async function loadKendRiwayat(){ 
+   $('MKD_RIWAYAT_LIST').innerHTML = '<div class="p-8 text-center"><i class="fa-solid fa-spinner fa-spin text-emerald-500 text-2xl"></i></div>';
+   
+   const res = await api({action:'get_riwayat_kendaraan', noPolisi:$('MKD_NOPOL_VAL').value}); 
+   
+   if(res.success && res.data && res.data.length > 0) {
+       $('MKD_RIWAYAT_LIST').innerHTML = res.data.map(r => {
+           // Kalkulasi aman untuk nilai uang (mencegah NaN)
+           const biaya = parseFloat(r.TotalBiaya) || 0;
+           return `
+           <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-emerald-300 transition">
+              <p class="font-black text-sm text-slate-800">${r.Kategori}: ${r.Ringkasan}</p>
+              <div class="flex items-center gap-4 mt-2">
+                 <p class="text-[10px] font-bold text-slate-500"><i class="fa-solid fa-user-tag text-emerald-600 mr-1"></i>Driver: ${r.Driver}</p>
+                 <p class="text-[10px] font-bold text-slate-500"><i class="fa-solid fa-wallet text-emerald-600 mr-1"></i>Biaya: Rp ${biaya.toLocaleString('id-ID')}</p>
+              </div>
+           </div>`;
+       }).join(''); 
+   } else {
+       $('MKD_RIWAYAT_LIST').innerHTML = '<div class="p-8 text-center text-slate-400 font-bold border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">Belum ada riwayat transaksi pada kendaraan ini.</div>';
+   }
+}
 
 async function loadInv(){ const res=await api({action:'get_inventory'}); INV_DATA=res.data||[]; $('INVGRID').innerHTML=INV_DATA.map((i,idx)=>{ const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || ''; return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`; }).join(''); if($('BATCH_KARY')) $('BATCH_KARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); if(!$('BATCH_TBODY').children.length) { $('BATCH_TGL').value = new Date().toISOString().split('T')[0]; addBatchRow(); } }
 function filterInventory(q){ if(!q){loadInv();return;} $('INVGRID').innerHTML=INV_DATA.filter(i=>(getV(i,['NAMABARANG', 'Nama Barang'])||'').toLowerCase().includes(q.toLowerCase())).map((i,idx)=>{ const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || ''; return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`; }).join(''); }
@@ -2574,6 +2802,47 @@ on('FM_REQ_PROFIL', 'submit', async e => {
   b.disabled = false; b.innerHTML = o;
   if(res.success){ toast(res.message); closeM('MREQ_PROFILE'); } else toast(res.message, true);
 });
+
+// ====================================================================
+// RADAR PENANGKAP TAUTAN (DIRECT LINK HANDLER) DARI EMAIL
+// ====================================================================
+function prosesDirectLinkKpi() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetKpi = urlParams.get('kpi_target');
+    
+    if (targetKpi) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Pindah otomatis ke menu Penilaian & Kontrak (ID Menu-nya adalah 'kontrak')
+        if(typeof nav === 'function') nav('kontrak');
+        
+        setTimeout(async () => {
+            if(typeof loadPenilaian === 'function') {
+                showL('Menyiapkan dokumen penilaian...');
+                await loadPenilaian();
+                hideL();
+                
+                const idx = PNL_BAWAHAN_DATA.findIndex(k => {
+                    const nama = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '').toUpperCase().trim();
+                    return nama === targetKpi.toUpperCase().trim();
+                });
+                
+                if(idx > -1) {
+                    openPenilaianForm(idx);
+                } else {
+                    toast('Gagal: Karyawan tidak ditemukan di daftar bawahan Anda.', true);
+                }
+            }
+        }, 1200); 
+    }
+}
+
+const autoLinkDetector = setInterval(() => {
+    if (typeof CU !== 'undefined' && CU && CU.Nama) {
+        clearInterval(autoLinkDetector);
+        prosesDirectLinkKpi();
+    }
+}, 1000);  
 
 </script>  
 </body>
