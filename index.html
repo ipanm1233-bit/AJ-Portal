@@ -1603,7 +1603,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyRFT8u-Dsh9gLM3FLRGnApplFmpKDLst35sJ8Mn_URALHOLg8Tk4B8V0tmPNm6ZrgGrQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbw8sPS8ALgO2KfVfOAPFlrq4RWSC7Ua4FsLeh4ii-5Ubfsz3B2BlDK6qkgeRnTLI5Pt_A/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1637,13 +1637,17 @@ window.onload = async () => {
   const token = new URLSearchParams(location.search).get('token');
   const pnlNik = new URLSearchParams(location.search).get('pnl_nik'); 
   
+  // PENYELAMATAN URL: Tangkap Parameter 360 sebelum dihapus oleh history.replaceState
+  const kpi360Id = new URLSearchParams(location.search).get('kpi360'); 
+  
   if(token){ 
     $('FMLOGIN').classList.add('hide'); $('TOKENMSG').classList.remove('hide'); 
-    const res=await api({action:'login_token',token}); 
+    const res = await api({action:'login_token',token}); 
     if(res.success){ 
-      CU=res.user; localStorage.setItem('hris_u',JSON.stringify(CU)); 
-      history.replaceState({},'',location.pathname); 
+      CU = res.user; localStorage.setItem('hris_u',JSON.stringify(CU)); 
+      history.replaceState({},'',location.pathname); // Hapus token dari bar (agar rapi)
       bootApp(); 
+      
       if(pnlNik) {
          setTimeout(async () => {
              nav('kontrak'); 
@@ -1652,15 +1656,29 @@ window.onload = async () => {
              if(idx > -1) openPenilaianForm(idx); 
          }, 1500);
       }
+      
+      // JIKA ADA TUGAS 360, JALANKAN LANGSUNG!
+      if(kpi360Id) {
+         setTimeout(() => { window.cekTugas360Masuk(kpi360Id); }, 1500);
+      }
+
     } else { 
       toast(res.message,true); $('FMLOGIN').classList.remove('hide'); $('TOKENMSG').classList.add('hide'); 
     } 
     return; 
   }
-  if(localStorage.getItem('hris_u')){ try{ CU=JSON.parse(localStorage.getItem('hris_u')); bootApp(); return; }catch(e){} } 
+  
+  if(localStorage.getItem('hris_u')){ 
+      try { 
+          CU = JSON.parse(localStorage.getItem('hris_u')); 
+          bootApp(); 
+          // Cek jika pengguna sudah login dari sebelumnya tapi nge-klik link baru
+          if(kpi360Id) { setTimeout(() => { window.cekTugas360Masuk(kpi360Id); }, 1500); }
+          return; 
+      } catch(e){} 
+  } 
   $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide');
 };
-
 on('FMLOGIN', 'submit', async e => {
   e.preventDefault(); showL('Otentikasi...'); 
   const res = await api({action: 'login', username: $('LU').value, password: $('LP').value}); hideL();
@@ -3030,9 +3048,9 @@ window.submitDistribusi360 = async function() {
 // --------------------------------------------------------------------
 // RADAR PENANGKAP LINK 360 DARI EMAIL (DIJALANKAN OTOMATIS)
 // --------------------------------------------------------------------
-async function cekTugas360Masuk() {
+window.cekTugas360Masuk = async function(idParam) {
     const urlParams = new URLSearchParams(window.location.search);
-    const idTugas360 = urlParams.get('kpi360');
+    const idTugas360 = idParam || urlParams.get('kpi360');
     
     if (idTugas360 && typeof CU !== 'undefined' && CU.Nama) {
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -3044,38 +3062,46 @@ async function cekTugas360Masuk() {
         if(res.success) {
             TUGAS_360_ID_AKTIF = idTugas360;
             const t = res.data;
-            const soalArr = JSON.parse(t.Soal_JSON || '[]');
             
-            // Re-use Modal MPENILAIAN yang sudah ada
+            // SUPER FALLBACK: Mencegah array soal kosong
+            const soalStr = t.Soal_JSON || t['Soal JSON'] || t.SoalJSON || '[]';
+            let soalArr = [];
+            try { soalArr = JSON.parse(soalStr); } catch(e) {}
+            
             $('MPNL_NAMA').textContent = "TARGET: " + t.Nama_Dinilai;
             $('MPNL_SUB').textContent = "Evaluasi 360 Derajat (Rahasia)";
             $('MPNL_NAMA_VAL').value = t.Nama_Dinilai;
             $('MPNL_TOTAL_SKOR').textContent = "0.00";
             $('MPNL_CATATAN').value = "";
             
-            // Ganti action tombol simpan khusus untuk 360
             $('MPENILAIAN').setAttribute('data-mode', '360'); 
             
-            $('MPNL_KPI_WRAP').innerHTML = soalArr.map((s, i) => `
-              <div class="bg-white border border-blue-200 rounded-2xl p-5 shadow-sm mb-4">
-                 <div class="flex justify-between items-center mb-3">
-                    <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${s.ASPEK}</span>
-                    <span class="text-[10px] font-black text-slate-400">Bobot: ${s.BOBOT}%</span>
-                 </div>
-                 <p class="text-sm font-bold text-slate-700 mb-4">${s.INDIKATOR}</p>
-                 <div class="flex items-center gap-3">
-                    <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1-100):</label>
-                    <input type="number" min="1" max="100" class="kpi-score-input flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-blue-700 text-lg focus:border-blue-500 outline-none" placeholder="0" data-aspek="${s.ASPEK}" data-indikator="${s.INDIKATOR}" data-bobot="${s.BOBOT}" oninput="calcKPIScore()">
-                 </div>
-              </div>
-            `).join('');
-            
+            if (!soalArr || soalArr.length === 0) {
+                $('MPNL_KPI_WRAP').innerHTML = '<div class="p-4 text-center text-red-500 font-bold">Soal tidak ditemukan / format soal rusak. Hubungi HRD.</div>';
+            } else {
+                $('MPNL_KPI_WRAP').innerHTML = soalArr.map((s, i) => `
+                  <div class="bg-white border border-blue-200 rounded-2xl p-5 shadow-sm mb-4">
+                     <div class="flex justify-between items-center mb-3">
+                        <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${s.ASPEK || 'Kriteria'}</span>
+                        <span class="text-[10px] font-black text-slate-400">Bobot: ${s.BOBOT || 0}%</span>
+                     </div>
+                     <p class="text-sm font-bold text-slate-700 mb-4">${s.INDIKATOR || '-'}</p>
+                     <div class="flex items-center gap-3">
+                        <label class="text-xs font-black text-slate-500 uppercase">Skor Anda (1-100):</label>
+                        <input type="number" min="1" max="100" class="kpi-score-input flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 text-center font-black text-blue-700 text-lg focus:border-blue-500 outline-none" placeholder="0" data-aspek="${s.ASPEK}" data-indikator="${s.INDIKATOR}" data-bobot="${s.BOBOT}" oninput="calcKPIScore()">
+                     </div>
+                  </div>
+                `).join('');
+            }
             openM('MPENILAIAN');
         } else {
             toast(res.message, true);
         }
     }
-}
+};
+
+// Opsional: Hapus atau komen kode `setInterval` lama jika Anda memilikinya, karena tidak lagi diperlukan (sudah dihandle oleh window.onload)
+// clearInterval(autoLinkDetector); // <-- Anda bisa abaikan/hapus setInterval yang lama
 
 // Jalankan radar setiap 1 detik
 setInterval(() => { if (typeof CU !== 'undefined' && CU.Nama) cekTugas360Masuk(); }, 1000);  
