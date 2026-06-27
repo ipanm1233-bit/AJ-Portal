@@ -2949,24 +2949,22 @@ on('FM_REQ_PROFIL', 'submit', async e => {
 // ====================================================================
 // RADAR PENANGKAP TAUTAN (DIRECT LINK HANDLER) DARI EMAIL
 // ====================================================================
-function prosesDirectLinkKpi() {
+window.prosesDirectLinkKpi = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const targetKpi = urlParams.get('kpi_target');
     
-    // Pastikan CU (Current User) sudah ada dan valid sebelum pindah halaman
     if (targetKpi && typeof CU !== 'undefined' && CU && CU.Nama) {
-        // Hapus parameter URL agar tidak berulang
+        // Hapus parameter URL agar tidak berulang (Membersihkan Address Bar)
         window.history.replaceState({}, document.title, window.location.pathname);
         
-        // Pindah otomatis ke menu Penilaian
-        nav('penilaian');
+        // Pindah otomatis ke menu Penilaian menggunakan fungsi sistem bawaan Anda
+        nav('kontrak');
         
         setTimeout(async () => {
-            showL('Mencari data karyawan...');
+            showL('Mencari data bawahan Anda...');
             await loadPenilaian(); // Tarik data bawahan
             hideL();
             
-            // Cari index karyawan di daftar bawahan Atasan yang sedang login
             const targetName = targetKpi.toUpperCase().trim();
             const idx = PNL_BAWAHAN_DATA.findIndex(k => {
                 const nama = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '').toUpperCase().trim();
@@ -2978,17 +2976,19 @@ function prosesDirectLinkKpi() {
             } else {
                 toast('Gagal: Karyawan tersebut tidak ada di daftar bawahan Anda.', true);
             }
-        }, 1200); 
+        }, 800); 
     }
-}
+};
 
-// Deteksi otomatis setiap 1 detik. Hanya jalan jika sudah login penuh.
 const autoLinkDetector = setInterval(() => {
-    if (typeof CU !== 'undefined' && CU && CU.Nama && $('DASHBOARD').classList.contains('hide') === false) {
+    const dashEl = document.getElementById('V-dashboard');
+    
+    // Pastikan user sudah ada dan elemen V-dashboard sudah benar-benar dirender di layar
+    if (typeof CU !== 'undefined' && CU && CU.Nama && dashEl && !dashEl.classList.contains('hide')) {
         clearInterval(autoLinkDetector);
-        prosesDirectLinkKpi();
+        window.prosesDirectLinkKpi();
     }
-}, 1000);
+}, 500);
 
 // ====================================================================
 // JAVASCRIPT KPI 360 DERAJAT
@@ -3052,19 +3052,14 @@ window.submitDistribusi360 = async function() {
 window.cekTugas360Masuk = async function(idParam) {
     const urlParams = new URLSearchParams(window.location.search);
     const idTugas360 = idParam || urlParams.get('kpi360');
-    
-    if (idTugas360 && typeof CU !== 'undefined' && CU.Nama) {
+    if (idTugas360 && typeof CU !== 'undefined' && CU && CU.Nama) {
         window.history.replaceState({}, document.title, window.location.pathname);
         showL('Menyiapkan dokumen penilaian rahasia...');
-        
         const res = await api({action: 'get_tugas_360', idTugas: idTugas360});
         hideL();
-        
         if(res.success) {
             TUGAS_360_ID_AKTIF = idTugas360;
             const t = res.data;
-            
-            // SUPER FALLBACK: Mencegah array soal kosong
             const soalStr = t.Soal_JSON || t['Soal JSON'] || t.SoalJSON || '[]';
             let soalArr = [];
             try { soalArr = JSON.parse(soalStr); } catch(e) {}
@@ -3074,11 +3069,10 @@ window.cekTugas360Masuk = async function(idParam) {
             $('MPNL_NAMA_VAL').value = t.Nama_Dinilai;
             $('MPNL_TOTAL_SKOR').textContent = "0.00";
             $('MPNL_CATATAN').value = "";
-            
             $('MPENILAIAN').setAttribute('data-mode', '360'); 
             
             if (!soalArr || soalArr.length === 0) {
-                $('MPNL_KPI_WRAP').innerHTML = '<div class="p-4 text-center text-red-500 font-bold">Soal tidak ditemukan / format soal rusak. Hubungi HRD.</div>';
+                $('MPNL_KPI_WRAP').innerHTML = '<div class="p-4 text-center text-red-500 font-bold">Soal tidak ditemukan. Hubungi HRD.</div>';
             } else {
                 $('MPNL_KPI_WRAP').innerHTML = soalArr.map((s, i) => `
                   <div class="bg-white border border-blue-200 rounded-2xl p-5 shadow-sm mb-4">
@@ -3095,12 +3089,9 @@ window.cekTugas360Masuk = async function(idParam) {
                 `).join('');
             }
             openM('MPENILAIAN');
-        } else {
-            toast(res.message, true);
-        }
+        } else { toast(res.message, true); }
     }
 };
-
 // Opsional: Hapus atau komen kode `setInterval` lama jika Anda memilikinya, karena tidak lagi diperlukan (sudah dihandle oleh window.onload)
 // clearInterval(autoLinkDetector); // <-- Anda bisa abaikan/hapus setInterval yang lama
 
