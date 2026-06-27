@@ -304,21 +304,12 @@ tailwind.config = {
           </div>
         </div>
 
-        <div>
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Sisa Cuti Akumulasi</p>
-              <div class="flex items-baseline gap-1">
-                <span id="DSISA_AKUMULASI" class="text-3xl font-black text-slate-800 tracking-tighter">0</span>
-                <span class="text-xs font-bold text-slate-400">Hari</span>
-              </div>
-              <p class="text-[10px] font-bold text-slate-400 mt-0.5">Sisa dari tahun lalu</p>
-            </div>
-          </div>
-        </div>
-
         <!-- TOMBOL DAFTAR TUGAS 360 KARYAWAN -->
-        <button onclick="bukaDashboardTugas360()" class="w-full mb-6 bg-gradient-to-r from-blue-700 to-blue-900 text-white px-5 py-4 rounded-2xl text-sm font-black hover:scale-[1.02] transition shadow-lg flex items-center justify-center gap-3">
+        <button onclick="if(typeof bukaDashboardTugas360 === 'function') bukaDashboardTugas360()" class="w-full mt-2 mb-6 bg-gradient-to-r from-blue-700 to-blue-900 text-white px-5 py-4 rounded-2xl text-sm font-black hover:scale-[1.02] transition shadow-lg flex items-center justify-center gap-3">
            <i class="fa-solid fa-clipboard-list text-xl"></i>Daftar Tugas Penilaian 360 Saya
         </button>
+
+        <!-- Karyawan Cuti Hari Ini -->
 
         <!-- Karyawan Cuti Hari Ini -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
