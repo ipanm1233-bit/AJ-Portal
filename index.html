@@ -2384,12 +2384,9 @@ window.calcKPIScore = function() {
     $('MPNL_TOTAL_SKOR').textContent = total.toFixed(2);
 };
 
-async function submitPenilaian() { 
+window.submitPenilaian = async function() { 
   const mode = $('MPENILAIAN').getAttribute('data-mode');
   
-  // =================================================================
-  // LOGIKA 1: JIKA INI ADALAH PENILAIAN KPI 360 DERAJAT (RAHASIA)
-  // =================================================================
   if (mode === '360') {
       let totalSkor360 = parseFloat($('MPNL_TOTAL_SKOR').textContent) || 0;
       let hasil360 = [];
@@ -2398,7 +2395,6 @@ async function submitPenilaian() {
       document.querySelectorAll('.kpi-score-input').forEach(inp => {
           let skor = parseFloat(inp.value);
           if(isNaN(skor) || skor < 0 || skor > 100) err360 = true;
-          
           hasil360.push({
               ASPEK: inp.dataset.aspek || 'Kriteria', 
               INDIKATOR: inp.dataset.indikator || '-', 
@@ -2408,10 +2404,10 @@ async function submitPenilaian() {
       });
       
       if(err360) return toast('Harap isi semua skor dengan angka 0 - 100.', true);
-      if(!confirm('Kirim hasil evaluasi 360 ini? (Tindakan ini tidak bisa dibatalkan dan Raport akan langsung dikirim ke HRD)')) return;
+      if(!confirm('Kirim hasil evaluasi 360 ini? Raport akan langsung dikirim ke HRD')) return;
       
       const btn = $('MPNL_SUBMIT_BTN'); const oHtml = btn.innerHTML;
-      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengkalkulasi & Menyusun Raport HTML...';
+      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyusun Raport HTML...';
       
       const res = await api({
           action: 'submit_kpi_360', 
@@ -2424,53 +2420,44 @@ async function submitPenilaian() {
       });
       
       btn.disabled = false; btn.innerHTML = oHtml;
-      if(res.success){ toast(res.message); closeM('MPENILAIAN'); } else { toast(res.message, true); }
+      if(res.success){ 
+          toast(res.message); closeM('MPENILAIAN'); 
+          if(typeof bukaDashboardTugas360 === 'function') bukaDashboardTugas360(); 
+      } else { toast(res.message, true); }
       return;
   }
   
-  // =================================================================
-  // LOGIKA 2: JIKA INI ADALAH PENILAIAN KONTRAK REGULER OLEH ATASAN
-  // =================================================================
+  // --- LOGIKA REGULER ---
   const nilai = $('MPNL_NILAI').value; 
   if(!nilai) return toast('Pilih keputusan rekomendasi!', true); 
   
   let kpiData = [], err = false;
-  document.querySelectorAll('.kpi-score-input').forEach((el, idx) => {
-    const skor = parseFloat(el.value);
+  document.querySelectorAll('.kpi-score-input').forEach(el => {
+    const skor = parseFloat(el.value); 
     if(isNaN(skor) || skor < 0 || skor > 100) err = true;
-    
-    // Fallback jika tidak ada data-aspek, kita ambil dari KPI_CURRENT_QUESTIONS (Skrip lama)
-    const aspekInfo = el.dataset.aspek || (typeof KPI_CURRENT_QUESTIONS !== 'undefined' && KPI_CURRENT_QUESTIONS[idx] ? KPI_CURRENT_QUESTIONS[idx].ASPEK : 'Kriteria');
-    const indikatorInfo = el.dataset.indikator || (typeof KPI_CURRENT_QUESTIONS !== 'undefined' && KPI_CURRENT_QUESTIONS[idx] ? KPI_CURRENT_QUESTIONS[idx].INDIKATOR : '-');
-    const bobotInfo = parseFloat(el.dataset.bobot) || (typeof KPI_CURRENT_QUESTIONS !== 'undefined' && KPI_CURRENT_QUESTIONS[idx] ? KPI_CURRENT_QUESTIONS[idx].BOBOT : 0);
-    
     kpiData.push({ 
-        aspek: aspekInfo, 
-        indikator: indikatorInfo, 
-        bobot: bobotInfo, 
+        aspek: el.dataset.aspek || 'Kriteria', 
+        indikator: el.dataset.indikator || '-', 
+        bobot: parseFloat(el.dataset.bobot) || 0, 
         skor: skor || 0 
     });
   });
   
   if(err) return toast('Harap isi semua skor KPI dengan angka 0 - 100.', true);
-  if(!confirm('Anda yakin ingin mem-finalisasi nilai KPI ini? Hasil akan otomatis terkirim ke Karyawan via Email.')) return;
+  if(!confirm('Anda yakin ingin mem-finalisasi nilai KPI ini?')) return;
 
   const b = $('MPNL_SUBMIT_BTN'), o = b.innerHTML; 
-  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan & Mengirim...'; 
+  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; 
   
   const res = await api({
-      action: 'simpan_penilaian',
-      user: CU,
-      nik: $('MPNL_NIK').value,
-      namaKaryawan: $('MPNL_NAMA_VAL').value,
-      totalSkor: $('MPNL_TOTAL_SKOR').textContent,
-      keputusan: nilai,
-      catatan: $('MPNL_CATATAN').value, 
-      kpiData: kpiData
+      action: 'simpan_penilaian', user: CU, nik: $('MPNL_NIK').value, 
+      namaKaryawan: $('MPNL_NAMA_VAL').value, totalSkor: $('MPNL_TOTAL_SKOR').textContent, 
+      keputusan: nilai, catatan: $('MPNL_CATATAN').value, kpiData: kpiData
   }); 
   
   b.disabled = false; b.innerHTML = o; 
-  if(res.success){ toast(res.message); closeM('MPENILAIAN'); } else toast(res.message, true); 
+  if(res.success){ toast(res.message); closeM('MPENILAIAN'); } 
+  else toast(res.message, true); 
 }
 // =======================================================================================
 // SAMBUNGAN SCRIPT - MODUL CUTI, KARYAWAN, OFFBOARDING TRACKER, ASET, DAN PROFIL
@@ -3148,53 +3135,71 @@ window.kerjakanTugas360 = async function(idTugas) {
 // --------------------------------------------------------------------
 // RADAR PENANGKAP LINK 360 DARI EMAIL (DIJALANKAN OTOMATIS)
 // --------------------------------------------------------------------
-window.cekTugas360Masuk = async function(idParam) {
+async function cekTugas360Masuk(idParam) {
     const urlParams = new URLSearchParams(window.location.search);
-    const intent = urlParams.get('kpi360');
+    const idTugas360 = idParam || urlParams.get('kpi360');
     
-    // Jika dari email diklik, langsung buka Dashboard Tugas!
-    if (intent === 'dashboard' && typeof CU !== 'undefined' && CU && CU.Nama) {
+    if (idTugas360 && typeof CU !== 'undefined' && CU && CU.Nama) {
         window.history.replaceState({}, document.title, window.location.pathname);
-        bukaDashboardTugas360();
-        return;
-    }
-    
-    // Logika buka soal jika idParam diisi (dipanggil dari tombol "Nilai Sekarang")
-    if (idParam) {
-        showL('Menyiapkan dokumen...');
-        const res = await api({action: 'get_tugas_360', idTugas: idParam});
+        if (idTugas360 === 'dashboard') { bukaDashboardTugas360(); return; }
+        
+        showL('Menyiapkan dokumen penilaian rahasia...');
+        const res = await api({action: 'get_tugas_360', idTugas: idTugas360});
         hideL();
+        
         if(res.success) {
-            window.TUGAS_360_ID_AKTIF = idParam;
+            window.TUGAS_360_ID_AKTIF = idTugas360;
             const t = res.data;
             
-            // PERBAIKAN: Baca berbagai kemungkinan nama kolom soal dari Excel
-            const soalStr = t.Soal_JSON || t['Soal JSON'] || t.SoalJSON || '[]'; 
+            // PERBAIKAN: Membaca nama kolom Soal_Json persis seperti di database Anda
+            let soalStr = t.Soal_Json || t.Soal_JSON || t['Soal JSON'] || t.SoalJSON || '[]'; 
             let soalArr = [];
-            try { soalArr = (typeof soalStr === 'string') ? JSON.parse(soalStr) : soalStr; } catch(e) {}
+            try { 
+                if (typeof soalStr === 'string') {
+                    // Mencegah error "JSON position 1" jika teks dari database rusak
+                    let cleanStr = soalStr.replace(/'/g, '"');
+                    soalArr = JSON.parse(cleanStr);
+                } else {
+                    soalArr = soalStr;
+                }
+            } catch(e) { console.error("Gagal parse soal:", e); soalArr = []; }
             
-            if($('MPNL_NILAI')) $('MPNL_NILAI').closest('div').classList.add('hide'); 
-            $('MPNL_NAMA').textContent = "TARGET: " + t.Nama_Dinilai; $('MPNL_SUB').textContent = "Evaluasi 360 Derajat (" + t.Periode + ")";
-            $('MPNL_NAMA_VAL').value = t.Nama_Dinilai; $('MPNL_TOTAL_SKOR').textContent = "0.00"; $('MPNL_CATATAN').value = "";
-            $('MPENILAIAN').setAttribute('data-mode', '360'); 
+            if(document.getElementById('MPNL_NILAI')) document.getElementById('MPNL_NILAI').closest('div').classList.add('hide'); 
+            const elNama = document.getElementById('MPNL_NAMA');
+            const elSub = document.getElementById('MPNL_SUB');
+            const elVal = document.getElementById('MPNL_NAMA_VAL');
+            const elSkor = document.getElementById('MPNL_TOTAL_SKOR');
+            const elCatatan = document.getElementById('MPNL_CATATAN');
+            const elForm = document.getElementById('MPENILAIAN');
+            const elWrap = document.getElementById('MPNL_KPI_WRAP');
             
-            // PERBAIKAN: Berikan peringatan jika soal kosong, dan tangani huruf besar/kecil
+            if(elNama) elNama.textContent = "TARGET: " + t.Nama_Dinilai;
+            if(elSub) elSub.textContent = "Evaluasi 360 Derajat (" + t.Periode + ")";
+            if(elVal) elVal.value = t.Nama_Dinilai;
+            if(elSkor) elSkor.textContent = "0.00";
+            if(elCatatan) elCatatan.value = "";
+            if(elForm) elForm.setAttribute('data-mode', '360'); 
+            
             if (!soalArr || soalArr.length === 0) {
-                $('MPNL_KPI_WRAP').innerHTML = '<div class="p-8 text-center text-red-500 font-bold bg-red-50 rounded-2xl border-2 border-dashed border-red-200">Soal tidak ditemukan. Pastikan soal sudah dibuat saat distribusi.</div>';
+                if(elWrap) elWrap.innerHTML = '<div class="p-8 text-center text-red-500 font-bold bg-red-50 rounded-2xl border-2 border-dashed border-red-200">Soal tidak ditemukan atau formatnya rusak di Database. Mohon buat distribusi ulang.</div>';
             } else {
-                $('MPNL_KPI_WRAP').innerHTML = soalArr.map((s, i) => `
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3">
-                       <div class="flex justify-between mb-2"><span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded">${s.ASPEK || s.aspek || 'Kriteria'}</span><span class="text-[10px] font-bold">Bobot: ${s.BOBOT || s.bobot || 0}%</span></div>
-                       <p class="text-xs font-bold text-slate-700 mb-3">${s.INDIKATOR || s.indikator || '-'}</p>
-                       <input type="number" class="kpi-score-input w-full border border-slate-200 rounded-lg px-3 py-2 text-center font-black focus:border-purple-500 outline-none" placeholder="Skor (0-100)" data-aspek="${s.ASPEK || s.aspek}" data-indikator="${s.INDIKATOR || s.indikator}" data-bobot="${s.BOBOT || s.bobot}" oninput="calcKPIScore()">
-                    </div>
+                if(elWrap) elWrap.innerHTML = soalArr.map((s, i) => `
+                  <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3">
+                     <div class="flex justify-between mb-2">
+                        <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${s.ASPEK || s.aspek || 'Kriteria'}</span>
+                        <span class="text-[10px] font-bold">Bobot: ${s.BOBOT || s.bobot || 0}%</span>
+                     </div>
+                     <p class="text-xs font-bold text-slate-700 mb-3">${s.INDIKATOR || s.indikator || '-'}</p>
+                     <input type="number" min="1" max="100" class="kpi-score-input w-full border border-slate-200 rounded-lg px-3 py-2 text-center font-black text-blue-700 text-lg focus:border-blue-500 outline-none" placeholder="Skor (0-100)" data-aspek="${s.ASPEK || s.aspek}" data-indikator="${s.INDIKATOR || s.indikator}" data-bobot="${s.BOBOT || s.bobot}" oninput="calcKPIScore()">
+                  </div>
                 `).join('');
             }
             openM('MPENILAIAN');
+        } else { 
+            toast(res.message, true); 
         }
     }
 }
-
 let DATA_REKAP_360 = [];
 window.openMonitoring360 = async function() {
     showL('Menarik analytics...');
