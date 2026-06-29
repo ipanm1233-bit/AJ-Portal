@@ -2001,7 +2001,16 @@ on('FMBC','submit',async e=>{
     const isi=$('BCISI').value; if(!isi) return toast('Isi pengumuman kosong',true);
 
     const b=$('BC_BTN_SUBMIT'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...';
-    const res=await api({action:'send_broadcast',user:CU,targetType:t,targetValue:tv,judul:$('BCJUDUL').value,isi,file:f64,fileName:fn},'Mengirim...');
+    const res = await api({
+            action: 'send_broadcast', 
+            user: CU, 
+            tipeTarget: t,       // <-- Mengikuti kemauan Backend
+            valueTarget: tv,     // <-- Mengikuti kemauan Backend
+            judul: document.getElementById('BCJUDUL').value, 
+            isi: isi, 
+            file: f64, 
+            fileName: fn
+        }, 'Mengirim...');
     b.disabled=false; b.innerHTML=o;
 
     if(res.success){
