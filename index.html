@@ -914,10 +914,15 @@ tailwind.config = {
                   <label id="BCTARGETLBL" class="lbl">Detail Target</label>
                   <input id="BCTARGET_TEXT" type="text" class="inp !py-2.5 font-bold shadow-sm" placeholder="Contoh: SALES / GUDANG">
                   
-                  <!-- Select Multiple untuk Karyawan -->
-                  <select id="BCTARGET_SELECT_NIK" class="inp !py-2.5 font-bold text-slate-700 shadow-sm hide" multiple size="4">
-                  </select>
-                  <p id="BC_MULTIPLE_HINT" class="hide text-[10px] text-slate-400 font-medium mt-1">Tahan tombol Ctrl (Windows) / Cmd (Mac) untuk memilih lebih dari satu karyawan.</p>
+                  <!-- Area Checkbox Karyawan dengan Search -->
+                  <div id="BCTARGET_KARY_WRAP" class="hide">
+                     <div class="relative mb-2">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="SEARCH_BC_KARY" placeholder="Cari nama karyawan..." oninput="if(typeof filterBcKary==='function') filterBcKary()" class="inp pl-8 !py-2 text-xs w-full shadow-sm border-slate-200">
+                     </div>
+                     <div id="BC_KARY_CHECKBOX" class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-white grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                     </div>
+                  </div>
                   
                   <select id="BCTARGET_SELECT_CABANG" class="inp !py-2.5 font-bold text-slate-700 shadow-sm hide">
                     <option value="ALL">Semua Cabang</option>
@@ -1945,21 +1950,67 @@ window.kirimAksiKontrak = async function(jenis) {
 }  
 
 function openBroadcast(i){ const b=DASH_BC_DATA[i]; if(!b) return; $('MBC_TITLE').textContent=b.Judul; $('MBC_DATE').textContent=fmtDate(b.Tanggal); $('MBC_CONTENT').innerHTML=b.Isi; $('MBC_LINK').innerHTML=b.FileUrl?`<a href="${b.FileUrl}" target="_blank" class="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-black text-sm rounded-xl">Unduh Lampiran</a>`:''; openM('MBC_DETAIL'); }
-function bcToggleTarget(){ const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL'), txt=$('BCTARGET_TEXT'), sNik=$('BCTARGET_SELECT_NIK'), sCab=$('BCTARGET_SELECT_CABANG'), h=$('BC_MULTIPLE_HINT'); txt.classList.add('hide'); sNik.classList.add('hide'); sCab.classList.add('hide'); h.classList.add('hide'); if(t==='GENERAL') w.classList.add('hide'); else if(t==='NIK'){ w.classList.remove('hide'); l.textContent='Pilih Karyawan (Bisa Lebih dari Satu)'; sNik.classList.remove('hide'); h.classList.remove('hide'); if(!sNik.dataset.loaded){ sNik.innerHTML=DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); sNik.dataset.loaded='1'; } } else if(t==='CABANG'){ w.classList.remove('hide'); l.textContent='Pilih Cabang'; sCab.classList.remove('hide'); } else{ w.classList.remove('hide'); l.textContent='Nama Divisi'; txt.classList.remove('hide'); } }
+function bcToggleTarget() {
+    const t=$('BCTYPE').value, w=$('BCTARGETWRAP'), l=$('BCTARGETLBL'), txt=$('BCTARGET_TEXT'), sKary=$('BCTARGET_KARY_WRAP'), sCab=$('BCTARGET_SELECT_CABANG');
+    txt.classList.add('hide'); sKary.classList.add('hide'); sCab.classList.add('hide');
 
-on('FMBC','submit',async e=>{ e.preventDefault(); if(tinymce.get('BCISI')) tinymce.get('BCISI').save(); const fi=$('BCFILE'); let f64=null,fn=null; if(fi.files.length){ if(fi.files[0].size>2097152) return toast('Maks 2MB',true); f64=await b64(fi.files[0]); fn=fi.files[0].name; } const t=$('BCTYPE').value; let tv='ALL'; if(t==='NIK')tv=Array.from($('BCTARGET_SELECT_NIK').selectedOptions).map(o=>o.value).join(','); if(t==='CABANG')tv=$('BCTARGET_SELECT_CABANG').value; if(t==='DIVISI')tv=$('BCTARGET_TEXT').value; if(t!=='GENERAL'&&!tv) return toast('Target wajib',true); const isi=$('BCISI').value; if(!isi) return toast('Isi kosong',true); const b=$('BC_BTN_SUBMIT'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'send_broadcast',user:CU,targetType:t,targetValue:tv,judul:$('BCJUDUL').value,isi,file:f64,fileName:fn},'Mengirim...'); b.disabled=false; b.innerHTML=o; if(res.success){toast(res.message);$('FMBC').reset();if(tinymce.get('BCISI'))tinymce.get('BCISI').setContent('');bcToggleTarget();}else toast(res.message,true); });
-
-async function loadForms(){ 
-  const res=await api({action:'get_form_configs'}); if(!res.success) return; 
-  FORMS=res.forms||[]; 
-  const myName=(CU.Nama||'').toUpperCase().trim();
-  AVAILABLE_FORMS = FORMS.filter(f => {
-    const a=(f.AllowedRoles||'ALL').toUpperCase(); 
-    const allowedArray = a.split(',').map(x=>x.trim());
-    return a==='ALL' || allowedArray.includes(myName);
-  });
-  renderFormCards(AVAILABLE_FORMS);
+    if(t==='GENERAL') {
+        w.classList.add('hide');
+    } else if(t==='NIK') {
+        w.classList.remove('hide'); l.textContent='PILIH KARYAWAN (BISA LEBIH DARI SATU)';
+        sKary.classList.remove('hide');
+        if(!$('BC_KARY_CHECKBOX').dataset.loaded) {
+            $('BC_KARY_CHECKBOX').innerHTML = DD_KARY.map(k => `
+              <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded transition">
+                  <input type="checkbox" class="cb-bc-kary w-4 h-4 text-corp" value="${k.nama}">
+                  <span class="font-bold text-slate-700 truncate">${k.nama}</span>
+              </label>
+            `).join('');
+            $('BC_KARY_CHECKBOX').dataset.loaded='1';
+        }
+    } else if(t==='CABANG') {
+        w.classList.remove('hide'); l.textContent='Pilih Cabang'; sCab.classList.remove('hide');
+    } else {
+        w.classList.remove('hide'); l.textContent='Nama Divisi'; txt.classList.remove('hide');
+    }
 }
+
+window.filterBcKary = function() {
+    const q = $('SEARCH_BC_KARY').value.toLowerCase();
+    const labels = document.querySelectorAll('#BC_KARY_CHECKBOX label');
+    labels.forEach(label => {
+        const text = label.textContent.toLowerCase();
+        label.style.display = text.includes(q) ? 'flex' : 'none';
+    });
+}
+
+on('FMBC','submit',async e=>{
+    e.preventDefault(); if(tinymce.get('BCISI')) tinymce.get('BCISI').save();
+    const fi=$('BCFILE'); let f64=null,fn=null;
+    if(fi.files.length){ if(fi.files[0].size>2097152) return toast('Maks 2MB',true); f64=await b64(fi.files[0]); fn=fi.files[0].name; }
+
+    const t=$('BCTYPE').value; let tv='ALL';
+    if(t==='NIK') {
+        let targets = []; document.querySelectorAll('.cb-bc-kary:checked').forEach(cb => targets.push(cb.value));
+        tv = targets.join(',');
+    }
+    if(t==='CABANG') tv=$('BCTARGET_SELECT_CABANG').value;
+    if(t==='DIVISI') tv=$('BCTARGET_TEXT').value;
+
+    if(t!=='GENERAL' && !tv) return toast('Target karyawan wajib dipilih minimal 1!',true);
+    const isi=$('BCISI').value; if(!isi) return toast('Isi pengumuman kosong',true);
+
+    const b=$('BC_BTN_SUBMIT'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...';
+    const res=await api({action:'send_broadcast',user:CU,targetType:t,targetValue:tv,judul:$('BCJUDUL').value,isi,file:f64,fileName:fn},'Mengirim...');
+    b.disabled=false; b.innerHTML=o;
+
+    if(res.success){
+        toast(res.message); $('FMBC').reset();
+        if(tinymce.get('BCISI')) tinymce.get('BCISI').setContent('');
+        document.querySelectorAll('.cb-bc-kary').forEach(cb => cb.checked = false); // Bersihkan checkbox
+        bcToggleTarget();
+    } else toast(res.message,true);
+});
 
 function renderFormCards(list) {
   const grid = $('FORM_CARDS_GRID');
