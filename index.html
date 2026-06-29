@@ -3137,10 +3137,15 @@ window.kerjakanTugas360 = async function(idTugas) {
 // --------------------------------------------------------------------
 async function cekTugas360Masuk(idParam) {
     const urlParams = new URLSearchParams(window.location.search);
-    const idTugas360 = idParam || urlParams.get('kpi360');
+    // PERBAIKAN: Mengunci deteksi agar idParam dari tombol tidak hilang atau tertukar dengan URL null
+    const idTugas360 = idParam ? idParam : urlParams.get('kpi360');
     
     if (idTugas360 && typeof CU !== 'undefined' && CU && CU.Nama) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Hanya hapus history bar jika diakses dari link URL luar (bukan klik tombol internal)
+        if (!idParam) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
         if (idTugas360 === 'dashboard') { bukaDashboardTugas360(); return; }
         
         showL('Menyiapkan dokumen penilaian rahasia...');
