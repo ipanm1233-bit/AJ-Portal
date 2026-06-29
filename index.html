@@ -1651,7 +1651,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbzHi-tON4wWWXXO16tS3wlJ16_LyYMxkdbEKavRtU82Y7uMzYJBjqaWSzZCC4KoCJFCAQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyIHVbZT5CZBNLR-5Dm6KoKfR9gbiFywkBdxeSiNc9lnF8aNcxB-pdpdl9pXErwgszJ/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -2387,10 +2387,10 @@ window.calcKPIScore = function() {
 window.submitPenilaian = async function() { 
   const mode = $('MPENILAIAN').getAttribute('data-mode');
   
+  // --- LOGIKA SUBMIT KPI 360 DERAJAT ---
   if (mode === '360') {
       let totalSkor360 = parseFloat($('MPNL_TOTAL_SKOR').textContent) || 0;
-      let hasil360 = [];
-      let err360 = false;
+      let hasil360 = []; let err360 = false;
       
       document.querySelectorAll('.kpi-score-input').forEach(inp => {
           let skor = parseFloat(inp.value);
@@ -2406,13 +2406,20 @@ window.submitPenilaian = async function() {
       if(err360) return toast('Harap isi semua skor dengan angka 0 - 100.', true);
       if(!confirm('Kirim hasil evaluasi 360 ini? Raport akan langsung dikirim ke HRD')) return;
       
+      // Amankan ID Tugas dari dua sumber (Global Window / Deklarasi Let)
+      const currentIdTugas = window.TUGAS_360_ID_AKTIF || (typeof TUGAS_360_ID_AKTIF !== 'undefined' ? TUGAS_360_ID_AKTIF : '');
+      
+      if(!currentIdTugas) {
+          return toast('Gagal: ID Tugas hilang dari memori. Silakan refresh halaman.', true);
+      }
+
       const btn = $('MPNL_SUBMIT_BTN'); const oHtml = btn.innerHTML;
       btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyusun Raport HTML...';
       
       const res = await api({
           action: 'submit_kpi_360', 
           user: CU, 
-          idTugas: TUGAS_360_ID_AKTIF, 
+          idTugas: currentIdTugas, 
           namaDinilai: $('MPNL_NAMA_VAL').value, 
           skorAkhir: totalSkor360.toFixed(2), 
           catatan: $('MPNL_CATATAN').value, 
@@ -2427,7 +2434,7 @@ window.submitPenilaian = async function() {
       return;
   }
   
-  // --- LOGIKA REGULER ---
+  // --- LOGIKA SUBMIT KPI REGULER (ATASAN) ---
   const nilai = $('MPNL_NILAI').value; 
   if(!nilai) return toast('Pilih keputusan rekomendasi!', true); 
   
@@ -2436,10 +2443,8 @@ window.submitPenilaian = async function() {
     const skor = parseFloat(el.value); 
     if(isNaN(skor) || skor < 0 || skor > 100) err = true;
     kpiData.push({ 
-        aspek: el.dataset.aspek || 'Kriteria', 
-        indikator: el.dataset.indikator || '-', 
-        bobot: parseFloat(el.dataset.bobot) || 0, 
-        skor: skor || 0 
+        aspek: el.dataset.aspek || 'Kriteria', indikator: el.dataset.indikator || '-', 
+        bobot: parseFloat(el.dataset.bobot) || 0, skor: skor || 0 
     });
   });
   
@@ -2456,8 +2461,7 @@ window.submitPenilaian = async function() {
   }); 
   
   b.disabled = false; b.innerHTML = o; 
-  if(res.success){ toast(res.message); closeM('MPENILAIAN'); } 
-  else toast(res.message, true); 
+  if(res.success){ toast(res.message); closeM('MPENILAIAN'); } else toast(res.message, true); 
 }
 // =======================================================================================
 // SAMBUNGAN SCRIPT - MODUL CUTI, KARYAWAN, OFFBOARDING TRACKER, ASET, DAN PROFIL
