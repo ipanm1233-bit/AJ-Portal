@@ -1600,8 +1600,14 @@ tailwind.config = {
           </div>         
           <div class="sm:col-span-2">
              <label class="lbl">Pilih Target yang Dinilai (Bisa lebih dari 1)</label>
-             <div id="D360_DINILAI_CHECKBOX" class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-white grid grid-cols-2 gap-2 text-xs">
-                </div>
+             <!-- KOTAK PENCARIAN BARU -->
+             <div class="relative mb-2">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="SEARCH_TARGET_360" placeholder="Cari nama target..." oninput="filterTarget360()" class="inp pl-8 !py-2 text-xs w-full shadow-sm border-slate-200">
+             </div>
+             <!-- AREA CHECKBOX -->
+             <div id="D360_DINILAI_CHECKBOX" class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-white grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+             </div>
           </div>
        </div>
        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
@@ -3054,11 +3060,30 @@ window.autoLinkDetector = setInterval(() => {
 let TUGAS_360_SOAL = [];
 let TUGAS_360_ID_AKTIF = "";
 
+// Fungsi Pencarian Karyawan di Checklist 360
+window.filterTarget360 = function() {
+    const q = document.getElementById('SEARCH_TARGET_360').value.toLowerCase();
+    const labels = document.querySelectorAll('#D360_DINILAI_CHECKBOX label');
+    
+    labels.forEach(label => {
+        const text = label.textContent.toLowerCase();
+        // Sembunyikan jika tidak cocok, tampilkan kembali (sebagai flex) jika cocok
+        if(text.includes(q)) {
+            label.style.display = 'flex';
+        } else {
+            label.style.display = 'none';
+        }
+    });
+}
+  
 window.openDistribusi360 = async function() {
     showL('Memuat daftar karyawan...');
     const res = await api({action: 'get_master_karyawan', user: CU});
     hideL();
     if(res.success) {
+        // Reset kolom pencarian
+        if($('SEARCH_TARGET_360')) $('SEARCH_TARGET_360').value = '';
+      
         // Render Dropdown Penilai
         $('D360_PENILAI').innerHTML = res.data.map(k => `<option value="${k.Nama_Karyawan || k.Nama}">${k.Nama_Karyawan || k.Nama}</option>`).join('');
         
