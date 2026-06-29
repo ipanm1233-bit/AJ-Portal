@@ -3395,7 +3395,37 @@ window.kirimRaportMassal = async function() {
     
     btn.innerHTML = oh; btn.disabled = false;
     if(res.success) { toast(res.message); } else { toast(res.message, true); }
-}  
+}
+
+// ====================================================================
+// PEMULIHAN FUNGSI FORMULIR YANG TERHAPUS
+// ====================================================================
+window.loadForms = async function() {
+    try {
+        if(typeof showL === 'function') showL('Memuat katalog formulir...');
+        const res = await api({action: 'get_forms', user: CU});
+        if(typeof hideL === 'function') hideL();
+        
+        if(res.success) {
+            window.FORMS = res.data.filter(f => {
+                const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
+                const myRole = (CU.Role || '').toUpperCase();
+                if(allowed === 'ALL') return true;
+                let ok = false;
+                allowed.split(',').forEach(r => { 
+                    if(myRole.includes(r.trim()) || myRole === r.trim()) ok = true; 
+                });
+                return ok;
+            });
+            
+            // Panggil renderForms jika fungsinya masih ada
+            if(typeof renderForms === 'function') renderForms();
+        }
+    } catch(e) {
+        console.error('Gagal memuat form:', e);
+        if(typeof hideL === 'function') hideL();
+    }
+};  
 // Opsional: Hapus atau komen kode `setInterval` lama jika Anda memilikinya, karena tidak lagi diperlukan (sudah dihandle oleh window.onload)
 // clearInterval(autoLinkDetector); // <-- Anda bisa abaikan/hapus setInterval yang lama
 
