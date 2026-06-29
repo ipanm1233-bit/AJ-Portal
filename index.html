@@ -1590,6 +1590,15 @@ tailwind.config = {
           <div><label class="lbl">Nama Periode <span class="text-red-500">*</span></label><input type="text" id="D360_PERIODE" class="inp font-bold text-blue-700" placeholder="Cth: KPI Q2 2026"></div>
           <div><label class="lbl">Tugaskan Penilai (Aktor)</label><select id="D360_PENILAI" class="inp"></select></div>
           <div class="sm:col-span-2">
+            <label class="lbl">Kategori Penilai <span class="text-red-500">*</span></label>
+            <select id="D360_KATEGORI" class="inp font-bold text-purple-700">
+               <option value="Atasan">Bertindak Sebagai: Atasan</option>
+               <option value="Bawahan">Bertindak Sebagai: Bawahan</option>
+               <option value="Rekan Satu Divisi" selected>Bertindak Sebagai: Rekan Satu Divisi</option>
+               <option value="Rekan Lintas Divisi">Bertindak Sebagai: Rekan Lintas Divisi</option>
+            </select>
+          </div>         
+          <div class="sm:col-span-2">
              <label class="lbl">Pilih Target yang Dinilai (Bisa lebih dari 1)</label>
              <div id="D360_DINILAI_CHECKBOX" class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-white grid grid-cols-2 gap-2 text-xs">
                 </div>
@@ -1629,6 +1638,7 @@ tailwind.config = {
     <div class="p-4 bg-white border-b flex gap-3 items-center">
        <input type="text" id="FLT_360_PERIODE" class="inp !py-2 !w-48 text-xs" placeholder="Filter Periode..." onkeyup="renderMonitoringHRD()">
        <select id="FLT_360_CABANG" class="inp !py-2 !w-48 text-xs" onchange="renderMonitoringHRD()"><option value="">Semua Cabang</option></select>
+       <button onclick="kirimRaportMassal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-black transition shadow-sm flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i> Kirim Raport Final</button>
        <button onclick="exportExcel360()" class="bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-700 px-4 py-2 rounded-lg text-xs font-black transition ml-auto flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
     </div>
     <div class="p-6 overflow-y-auto bg-slate-50 flex-1">
@@ -1651,7 +1661,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyIHVbZT5CZBNLR-5Dm6KoKfR9gbiFywkBdxeSiNc9lnF8aNcxB-pdpdl9pXErwgszJ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwArwGRHq_28cA72NhRraOg-WXKC-68zIRH5wbPpNvScmudJqOSvlSZsr8XNLgAWYHwrQ/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -3096,7 +3106,9 @@ window.submitDistribusi360 = async function() {
     const portalUrl = window.location.href.split('?')[0];
     const res = await api({
         action: 'assign_kpi_360', user: CU, appUrl: portalUrl,
-        periode: $('D360_PERIODE').value, namaPenilai: $('D360_PENILAI').value, targetDinilaiArr: targets, soalData: TUGAS_360_SOAL
+        periode: $('D360_PERIODE').value, namaPenilai: $('D360_PENILAI').value, 
+        kategoriPenilai: $('D360_KATEGORI').value, // <--- TAMBAHAN
+        targetDinilaiArr: targets, soalData: TUGAS_360_SOAL
     });
     
     btn.innerHTML = oh; btn.disabled = false;
@@ -3252,23 +3264,61 @@ window.exportExcel360 = function() {
     if(DATA_REKAP_360.length === 0) return toast('Tidak ada data untuk diexport!', true);
     
     // Siapkan array data rapi untuk Excel
-    let excelData = DATA_REKAP_360.map(r => ({
-        "Periode": r.Periode,
-        "Tanggal Distribusi": r.Tanggal ? r.Tanggal.substring(0,10) : '',
-        "Aktor Penilai": r.Nama_Penilai,
-        "Target Dinilai": r.Nama_Dinilai,
-        "Cabang Target": r.Cabang_Dinilai,
-        "Divisi Target": r.Divisi_Dinilai,
-        "Status Penilaian": r.Status,
-        "Skor Akhir": r.Skor_Akhir ? parseFloat(r.Skor_Akhir) : 0,
-        "Link Raport HTML": r.Link_Raport
-    }));
+    let excelData = DATA_REKAP_360.map(r => {
+        // 1. Masukkan data identitas dasar
+        let rowObj = {
+            "Periode": r.Periode,
+            "Tanggal Distribusi": r.Tanggal ? r.Tanggal.substring(0,10) : '',
+            "Aktor Penilai": r.Nama_Penilai,
+            "Target Dinilai": r.Nama_Dinilai,
+            "Cabang Target": r.Cabang_Dinilai,
+            "Divisi Target": r.Divisi_Dinilai,
+            "Status Penilaian": r.Status,
+            "Skor Akhir": r.Skor_Akhir ? parseFloat(r.Skor_Akhir) : 0
+        };
+        
+        // 2. Ekstrak rincian SKOR dari masing-masing Aspek KPI menjadi Kolom Dinamis
+        let soalStr = r.Soal_Json || r.Soal_JSON || r['Soal JSON'] || r.SoalJSON || '[]';
+        try {
+            let cleanStr = typeof soalStr === 'string' ? soalStr.replace(/'/g, '"') : '[]';
+            let soalArr = (typeof soalStr === 'string') ? JSON.parse(cleanStr) : soalStr;
+            
+            if (Array.isArray(soalArr)) {
+                soalArr.forEach((s, i) => {
+                    let namaKolom = `[Poin] ${s.ASPEK || s.aspek || 'Kriteria ' + (i+1)}`;
+                    // Masukkan nilai per poin (Hanya jika nilainya ada)
+                    rowObj[namaKolom] = s.SKOR !== undefined ? s.SKOR : (s.skor || 0);
+                });
+            }
+        } catch(e) { console.error('Gagal ekstrak rincian soal untuk Excel:', e); }
+        
+        // 3. Letakkan Link Raport di paling ujung kanan tabel
+        rowObj["Link Raport HTML"] = r.Link_Raport;
+        
+        return rowObj;
+    });
     
+    // Generate Excel
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Rekap_KPI_360");
     XLSX.writeFile(wb, "Analytics_KPI_360_" + Date.now() + ".xlsx");
-    toast('Berhasil mengunduh Excel!');
+    toast('Berhasil mengunduh Excel beserta rincian poin KPI!');
+}
+
+window.kirimRaportMassal = async function() {
+    const fPer = $('FLT_360_PERIODE').value;
+    if(!fPer || fPer.trim() === '') return toast('Harap ketik nama PERIODE di kotak pencarian terlebih dahulu!', true);
+    
+    if(!confirm(`Kirim Raport Gabungan ke seluruh Karyawan pada periode "${fPer}"?\n\nSistem akan otomatis menghitung rata-rata dari semua penilai (Atasan, Bawahan, Rekan).`)) return;
+    
+    const btn = event.currentTarget; const oh = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim...'; btn.disabled = true;
+    
+    const res = await api({action: 'kirim_raport_360_final', periode: fPer});
+    
+    btn.innerHTML = oh; btn.disabled = false;
+    if(res.success) { toast(res.message); } else { toast(res.message, true); }
 }  
 // Opsional: Hapus atau komen kode `setInterval` lama jika Anda memilikinya, karena tidak lagi diperlukan (sudah dihandle oleh window.onload)
 // clearInterval(autoLinkDetector); // <-- Anda bisa abaikan/hapus setInterval yang lama
