@@ -2567,7 +2567,42 @@ function renderCutiCards(data) {
     const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === k.nama || x['Nama Karyawan'] === k.nama || x.Nama === k.nama) || {};
     const pos = emp.Jabatan || emp.JABATAN || emp.Posisi || k.cabang || 'KARYAWAN';
     
-    return `<div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group"><div class="flex items-start gap-4 mb-3"><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black shadow-inner group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-umbrella-beach"></i></div><div><p class="font-black text-slate-800 leading-snug">${k.nama}</p><p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5">${pos}</p></div></div><p class="text-[10px] text-blue-600 font-bold bg-blue-50 py-1.5 px-3 rounded-lg text-center mt-4 group-hover:bg-blue-100 transition">Buka & Kelola Cuti</p></div>`;
+    // Tarik sisa masing-masing cuti
+    const sTahunan = emp.SisaCuti || emp['Sisa Cuti'] || '0';
+    const sAkumulasi = emp.SisaAkumulasi || emp['Sisa Akumulasi'] || '0';
+    const sKhusus = emp.SisaKhusus || emp['Sisa Khusus'] || '0';
+    
+    return `
+    <div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group flex flex-col h-full">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black shadow-inner group-hover:bg-blue-600 group-hover:text-white transition flex-shrink-0">
+          <i class="fa-solid fa-umbrella-beach"></i>
+        </div>
+        <div>
+          <p class="font-black text-slate-800 leading-snug line-clamp-2">${k.nama}</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5">${pos}</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-2 mt-auto mb-4">
+         <div class="bg-blue-50/50 p-2 rounded-xl text-center border border-blue-100 transition group-hover:bg-blue-50">
+           <p class="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Tahunan</p>
+           <p class="text-sm font-black text-blue-700">${sTahunan}</p>
+         </div>
+         <div class="bg-purple-50/50 p-2 rounded-xl text-center border border-purple-100 transition group-hover:bg-purple-50">
+           <p class="text-[8px] font-black text-purple-500 uppercase tracking-widest mb-0.5">Akumulasi</p>
+           <p class="text-sm font-black text-purple-700">${sAkumulasi}</p>
+         </div>
+         <div class="bg-emerald-50/50 p-2 rounded-xl text-center border border-emerald-100 transition group-hover:bg-emerald-50">
+           <p class="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Khusus</p>
+           <p class="text-sm font-black text-emerald-700">${sKhusus}</p>
+         </div>
+      </div>
+
+      <p class="text-[10px] text-blue-600 font-bold bg-blue-50 py-2 px-3 rounded-xl text-center group-hover:bg-blue-100 transition w-full">
+         <i class="fa-solid fa-list-check mr-1"></i> Buka & Kelola Cuti
+      </p>
+    </div>`;
   }).join('');
 }
 function filterCutiKaryawan(q){ if(!q){renderCutiCards(MASTER_CUTI_DATA);return;} const f=MASTER_CUTI_DATA.filter(k=>k.nama.toLowerCase().includes(q.toLowerCase())); renderCutiCards(f); }
