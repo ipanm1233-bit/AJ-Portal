@@ -1672,7 +1672,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbxmVidRYhEyn8_ZtH-iCyPT7YhV_BrB-mcbluvORsUNsOwow81RidzLhDSp8k2H_73JHQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbx7lmLjHdWdAHDVTUfjcZBaBGxcU3t2z8W32ryNDUs6YgIsNKkb6vGVhtxSlcpzNiY/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -1833,11 +1833,24 @@ function nav(vId) {
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
 async function loadDashboard() {
-  // Reset Data
+  // Reset Data Sementara
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
   $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
   $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
+  
+  const res = await api({action:'get_dashboard', user:CU}); 
+  if(!res.success) return;
+
+  // PERBAIKAN: Segarkan sisa cuti pribadi menggunakan data terbaru dari Server
+  if(res.freshUser) {
+      CU = res.freshUser;
+      localStorage.setItem('hris_u', JSON.stringify(CU));
+      $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
+      $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
+      $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
+      $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
+  }
   
   const res = await api({action:'get_dashboard', user:CU}); 
   if(!res.success) return;
@@ -2555,9 +2568,14 @@ function calcMasaKerja(joinDateStr) {
 
 async function loadCutiKaryawan() {
   $('CUTIGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i></div>'; $('CUTI_EMPTY').classList.add('hide');
-  const res = await api({action:'get_dropdown_karyawan', user:CU});
+  
+  // PERBAIKAN: Tarik data MASTER KARYAWAN penuh dari server, bukan sekadar nama dropdown
+  const res = await api({action:'get_master_karyawan', user:CU});
   if(!res.success || !res.data || !res.data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
-  MASTER_CUTI_DATA = res.data; renderCutiCards(MASTER_CUTI_DATA);
+  
+  MASTER_KARYAWAN_DATA = res.data; // Simpan memori global
+  MASTER_CUTI_DATA = res.data.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
+  renderCutiCards(MASTER_CUTI_DATA);
 }
 function renderCutiCards(data) {
   if(!data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
