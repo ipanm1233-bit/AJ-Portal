@@ -2702,14 +2702,38 @@ function openKaryDetail(k){
 async function saveKaryawanEdit(){ 
   const u={}; 
   document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); 
+  
+  // ====================================================================
+  // PERBAIKAN: Mengamankan Otorisasi Menu (Mendukung Spasi & Underscore)
+  // ====================================================================
   if(document.querySelector('.kary-akses-cb')) { 
-     let h=[]; document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); 
-     u['AKSES_MENU'] = h.join(','); 
+     let h=[]; 
+     document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); 
+     
+     const menuString = h.join(',');
+     u['AKSES_MENU'] = menuString; // Format Underscore
+     u['AKSES MENU'] = menuString; // Format Spasi (Penyelamat jika di Google Sheet tanpa lambang _)
   } 
-  const res=await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
-  if(res.success){toast('Disimpan.');closeM('MKARY');loadKaryawan();} 
-}
+  
+  // Tambahkan animasi loading pada tombol agar HRD tahu proses sedang berjalan
+  const btn = $('MKARY_SAVE');
+  const oHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
+  const res = await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
+  
+  btn.disabled = false;
+  btn.innerHTML = oHtml;
+
+  if(res.success){
+     toast('Perubahan karyawan & Hak Akses berhasil disimpan!');
+     closeM('MKARY');
+     loadKaryawan();
+  } else {
+     toast(res.message, true);
+  }
+}
 // --- SIKLUS KARYAWAN & OFFBOARDING TRACKER ---
 function hrCycleSetTab(t) { $('FM_ONBOARDING').classList.toggle('hide', t !== 'on'); $('FM_TERMINASI').classList.toggle('hide', t !== 'off'); $('TAB_BTN_ON').className = t === 'on' ? 'px-5 py-2 text-xs font-black rounded-lg bg-blue-600 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; $('TAB_BTN_OFF').className = t === 'off' ? 'px-5 py-2 text-xs font-black rounded-lg bg-slate-800 text-white transition shadow-sm' : 'px-5 py-2 text-xs font-black rounded-lg text-slate-500 hover:text-slate-800 transition'; if(t === 'on' && $('ONB_ATASAN').children.length === 1) { $('ONB_ATASAN').innerHTML += DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } if(t === 'off' && $('TERM_KARY').children.length === 0) { $('TERM_KARY').innerHTML = '<option value="">— Pilih Karyawan —</option>' + DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); } }
 function hrUpdateLegalHint() { const val = $('TERM_JENIS').value; const box = $('TERM_LEGAL_BOX'); const txt = $('TERM_LEGAL_TEXT'); if(!val) { box.classList.add('hide'); return; } let html = ''; if(val === 'Resign Sukarela') html = 'Karyawan mengundurkan diri sukarela: berhak atas Uang Penggantian Hak (UPH) dan Uang Pisah.'; else if(val === 'PHK - Efisiensi / Kerugian') html = 'PHK Efisiensi: berhak Uang Pesangon (0.5-1x), UPMK, UPH.'; else if(val === 'PHK - Pelanggaran Berat') html = 'PHK Pelanggaran Berat: TIDAK mendapatkan Uang Pesangon & UPMK. Hanya UPH & Uang Pisah.'; else if(val === 'Habis Kontrak (PKWT)') html = 'Habis Kontrak: Perusahaan wajib Uang Kompensasi PKWT = (Masa Kerja/12) x Gaji Pokok.'; else if(val === 'Pensiun') html = 'Pensiun: Pesangon (1.75x), UPMK (1x), UPH.'; txt.innerHTML = html; box.classList.remove('hide'); }
