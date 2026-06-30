@@ -1833,18 +1833,17 @@ function nav(vId) {
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
 async function loadDashboard() {
-  // Reset Data Sementara
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
   $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
   $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
   
-  const res = await api({action:'get_dashboard', user:CU}); 
-  if(!res.success) return;
+  // VAKSIN: Variabel diganti menjadi responseData agar tidak bentrok
+  const responseData = await api({action:'get_dashboard', user:CU}); 
+  if(!responseData.success) return;
 
-  // PERBAIKAN: Segarkan sisa cuti pribadi menggunakan data terbaru dari Server
-  if(res.freshUser) {
-      CU = res.freshUser;
+  if(responseData.freshUser) {
+      CU = responseData.freshUser;
       localStorage.setItem('hris_u', JSON.stringify(CU));
       $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
       $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
@@ -1852,14 +1851,9 @@ async function loadDashboard() {
       $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
   }
   
-  const res = await api({action:'get_dashboard', user:CU}); 
-  if(!res.success) return;
-  
-  // Render Cuti Hari Ini
   const ctEl = $('DCUTI_TODAY'); 
-  if(res.cutiHariIni && res.cutiHariIni.length){ 
-    ctEl.innerHTML = res.cutiHariIni.map(c => {
-      // Membaca dari berbagai kemungkinan format penamaan kolom di Database Anda
+  if(responseData.cutiHariIni && responseData.cutiHariIni.length){ 
+    ctEl.innerHTML = responseData.cutiHariIni.map(c => {
       const ket = c['Keterangan Cuti'] || c.Keterangan_Cuti || c.Keterangan || c.Alasan || c.AlasanCuti || c.Keperluan || 'Tidak ada keterangan khusus';
       const jenis = c['Type Cuti'] || c.Type_Cuti || c.Jenis || c.JenisCuti || 'Cuti';
       const namaKar = c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || 'Tanpa Nama';
@@ -1878,34 +1872,27 @@ async function loadDashboard() {
     ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
   }
   
-  // Render Broadcast
   const bcEl = $('DBC'); 
-  DASH_BC_DATA = res.broadcasts || []; 
+  DASH_BC_DATA = responseData.broadcasts || []; 
   bcEl.innerHTML = DASH_BC_DATA.length ? DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer"><p class="font-black text-sm">${b.Judul||''}</p></div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Tidak ada pengumuman.</div>';
   
-  // Render Riwayat
   const rwEl = $('DRWYT'); 
-  rwEl.innerHTML = (res.riwayat_singkat && res.riwayat_singkat.length) ? res.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
+  rwEl.innerHTML = (responseData.riwayat_singkat && responseData.riwayat_singkat.length) ? responseData.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
   
-  // Widget Kontrak (Hanya HRD/GM)
   const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
   $('WGT_KB').classList.add('hide');
   
-  if(res.alertKontrak && res.alertKontrak.length > 0 && isHrdOrGm){ 
+  if(responseData.alertKontrak && responseData.alertKontrak.length > 0 && isHrdOrGm){ 
     $('WGT_KB').classList.remove('hide'); 
-    WGT_KB_DATA = res.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
+    WGT_KB_DATA = responseData.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
     $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
     
     $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
-      // Pewarnaan Badge Status
       const isLewat = k.SisaHari < 0;
       const clsBadges = isLewat ? 'text-red-700 bg-red-50 border border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-50 border border-orange-200' : 'text-yellow-700 bg-yellow-50 border border-yellow-200'); 
       const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' Hari' : k.SisaHari + ' Hari';
-      
-      // Format Tanggal Habis Kontrak agar lebih mudah dibaca (Misal: 25 Jun 2026)
       const tglHabis = k.KontrakHabis ? new Date(k.KontrakHabis).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
       
-      // Membuat persis 6 Kolom: Karyawan | Jabatan | Cabang | Kontrak Habis | Sisa Hari | Aksi
       return `
       <tr class="hover:bg-slate-50 border-b border-slate-100 transition group">
         <td class="px-4 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
@@ -1924,12 +1911,11 @@ async function loadDashboard() {
     }).join(''); 
   }
   
-  // Widget Offboarding (Hanya HRD)
   if(CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
-    if(res.offboardingTasks && res.offboardingTasks.length > 0) {
+    if(responseData.offboardingTasks && responseData.offboardingTasks.length > 0) {
       $('WGT_OFF').classList.remove('hide');
-      $('WGT_OFF_N').textContent = res.offboardingTasks.length;
-      $('WGT_OFF_BODY').innerHTML = res.offboardingTasks.map(t => `<tr class="cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-sm">${t.Nama}</td><td class="px-6 py-4 text-xs">${t.Jenis}</td><td class="px-6 py-4 text-xs font-bold text-red-600">${fmtDate(t.TglEfektif)}</td></tr>`).join('');
+      $('WGT_OFF_N').textContent = responseData.offboardingTasks.length;
+      $('WGT_OFF_BODY').innerHTML = responseData.offboardingTasks.map(t => `<tr class="cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-sm">${t.Nama}</td><td class="px-6 py-4 text-xs">${t.Jenis}</td><td class="px-6 py-4 text-xs font-bold text-red-600">${fmtDate(t.TglEfektif)}</td></tr>`).join('');
     } else {
       $('WGT_OFF').classList.add('hide');
     }
@@ -2569,14 +2555,15 @@ function calcMasaKerja(joinDateStr) {
 async function loadCutiKaryawan() {
   $('CUTIGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i></div>'; $('CUTI_EMPTY').classList.add('hide');
   
-  // PERBAIKAN: Tarik data MASTER KARYAWAN penuh dari server, bukan sekadar nama dropdown
-  const res = await api({action:'get_master_karyawan', user:CU});
-  if(!res.success || !res.data || !res.data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
+  // VAKSIN: Variabel diganti menjadi hasilAPI
+  const hasilAPI = await api({action:'get_master_karyawan', user:CU});
+  if(!hasilAPI.success || !hasilAPI.data || !hasilAPI.data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
   
-  MASTER_KARYAWAN_DATA = res.data; // Simpan memori global
-  MASTER_CUTI_DATA = res.data.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
+  MASTER_KARYAWAN_DATA = hasilAPI.data;
+  MASTER_CUTI_DATA = hasilAPI.data.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
   renderCutiCards(MASTER_CUTI_DATA);
 }
+  
 function renderCutiCards(data) {
   if(!data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
   
@@ -2765,35 +2752,31 @@ async function saveKaryawanEdit(){
   const u={}; 
   document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); 
   
-  // ====================================================================
-  // PERBAIKAN: Mengamankan Otorisasi Menu (Mendukung Spasi & Underscore)
-  // ====================================================================
   if(document.querySelector('.kary-akses-cb')) { 
      let h=[]; 
      document.querySelectorAll('.kary-akses-cb:checked').forEach(cb => h.push(cb.value)); 
-     
      const menuString = h.join(',');
-     u['AKSES_MENU'] = menuString; // Format Underscore
-     u['AKSES MENU'] = menuString; // Format Spasi (Penyelamat jika di Google Sheet tanpa lambang _)
+     u['AKSES_MENU'] = menuString;
+     u['AKSES MENU'] = menuString; 
   } 
   
-  // Tambahkan animasi loading pada tombol agar HRD tahu proses sedang berjalan
   const btn = $('MKARY_SAVE');
   const oHtml = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-  const res = await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
+  // VAKSIN: Variabel diganti menjadi responEdit
+  const responEdit = await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
   
   btn.disabled = false;
   btn.innerHTML = oHtml;
 
-  if(res.success){
+  if(responEdit.success){
      toast('Perubahan karyawan & Hak Akses berhasil disimpan!');
      closeM('MKARY');
      loadKaryawan();
   } else {
-     toast(res.message, true);
+     toast(responEdit.message, true);
   }
 }
 // --- SIKLUS KARYAWAN & OFFBOARDING TRACKER ---
