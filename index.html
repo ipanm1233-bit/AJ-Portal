@@ -2567,10 +2567,18 @@ function renderCutiCards(data) {
     const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === k.nama || x['Nama Karyawan'] === k.nama || x.Nama === k.nama) || {};
     const pos = emp.Jabatan || emp.JABATAN || emp.Posisi || k.cabang || 'KARYAWAN';
     
-    // Tarik sisa masing-masing cuti
-    const sTahunan = emp.SisaCuti || emp['Sisa Cuti'] || '0';
-    const sAkumulasi = emp.SisaAkumulasi || emp['Sisa Akumulasi'] || '0';
-    const sKhusus = emp.SisaKhusus || emp['Sisa Khusus'] || '0';
+    // PERBAIKAN: Kalkulasi sisa cuti (Jatah dikurangi Terpakai)
+    const jtTahunan = parseFloat(emp.jatah_tahunan || emp['jatah tahunan'] || 0);
+    const tpTahunan = parseFloat(emp['Terpakai Tahunan'] || emp.terpakai_tahunan || 0);
+    const sTahunan = Math.max(0, jtTahunan - tpTahunan); // Math.max agar tidak minus
+
+    const jtAkumulasi = parseFloat(emp.jatah_akumulasi || emp['jatah akumulasi'] || 0);
+    const tpAkumulasi = parseFloat(emp['Terpakai Akumulasi'] || emp.terpakai_akumulasi || 0);
+    const sAkumulasi = Math.max(0, jtAkumulasi - tpAkumulasi);
+
+    const jtKhusus = parseFloat(emp.jatah_khusus || emp['jatah khusus'] || 0);
+    const tpKhusus = parseFloat(emp['Terpakai Khusus'] || emp.terpakai_khusus || 0);
+    const sKhusus = Math.max(0, jtKhusus - tpKhusus);
     
     return `
     <div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group flex flex-col h-full">
@@ -2584,6 +2592,7 @@ function renderCutiCards(data) {
         </div>
       </div>
       
+      <!-- KOTAK INFO SISA CUTI -->
       <div class="grid grid-cols-3 gap-2 mt-auto mb-4">
          <div class="bg-blue-50/50 p-2 rounded-xl text-center border border-blue-100 transition group-hover:bg-blue-50">
            <p class="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Tahunan</p>
