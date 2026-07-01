@@ -1672,7 +1672,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbymAFZIEeaZ4D_0sfNVtf5J0cuFgaKulGnI9tVQnW0MxdzGXfMXy6j5sU_tMlvN-oB-ag/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwu3aumWltVXzNkIQU796nUaHTT1OYxdCu26FctgZl7TkMvb_R8UHTo7KhgOo1hD24CVw/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -2094,6 +2094,22 @@ function renderDynFormFields(){
       // FITUR BARU: Periode Otomatis
       case'periode':
         i=`<select id="DF_${x.name}" ${req} ${ev} class="${B} ${extraClass}"><option value="${textPeriode}">${textPeriode} (Otomatis)</option></select>`; break;
+      case'multi_text':
+      case'multi_number':
+      case'multi_date':
+      case'multi_karyawan':
+        let inpTp = x.type === 'multi_number' ? 'number' : (x.type === 'multi_date' ? 'date' : 'text');
+        let rTpl = '';
+        if (x.type === 'multi_karyawan') {
+            let opts = DD_KARY.map(k => `<option value="${k.nama}">${k.nama}</option>`).join('');
+            rTpl = `<div class="flex gap-2 items-center mb-2"><select class="inp flex-1 multi-inp-${x.name} border-blue-200 bg-blue-50/30"><option value="">— Pilih Karyawan —</option>${opts}</select><button type="button" onclick="this.parentElement.remove()" class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white h-10 w-10 flex items-center justify-center rounded-xl transition shadow-sm flex-shrink-0"><i class="fa-solid fa-trash"></i></button></div>`;
+        } else {
+            rTpl = `<div class="flex gap-2 items-center mb-2"><input type="${inpTp}" class="inp flex-1 multi-inp-${x.name} border-blue-200 bg-blue-50/30" placeholder="Ketik di sini..."><button type="button" onclick="this.parentElement.remove()" class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white h-10 w-10 flex items-center justify-center rounded-xl transition shadow-sm flex-shrink-0"><i class="fa-solid fa-trash"></i></button></div>`;
+        }
+        window[`MULTI_TPL_${x.name}`] = rTpl.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        let fRow = rTpl.replace('<button type="button" onclick="this.parentElement.remove()" class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white h-10 w-10 flex items-center justify-center rounded-xl transition shadow-sm flex-shrink-0"><i class="fa-solid fa-trash"></i></button>', '');
+        i = `<div class="mt-2 p-3 border border-blue-100 bg-blue-50/20 rounded-2xl shadow-sm"><div id="WRAP_MULTI_${x.name}" class="mb-3">${fRow}</div><button type="button" onclick="addMultiRowCustom('${x.name}')" class="bg-white border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-700 px-4 py-2 w-full text-center rounded-xl text-xs font-black transition flex justify-center items-center gap-2 shadow-sm"><i class="fa-solid fa-plus"></i> Tambah Baris Baru</button></div>`;
+        break;
       default: i=`<input type="${x.type||'text'}" id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}">`; break; 
     } 
     dfld.insertAdjacentHTML('beforeend',`<div id="DFW_${x.name}" class="${fl} transition-all duration-300"><label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">${x.label} ${st}</label>${i}</div>`); 
@@ -2108,6 +2124,16 @@ window.addDynRowCustom = function(name) {
      tbody.insertAdjacentHTML('beforeend', window[`TBL_TPL_${name}`]);
   }
 };
+
+// Fungsi Menambah Baris Multi-Input
+window.addMultiRowCustom = function(name) {
+  const wrap = document.getElementById('WRAP_MULTI_' + name);
+  if(wrap && window[`MULTI_TPL_${name}`]) {
+     const div = document.createElement('div');
+     div.innerHTML = window[`MULTI_TPL_${name}`].replace(/&quot;/g, '"');
+     wrap.appendChild(div.firstElementChild);
+  }
+};  
 
 window.runDynLogic = function() {
   if(!CURRENT_FORM_FIELDS || CURRENT_FORM_FIELDS.length === 0) return;
@@ -2179,6 +2205,13 @@ on('DYNFORM','submit',async e=>{
           if(hasValue) tableData.push(rowObj);
        });
        det[x.name] = tableData; 
+    } else if (x.type && x.type.startsWith('multi_')) {
+       let arr = [];
+       document.querySelectorAll('.multi-inp-' + x.name).forEach(el => {
+          if(el.value && el.value.trim() !== '') arr.push(el.value.trim());
+       });
+       if(x.required && arr.length === 0) return toast('Harap isi minimal 1 baris pada: ' + x.label, true);
+       det[x.name] = arr.length > 0 ? "• " + arr.join('\n• ') : "-";
     } else {
        const el=$('DF_'+x.name); if(!el) continue; 
        if(x.type==='file'){ 
@@ -2950,7 +2983,11 @@ const FB_FIELD_TYPES=[
   {type:'kendaraan',label:'Pilih Kendaraan'},
   {type:'inventory',label:'Pilih Barang Aset'},
   {type:'tabel',label:'Tabel Multi-Baris (Klaim)'},
-  {type:'periode',label:'Dropdown Periode Otomatis'}
+  {type:'periode',label:'Dropdown Periode Otomatis'},
+  {type:'multi_text',label:'Multi-Input: Teks'},
+  {type:'multi_number',label:'Multi-Input: Angka / Nominal'},
+  {type:'multi_date',label:'Multi-Input: Tanggal'},
+  {type:'multi_karyawan',label:'Multi-Input: Pilih Karyawan'}
 ];
 function loadFBList(){ const ul=$('FBLIST'); if(!FORMS.length){ul.innerHTML='<li class="p-6 text-center text-slate-400">Kosong</li>';return;} ul.innerHTML=FORMS.map(f=>`<li><button onclick="loadFBEditor('${f.FormID}')" class="w-full text-left p-4 hover:bg-slate-50"><p class="font-black">${f.NamaForm}</p></button></li>`).join(''); }
 function fbRenderFlowChips(){ $('FB_FLOW_CHIPS').innerHTML=FB_STATE.flow.map((r,i)=>`<span class="bg-white border px-3 py-1.5 rounded-lg text-xs font-black mr-2 mb-2 inline-block">${i+1}. ${r} <button onclick="fbRemoveFlowRole(${i})" class="text-red-500 ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
