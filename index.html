@@ -1672,7 +1672,7 @@ tailwind.config = {
 // SCRIPT JAVASCRIPT UTAMA (FULL UPDATE - ERROR FREE)
 // =========================================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbwu3aumWltVXzNkIQU796nUaHTT1OYxdCu26FctgZl7TkMvb_R8UHTo7KhgOo1hD24CVw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbz1Nqxf9d_wtE2zJPlyxv5vE5VlnQgbtGFLlFIEJZvOx7gSSkitnyLEhd6njHC5egFC0Q/exec';
 
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
@@ -3545,7 +3545,9 @@ window.loadForms = async function() {
             if(typeof window.renderFormCards === 'function') window.renderFormCards(AVAILABLE_FORMS);
             if(typeof loadFBList === 'function') loadFBList();
         } else {
-            console.error('Gagal tarik form dari backend.');
+            console.error('Gagal tarik form:', res.message);
+            // Fallback: Jika data gagal ditarik, gambar grid kosong agar user tidak stuck
+            if(typeof window.renderFormCards === 'function') window.renderFormCards([]);
         }
     } catch(e) {
         console.error('Error loadForms:', e);
