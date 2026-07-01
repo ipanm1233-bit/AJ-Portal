@@ -3513,7 +3513,7 @@ window.kirimRaportMassal = async function() {
 }
 
 // ====================================================================
-// PEMULIHAN FUNGSI FORMULIR (100% SINKRON DENGAN UI)
+// PEMULIHAN FUNGSI FORMULIR (AUTO-MAPPING HEADER EXCEL)
 // ====================================================================
 window.loadForms = async function() {
     try {
@@ -3522,12 +3522,25 @@ window.loadForms = async function() {
         if(typeof hideL === 'function') hideL();
         
         if(res.success) {
-            // 1. Simpan ke variabel global secara langsung (Tanpa menggunakan awalan 'window.')
-            FORMS = res.data;
+            // 1. NORMALISASI: Menerjemahkan bahasa Excel ke bahasa Javascript
+            const normalizedData = res.data.map(f => {
+                return {
+                    ...f,
+                    FormID: f.ID_Form || f.FormID || f.ID || '-',
+                    NamaForm: f.Nama_Form || f.NamaForm || f.Nama || 'Form Tanpa Nama',
+                    AllowedRoles: f.Allowed_Roles || f.AllowedRoles || f['Allowed Roles'] || 'ALL',
+                    FieldsJSON: f.Fields_JSON || f.FieldsJSON || f['Fields JSON'] || '[]',
+                    ApprovalFlowJson: f.Approval_Flow || f.ApprovalFlowJson || '[]',
+                    NotifyRoles: f.Allowed_Users || f.NotifyRoles || ''
+                };
+            });
+
+            // 2. Simpan semua data mentah ke memori (Untuk Form Builder HRD)
+            FORMS = normalizedData;
             
-            // 2. Saring form sesuai HAK AKSES (Role) & Kebal terhadap penamaan kolom Excel
-            AVAILABLE_FORMS = res.data.filter(f => {
-                const allowed = (f.AllowedRoles || f['Allowed Roles'] || f.Allowed_Roles || 'ALL').toUpperCase();
+            // 3. Saring data untuk Menu Karyawan (Sesuai Hak Akses/Jabatan)
+            AVAILABLE_FORMS = normalizedData.filter(f => {
+                const allowed = (f.AllowedRoles).toUpperCase();
                 const myRole = (CU.Role || '').toUpperCase();
                 
                 if(allowed === 'ALL') return true;
@@ -3539,10 +3552,10 @@ window.loadForms = async function() {
                 return ok;
             });
             
-            // 3. Tampilkan kartu form ke layar Menu Pengajuan
+            // 4. Panggil fungsi penggambar Kartu (Karyawan)
             if(typeof renderFormCards === 'function') renderFormCards(AVAILABLE_FORMS);
             
-            // 4. Tampilkan daftar form di sidebar Form Builder
+            // 5. Panggil fungsi penggambar List Sidebar (HRD)
             if(typeof loadFBList === 'function') loadFBList();
         }
     } catch(e) {
@@ -3550,7 +3563,6 @@ window.loadForms = async function() {
         if(typeof hideL === 'function') hideL();
     }
 };
-
 </script>  
 </body>
 </html>
