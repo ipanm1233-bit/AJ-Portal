@@ -3522,7 +3522,11 @@ window.loadForms = async function() {
         if(typeof hideL === 'function') hideL();
         
         if(res.success) {
-            window.FORMS = res.data.filter(f => {
+            // 1. Simpan SEMUA form ke memori global untuk menu Form Builder (HRD)
+            window.FORMS = res.data;
+            
+            // 2. Saring form sesuai HAK AKSES (Role) untuk menu Buat Pengajuan (Karyawan)
+            window.AVAILABLE_FORMS = res.data.filter(f => {
                 const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
                 const myRole = (CU.Role || '').toUpperCase();
                 if(allowed === 'ALL') return true;
@@ -3533,8 +3537,9 @@ window.loadForms = async function() {
                 return ok;
             });
             
-            // Panggil renderForms jika fungsinya masih ada
-            if(typeof renderForms === 'function') renderForms();
+            // 3. Render kartu form ke layar dengan fungsi yang TEPAT
+            if(typeof renderFormCards === 'function') renderFormCards(window.AVAILABLE_FORMS);
+            if(typeof loadFBList === 'function') loadFBList(); // Segarkan sidebar di Form Builder
         }
     } catch(e) {
         console.error('Gagal memuat form:', e);
