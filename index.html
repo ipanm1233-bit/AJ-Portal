@@ -2022,14 +2022,21 @@ on('FMBC','submit',async e=>{
 
 function renderFormCards(list) {
   const grid = $('FORM_CARDS_GRID');
-  if(!list.length) { grid.innerHTML = '<div class="col-span-full text-center py-16 font-bold text-slate-400">Tidak ada formulir yang tersedia.</div>'; return; }
-  grid.innerHTML = list.map(f => `
-    <div onclick="openDynForm('${f.FormID}')" class="bg-white border border-slate-200 p-6 rounded-3xl cursor-pointer hover:border-corp hover:shadow-lg transition group flex flex-col h-full">
+  if(!list || !list.length) { grid.innerHTML = '<div class="col-span-full text-center py-16 font-bold text-slate-400">Tidak ada formulir yang tersedia untuk jabatan Anda.</div>'; return; }
+  
+  grid.innerHTML = list.map(f => {
+    // Toleransi multi-bahasa: Ambil ID dan Nama Form terlepas dari cara penulisannya di Sheet
+    const fId = f.FormID || f.ID_Form || f.ID || '-';
+    const fNama = f.NamaForm || f.Nama_Form || f.Nama || 'Formulir Tanpa Nama';
+    
+    return `
+    <div onclick="openDynForm('${fId}')" class="bg-white border border-slate-200 p-6 rounded-3xl cursor-pointer hover:border-corp hover:shadow-lg transition group flex flex-col h-full">
       <div class="w-14 h-14 bg-corpl text-corp rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition shadow-inner"><i class="fa-solid fa-file-lines"></i></div>
-      <h3 class="font-black text-slate-800 leading-tight mb-2 group-hover:text-corp transition">${f.NamaForm}</h3>
-      <p class="text-[10px] font-mono font-bold text-slate-400 mt-auto pt-4 border-t border-slate-50">${f.FormID}</p>
+      <h3 class="font-black text-slate-800 leading-tight mb-2 group-hover:text-corp transition">${fNama}</h3>
+      <p class="text-[10px] font-mono font-bold text-slate-400 mt-auto pt-4 border-t border-slate-50">${fId}</p>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 function filterForms(q) { if(!q) return renderFormCards(AVAILABLE_FORMS); const filtered = AVAILABLE_FORMS.filter(f => f.NamaForm.toLowerCase().includes(q.toLowerCase())); renderFormCards(filtered); }
 function openDynForm(id) { $('SELFORM').value = id; $('FORM_LIST_VIEW').classList.add('hide'); $('FORM_FILL_VIEW').classList.remove('hide'); const cfg = FORMS.find(f => f.FormID === id); $('FORM_FILL_TITLE').textContent = cfg ? cfg.NamaForm : 'Isi Formulir'; renderDynFormFields(); }
@@ -3517,33 +3524,15 @@ window.kirimRaportMassal = async function() {
 // ====================================================================
 window.loadForms = async function() {
     try {
-        if(typeof showL === 'function') showL('Memuat katalog formulir...');
         const res = await api({action: 'get_forms', user: CU});
-        if(typeof hideL === 'function') hideL();
         
-        if(res.success) {
-            // 1. NORMALISASI: Menerjemahkan bahasa Excel ke bahasa Javascript
-            const normalizedData = res.data.map(f => {
-                return {
-                    ...f,
-                    FormID: f.ID_Form || f.FormID || f.ID || '-',
-                    NamaForm: f.Nama_Form || f.NamaForm || f.Nama || 'Form Tanpa Nama',
-                    AllowedRoles: f.Allowed_Roles || f.AllowedRoles || f['Allowed Roles'] || 'ALL',
-                    FieldsJSON: f.Fields_JSON || f.FieldsJSON || f['Fields JSON'] || '[]',
-                    ApprovalFlowJson: f.Approval_Flow || f.ApprovalFlowJson || '[]',
-                    NotifyRoles: f.Allowed_Users || f.NotifyRoles || ''
-                };
-            });
-
-            // 2. Simpan semua data mentah ke memori (Untuk Form Builder HRD)
-            FORMS = normalizedData;
-            
-            // 3. Saring data untuk Menu Karyawan (Sesuai Hak Akses/Jabatan)
-            AVAILABLE_FORMS = normalizedData.filter(f => {
-                const allowed = (f.AllowedRoles).toUpperCase();
+        if(res.success && res.data) {
+            FORMS = res.data;
+            AVAILABLE_FORMS = res.data.filter(f => {
+                const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
                 const myRole = (CU.Role || '').toUpperCase();
                 
-                if(allowed === 'ALL') return true;
+                if(allowed === 'ALL' || allowed === '') return true;
                 
                 let ok = false;
                 allowed.split(',').forEach(r => { 
@@ -3552,17 +3541,38 @@ window.loadForms = async function() {
                 return ok;
             });
             
-            // 4. Panggil fungsi penggambar Kartu (Karyawan)
-            if(typeof renderFormCards === 'function') renderFormCards(AVAILABLE_FORMS);
-            
-            // 5. Panggil fungsi penggambar List Sidebar (HRD)
+            // Panggil penggambar UI Karyawan & HRD
+            if(typeof window.renderFormCards === 'function') window.renderFormCards(AVAILABLE_FORMS);
             if(typeof loadFBList === 'function') loadFBList();
+        } else {
+            console.error('Gagal tarik form dari backend.');
         }
     } catch(e) {
-        console.error('Gagal memuat form:', e);
-        if(typeof hideL === 'function') hideL();
+        console.error('Error loadForms:', e);
     }
 };
+
+window.renderFormCards = function(list) {
+  const grid = document.getElementById('FORM_CARDS_GRID');
+  if(!grid) return;
+  
+  if(!list || !list.length) { 
+      grid.innerHTML = '<div class="col-span-full text-center py-16 font-bold text-slate-400"><i class="fa-solid fa-folder-open text-3xl mb-3 block text-slate-300"></i>Tidak ada formulir pengajuan untuk Jabatan/Role Anda.</div>'; 
+      return; 
+  }
+  
+  grid.innerHTML = list.map(f => {
+    const fId = f.FormID || '-';
+    const fNama = f.NamaForm || 'Formulir Tanpa Nama';
+    return `
+    <div onclick="openDynForm('${fId}')" class="bg-white border border-slate-200 p-6 rounded-3xl cursor-pointer hover:border-corp hover:shadow-lg transition group flex flex-col h-full">
+      <div class="w-14 h-14 bg-corpl text-corp rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition shadow-inner"><i class="fa-solid fa-file-lines"></i></div>
+      <h3 class="font-black text-slate-800 leading-tight mb-2 group-hover:text-corp transition">${fNama}</h3>
+      <p class="text-[10px] font-mono font-bold text-slate-400 mt-auto pt-4 border-t border-slate-50">${fId}</p>
+    </div>
+    `;
+  }).join('');
+};  
 </script>  
 </body>
 </html>
