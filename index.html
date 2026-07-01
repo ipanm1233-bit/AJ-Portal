@@ -3513,7 +3513,7 @@ window.kirimRaportMassal = async function() {
 }
 
 // ====================================================================
-// PEMULIHAN FUNGSI FORMULIR YANG TERHAPUS
+// PEMULIHAN FUNGSI FORMULIR (100% SINKRON DENGAN UI)
 // ====================================================================
 window.loadForms = async function() {
     try {
@@ -3522,14 +3522,16 @@ window.loadForms = async function() {
         if(typeof hideL === 'function') hideL();
         
         if(res.success) {
-            // 1. Simpan SEMUA form ke memori global untuk menu Form Builder (HRD)
-            window.FORMS = res.data;
+            // 1. Simpan ke variabel global secara langsung (Tanpa menggunakan awalan 'window.')
+            FORMS = res.data;
             
-            // 2. Saring form sesuai HAK AKSES (Role) untuk menu Buat Pengajuan (Karyawan)
-            window.AVAILABLE_FORMS = res.data.filter(f => {
-                const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
+            // 2. Saring form sesuai HAK AKSES (Role) & Kebal terhadap penamaan kolom Excel
+            AVAILABLE_FORMS = res.data.filter(f => {
+                const allowed = (f.AllowedRoles || f['Allowed Roles'] || f.Allowed_Roles || 'ALL').toUpperCase();
                 const myRole = (CU.Role || '').toUpperCase();
+                
                 if(allowed === 'ALL') return true;
+                
                 let ok = false;
                 allowed.split(',').forEach(r => { 
                     if(myRole.includes(r.trim()) || myRole === r.trim()) ok = true; 
@@ -3537,17 +3539,17 @@ window.loadForms = async function() {
                 return ok;
             });
             
-            // 3. Render kartu form ke layar dengan fungsi yang TEPAT
-            if(typeof renderFormCards === 'function') renderFormCards(window.AVAILABLE_FORMS);
-            if(typeof loadFBList === 'function') loadFBList(); // Segarkan sidebar di Form Builder
+            // 3. Tampilkan kartu form ke layar Menu Pengajuan
+            if(typeof renderFormCards === 'function') renderFormCards(AVAILABLE_FORMS);
+            
+            // 4. Tampilkan daftar form di sidebar Form Builder
+            if(typeof loadFBList === 'function') loadFBList();
         }
     } catch(e) {
         console.error('Gagal memuat form:', e);
         if(typeof hideL === 'function') hideL();
     }
-};  
-// Opsional: Hapus atau komen kode `setInterval` lama jika Anda memilikinya, karena tidak lagi diperlukan (sudah dihandle oleh window.onload)
-// clearInterval(autoLinkDetector); // <-- Anda bisa abaikan/hapus setInterval yang lama
+};
 
 </script>  
 </body>
