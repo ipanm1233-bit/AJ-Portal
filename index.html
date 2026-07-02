@@ -2950,7 +2950,7 @@ async function submitOffboardingTask() {
         b.disabled = false; b.innerHTML = o; return toast('Semua aset & BPJS wajib ditandai Selesai sebelum menutup Clearance!', true);
      }
   }
-  const res = await api({ action: 'update_offboarding_task', user: CU, id: $('MOFF_ID').value, nama: $('MOFF_NAMA').textContent.split(' (')[0], chk: chk, docResign: docR, docPHK: docP, statusClearance: statusVal, pesangonInfo: $('MOFF_PESANGON_TXT').value });
+  const res = await api({ action: 'update_offboarding_task', user: CU, id: $('MOFF_ID').value, nama: CURRENT_OFFBOARD.Nama_Karyawan, chk: chk, docResign: docR, docPHK: docP, statusClearance: statusVal, pesangonInfo: $('MOFF_PESANGON_TXT').value });
   b.disabled = false; b.innerHTML = o;
   if(res.success) { toast(res.message); closeM('MOFFBOARD'); loadDashboard(); } else toast(res.message, true);
 }
