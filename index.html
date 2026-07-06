@@ -57,13 +57,20 @@ tailwind.config = {
     <div class="p-8 space-y-5">
       <div>
         <label class="lbl">Sumber Data (Database)</label>
-        <select id="EXP_DATA" class="inp !py-3 font-bold text-slate-700">
+        <select id="EXP_DATA" onchange="toggleExportFilter()" class="inp !py-3 font-bold text-slate-700">
           <option value="KARYAWAN">Master Karyawan</option>
           <option value="KENDARAAN">Master Kendaraan</option>
           <option value="INVENTORY">Master Inventory & ATK</option>
           <option value="LOG_INVENTORY">Log Pengambilan Inventory & ATK</option>
           <option value="PENGAJUAN">Riwayat Pengajuan Dokumen</option>
           <option value="CUTI">Log Master Cuti</option>
+        </select>
+      </div>
+
+      <div id="WRAP_EXP_FILTER" class="hidden mt-4">
+        <label class="lbl">Pilih Spesifik Form</label>
+        <select id="EXP_FILTER_FORM" class="inp !py-3 font-bold text-slate-700">
+           <option value="ALL">-- Ekspor Semua Form --</option>
         </select>
       </div>
       <div>
@@ -3170,53 +3177,69 @@ function loadOpnameDraft() { if(!INV_DATA.length) return toast('Data barang sist
 function calcOpnameRow(idx) { const sis = parseInt($('SO_SIS_'+idx).textContent) || 0; const fisik = parseInt($('SO_FISIK_'+idx).value) || 0; const selisih = fisik - sis; const el = $('SO_SELISIH_'+idx); el.textContent = (selisih > 0 ? '+' : '') + selisih; el.className = selisih === 0 ? 'text-emerald-600 font-black' : 'text-red-600 font-black'; }
 async function submitOpname() { let items = []; document.querySelectorAll('.so-fisik-input').forEach(el => { const idx = parseInt(el.dataset.idx,10); items.push({ idBarang: getV(INV_DATA[idx], ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']), namaBarang: getV(INV_DATA[idx], ['NAMABARANG', 'Nama Barang']), stokSistem: parseInt($('SO_SIS_'+idx).textContent)||0, stokFisik: parseInt(el.value)||0, catatan: $('SO_NOTE_'+idx).value||'' }); }); if(!items.length) return toast('Harap tarik data stok sistem terlebih dahulu!', true); const res = await api({action:'submit_stock_opname', user:CU, items:items}); if(res.success){ toast(res.message); invSetTab('list'); loadInv(); } }
 
-function openExportModal() { openM('MEXPORT'); }
+function openExportModal() { 
+    // Otomatis mengambil daftar Form yang sudah dibuat HRD
+    if (typeof FORMS !== 'undefined' && FORMS.length > 0) {
+        let opts = '<option value="ALL">-- Ekspor Semua Form --</option>';
+        FORMS.forEach(f => {
+            opts += `<option value="${f.FormID}">${f.NamaForm}</option>`;
+        });
+        document.getElementById('EXP_FILTER_FORM').innerHTML = opts;
+    }
+    toggleExportFilter(); 
+    openM('MEXPORT'); 
+}
+
+function toggleExportFilter() {
+    if (document.getElementById('EXP_DATA').value === 'PENGAJUAN') {
+        document.getElementById('WRAP_EXP_FILTER').classList.remove('hidden');
+    } else {
+        document.getElementById('WRAP_EXP_FILTER').classList.add('hidden');
+    }
+}
+
 async function doExportData() { 
-  const t = $('EXP_DATA').value;
-  const f = $('EXP_FMT').value; 
-  const b = $('BTN_EXPORT'); 
+  const t = document.getElementById('EXP_DATA').value;
+  const f = document.getElementById('EXP_FMT').value; 
+  const filterId = document.getElementById('EXP_FILTER_FORM').value; // Menangkap Form Pilihan
+  const b = document.getElementById('BTN_EXPORT'); 
   
-  // Ubah tombol jadi status loading
   b.disabled = true; 
   b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memproses...'; 
   
   try {
-    // Tembak API ke Google Apps Script (Code.gs)
-    const res = await api({ action: 'get_export_data', type: t }); 
+    // Tembak API dan kirimkan nama form yang difilter
+    const res = await api({ action: 'get_export_data', type: t, filterId: filterId }); 
     
-    // Kembalikan tombol ke kondisi semula
     b.disabled = false; 
     b.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Download File'; 
     
-    // 1. PERBAIKAN: Jika Server Google menolak/error, tampilkan pesan aslinya!
-    if (!res.success) {
-        return toast(res.message, true); 
-    }
+    if (!res.success) return toast(res.message, true); 
+    if (!res.data || !res.data.length) return toast('Data untuk filter ini masih kosong.', true); 
     
-    // 2. Jika sukses tapi datanya memang tidak ada
-    if (!res.data || !res.data.length) {
-        return toast('Data di Sheet ' + t + ' masih kosong.', true); 
-    }
-    
-    // 3. Proses merakit data JSON menjadi File Excel / CSV menggunakan SheetJS
     const ws = XLSX.utils.json_to_sheet(res.data); 
     const wb = XLSX.utils.book_new(); 
-    XLSX.utils.book_append_sheet(wb, ws, "Export_Data"); 
     
-    // 4. Unduh ke laptop/komputer pengguna
-    XLSX.writeFile(wb, `Export_${t}_${new Date().getTime()}.${f === 'CSV' ? 'csv' : 'xlsx'}`); 
+    // Perbagus Nama Sheet Excel
+    let sheetName = t === 'PENGAJUAN' && filterId !== 'ALL' ? filterId : "Export_Data";
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31)); // Excel batasi nama sheet max 31 huruf
     
+    // Perbagus Nama File
+    let fileName = `Export_${t}`;
+    if(t === 'PENGAJUAN' && filterId !== 'ALL') fileName += `_${filterId}`;
+    fileName += `_${new Date().getTime()}.${f === 'CSV' ? 'csv' : 'xlsx'}`;
+    
+    XLSX.writeFile(wb, fileName); 
     toast('File berhasil diunduh!'); 
     closeM('MEXPORT'); 
     
   } catch (err) {
-    // Tangkap jika koneksi internet terputus
     b.disabled = false; 
     b.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Download File'; 
     toast('Gagal mengunduh: ' + err.message, true);
   }
-}
-
+}  
+  
 ['MDETAIL','MAPPROVE_ACTION','MKARY','MKEND','MKEND_DETAIL','MINV','MKONTRAK','MPENILAIAN','MEXPORT','MBC_DETAIL','MCUTI_DETAIL','MCUTI_MANUAL','MEDIT_LOG_INV','MOFFBOARD'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('click',function(e){ if(e.target===this) closeM(id); }); });
 
 // --- PROFIL DIRI (SELF-SERVICE CHECKLIST) ---
