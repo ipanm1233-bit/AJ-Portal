@@ -2074,20 +2074,27 @@ function renderDynFormFields(){
       case'select': case'dropdownlist': i=`<select id="DF_${x.name}" ${req} ${ev} ${isRO} class="${B} ${extraClass}"><option value="">— Pilih —</option>${(x.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`; break; 
       case'file': i=`<input type="file" id="DF_${x.name}" ${req} ${ev} class="inp p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-corpl file:text-corp cursor-pointer bg-white">`; break; 
       // FITUR BARU: Tabel Dinamis Multi-Baris
+      // FITUR BARU: Tabel Dinamis Multi-Baris (Bisa Hitung Subtotal)
       case'tabel': 
         let cols = [];
         let rawCols = x.columns || 'Keterangan|text, Nominal|number';
         cols = rawCols.split(',').map(c => {
            let parts = c.split('|');
-           return {lbl: (parts[0]||'').trim(), tp: (parts[1]||'text').trim().toLowerCase()};
+           // Deteksi 3 bagian: Label | Tipe | Rumus (Opsional)
+           return {
+               lbl: (parts[0]||'').trim(), 
+               tp: (parts[1]||'text').trim().toLowerCase(), 
+               fm: (parts[2]||'').trim() 
+           };
         });
         
         let th = cols.map(c => `<th class="p-2 border border-slate-200">${c.lbl}</th>`).join('');
-        // Sensor oninput dan onchange agar kalkulator otomatis berjalan saat diketik
-        let tdTpl = cols.map(c => `<td class="p-1 border border-slate-200"><input type="${c.tp}" data-col="${c.lbl}" oninput="runDynLogic()" onchange="runDynLogic()" class="inp !py-2 !text-xs dyn-tbl-input_${x.name}" placeholder="${c.lbl}"></td>`).join('');
+        let tdTpl = cols.map(c => {
+           let isRO = c.fm ? 'readonly bg-blue-50 font-bold text-blue-700 cursor-not-allowed' : 'bg-white';
+           // Tambahkan data-fm dan oninput agar bereaksi otomatis saat diketik
+           return `<td class="p-1 border border-slate-200"><input type="${c.tp}" data-col="${c.lbl}" data-fm="${c.fm}" oninput="window.runDynLogic()" onchange="window.runDynLogic()" class="inp !py-2 !text-xs dyn-tbl-input_${x.name} ${isRO}" placeholder="${c.lbl}"></td>`;
+        }).join('');
         
-        // Simpan template baris agar bisa ditambahkan tanpa batas
-        // Tambahkan pemanggilan window.runDynLogic() setelah baris dihapus
         window[`TBL_TPL_${x.name}`] = `<tr>${tdTpl}<td class="p-1 border border-slate-200 text-center"><button type="button" onclick="this.closest('tr').remove(); window.runDynLogic();" class="text-red-500 font-black px-2 hover:bg-red-50 rounded">X</button></td></tr>`;
         
         i=`<div class="border border-slate-200 rounded-xl overflow-x-auto bg-slate-50 p-2">
@@ -2097,7 +2104,7 @@ function renderDynFormFields(){
                  <tr>${tdTpl}<td class="p-1 border border-slate-200 text-center">-</td></tr>
                </tbody>
              </table>
-             <button type="button" onclick="addDynRowCustom('${x.name}')" class="text-xs font-black text-blue-700 px-4 py-2 w-full text-left bg-blue-100 hover:bg-blue-200 mt-2 rounded transition"><i class="fa-solid fa-plus mr-2"></i>Tambah Baris Tabel</button>
+             <button type="button" onclick="addDynRowCustom('${x.name}'); window.runDynLogic();" class="text-xs font-black text-blue-700 px-4 py-2 w-full text-left bg-blue-100 hover:bg-blue-200 mt-2 rounded transition"><i class="fa-solid fa-plus mr-2"></i>Tambah Baris Tabel</button>
            </div>`; 
         break;
       // FITUR BARU: Periode Otomatis
@@ -2146,6 +2153,33 @@ window.addMultiRowCustom = function(name) {
 
 window.runDynLogic = function() {
   if(!CURRENT_FORM_FIELDS || CURRENT_FORM_FIELDS.length === 0) return;
+
+  // 0. KALKULASI RUMUS DI DALAM BARIS TABEL (SUBTOTAL PER BARIS)
+  CURRENT_FORM_FIELDS.forEach(f => {
+     if(f.type === 'tabel') {
+        const tbody = document.getElementById('TBODY_' + f.name);
+        if(tbody) {
+           tbody.querySelectorAll('tr').forEach(row => {
+              row.querySelectorAll('.dyn-tbl-input_' + f.name).forEach(inp => {
+                 let rowFm = inp.getAttribute('data-fm');
+                 if(rowFm) {
+                    try {
+                       let eq = rowFm;
+                       // Ganti [NamaKolom] dengan angka dari kolom lain di BARIS YANG SAMA
+                       eq = eq.replace(/\[(.*?)\]/g, function(match, colName) {
+                          const sibling = row.querySelector('[data-col="' + colName + '"]');
+                          return sibling ? (parseFloat(sibling.value) || 0) : 0;
+                       });
+                       const result = new Function('return ' + eq)();
+                       let finalRes = isNaN(result) || !isFinite(result) ? 0 : result;
+                       inp.value = finalRes % 1 === 0 ? finalRes : finalRes.toFixed(2);
+                    } catch(e) {}
+                 }
+              });
+           });
+        }
+     }
+  });
   
   CURRENT_FORM_FIELDS.forEach(f => {
      // 1. EVALUASI SYARAT TAMPIL (SHOW/HIDE LOGIC)
