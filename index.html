@@ -2514,6 +2514,12 @@ on('DYNFORM','submit',async e=>{
       const colRef = window.fdb.collection(window.db, "data_pengajuan");
       await window.fdb.addDoc(colRef, payloadIdm);
       
+      // ==========================================================
+      // PICU EMAIL KE APPROVER PERTAMA
+      // ==========================================================
+      kirimNotifEmail(payloadIdm, "SUBMIT_AWAL");
+      // ==========================================================
+      
       b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
       toast('Berhasil disimpan ke Cloud Firebase!'); 
       closeDynForm(); 
@@ -2861,15 +2867,19 @@ async function submitApprovalAction(){
           PosisiFlow: posisiBerikutnya
       });
 
-      // 5. PICU EMAIL BERJENJANG (SILENT TRIGGER KE GOOGLE APPS SCRIPT)
-      // Mengirimkan data agar GAS mengirim notifikasi email ke karyawan / approver berikutnya
-      api({
-         action: 'process_approval', 
-         user: CU, 
-         txId: id, 
-         decision: type, 
-         alasan: note
-      }).catch(err => console.log("Email trigger background skip:", err));
+      // ==========================================================
+      // 5. PICU EMAIL BERJENJANG MENGGUNAKAN MESIN BARU
+      // ==========================================================
+      let jenisNotif = "NEXT_APPROVER";
+      if (finalStatus === "APPROVED FINAL") jenisNotif = "FINAL_APPROVED";
+      if (finalStatus === "REJECTED") jenisNotif = "REJECTED";
+      
+      // Berikan posisi flow yang terbaru agar email dikirim ke orang yang tepat
+      reqData.PosisiFlow = posisiBerikutnya; 
+      
+      // Panggil mesin kurir (sengaja tanpa 'await' agar berjalan kilat di background)
+      kirimNotifEmail(reqData, jenisNotif, catatStr);
+      // ==========================================================
 
       b.disabled = false; b.innerHTML = o;
       toast('Otorisasi berhasil direkam & Database sinkron!');
@@ -3135,7 +3145,15 @@ async function loadCutiKaryawan() {
           $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; 
       }
       
-      MASTER_CUTI_DATA = MASTER_KARYAWAN_DATA.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
+      // Radar nama kebal huruf besar/kecil
+      MASTER_CUTI_DATA = MASTER_KARYAWAN_DATA.map(k => ({
+          nama: k.Nama_Karyawan || k['Nama Karyawan'] || k['NAMA KARYAWAN'] || k.NAMA || k.Nama || 'Tanpa Nama',
+          cabang: k.Cabang || k.CABANG || '-'
+      }));
+      
+      // Hapus data karyawan ganda (jika ada)
+      MASTER_CUTI_DATA = MASTER_CUTI_DATA.filter((v,i,a) => a.findIndex(t => (t.nama === v.nama)) === i);
+      
       renderCutiCards(MASTER_CUTI_DATA);
   } catch(e) { console.error("Error Cuti:", e); }
 }
@@ -3144,22 +3162,17 @@ function renderCutiCards(data) {
   if(!data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
   
   $('CUTIGRID').innerHTML = data.map(k => {
-    // Mencari data lengkap dari MASTER_KARYAWAN_DATA
-    const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === k.nama || x['Nama Karyawan'] === k.nama || x.Nama === k.nama) || {};
+    // Cari data karyawan spesifik
+    const emp = MASTER_KARYAWAN_DATA.find(x => 
+        (x.Nama_Karyawan || x['Nama Karyawan'] || x['NAMA KARYAWAN'] || x.NAMA || x.Nama || '') === k.nama
+    ) || {};
+    
     const pos = emp.Jabatan || emp.JABATAN || emp.Posisi || k.cabang || 'KARYAWAN';
     
-    // PERBAIKAN: Kalkulasi sisa cuti (Jatah dikurangi Terpakai)
-    const jtTahunan = parseFloat(emp.jatah_tahunan || emp['jatah tahunan'] || 0);
-    const tpTahunan = parseFloat(emp['Terpakai Tahunan'] || emp.terpakai_tahunan || 0);
-    const sTahunan = Math.max(0, jtTahunan - tpTahunan); // Math.max agar tidak minus
-
-    const jtAkumulasi = parseFloat(emp.jatah_akumulasi || emp['jatah akumulasi'] || 0);
-    const tpAkumulasi = parseFloat(emp['Terpakai Akumulasi'] || emp.terpakai_akumulasi || 0);
-    const sAkumulasi = Math.max(0, jtAkumulasi - tpAkumulasi);
-
-    const jtKhusus = parseFloat(emp.jatah_khusus || emp['jatah khusus'] || 0);
-    const tpKhusus = parseFloat(emp['Terpakai Khusus'] || emp.terpakai_khusus || 0);
-    const sKhusus = Math.max(0, jtKhusus - tpKhusus);
+    // AMBIL LANGSUNG DARI FIREBASE, JANGAN DIHITUNG ULANG! (Anti NaN)
+    const sTahunan = parseFloat(emp.SisaCuti || emp['Sisa Cuti'] || emp.SISA_CUTI) || 0;
+    const sAkumulasi = parseFloat(emp.SisaAkumulasi || emp['Sisa Akumulasi'] || emp.SISA_AKUMULASI) || 0;
+    const sKhusus = parseFloat(emp.SisaKhusus || emp['Sisa Khusus'] || emp.SISA_KHUSUS) || 0;
     
     return `
     <div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group flex flex-col h-full">
@@ -3211,21 +3224,38 @@ async function openCutiDetail(nama) {
       let cutiHistory = [];
       snap.forEach(doc => {
           const d = doc.data();
-          const empName = d.Nama_Karyawan || d['Nama Karyawan'] || d.NamaPemohon || d.Nama || '';
+          // Radar nama yang menangkap segala jenis header dari Excel
+          const empName = d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '';
+          
           if (empName.toUpperCase() === nama.toUpperCase()) { cutiHistory.push(d); }
       });
       
       // Urutkan dari yang terbaru ke terlama
-      cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || 0) - new Date(a.Tanggal || a.Tgl || 0));
+      cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || b.TANGGAL || 0) - new Date(a.Tanggal || a.Tgl || a.TANGGAL || 0));
       
       if(!cutiHistory.length) { 
           $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; 
       }
       
       $('MCD_BODY').innerHTML = cutiHistory.map(c => {
-        const p = parseFloat(c['Count']) || parseFloat(c['Jumlah_Ambil']) || parseFloat(c['Potongan']) || parseFloat(c['Potong Jatah']) || 0; 
+        // Tangkap kolom potongan apa pun namanya dari Excel
+        const p = parseFloat(c.Count || c['Jumlah Ambil'] || c['Jumlah_Ambil'] || c.Potongan || c['Potong Jatah'] || c.Potong_Jatah) || 0; 
         const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
-        return `<tr class="hover:bg-blue-50"><td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c.Tanggal || c.Tgl)}</td><td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||c.Jenis_Cuti||c.Jenis||'-'}</span></td><td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||c.Jenis_Setengah||'-'}</td><td class="px-6 py-4 text-center">${pB}</td><td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||c.Alasan||'-'}</td><td class="px-6 py-4 text-center">${c.FORM||c.URL_PDF ? `<a href="${c.FORM||c.URL_PDF}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td></tr>`;
+        
+        const tgl = c.Tanggal || c.Tgl || c.TANGGAL || '-';
+        const jenis = c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || c.JENIS || c.TYPE_CUTI || '-';
+        const alasan = c['Keterangan Cuti'] || c.Alasan || c.Keterangan || c.KETERANGAN || '-';
+        const setengah = c['Tipe Cuti Setengah Hari'] || c.Jenis_Setengah || c.Setengah_Hari || '-';
+        const file = c.FORM || c.URL_PDF || c.File || '';
+
+        return `<tr class="hover:bg-blue-50">
+            <td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(tgl)}</td>
+            <td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${jenis}</span></td>
+            <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${setengah}</td>
+            <td class="px-6 py-4 text-center">${pB}</td>
+            <td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${alasan}</td>
+            <td class="px-6 py-4 text-center">${file ? `<a href="${file}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td>
+        </tr>`;
       }).join('');
   } catch(e) {
       $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-red-500 font-bold">Error memuat data.</td></tr>`;
@@ -4274,7 +4304,75 @@ window.renderFormCards = function(list) {
     </div>
     `;
   }).join('');
-};  
+};
+
+// =========================================================================
+// MESIN PENGIRIM EMAIL OTOMATIS (MEMINJAM JALUR BROADCAST)
+// =========================================================================
+async function kirimNotifEmail(reqData, jenisNotif, catatanAkhir = "") {
+    try {
+        const snapKary = await window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan"));
+        const snapUser = await window.fdb.getDocs(window.fdb.collection(window.db, "user"));
+        
+        let allKary = []; snapKary.forEach(d => allKary.push(d.data()));
+        let allUser = []; snapUser.forEach(d => allUser.push(d.data()));
+        
+        let targetNames = []; let subjek = ""; let isi = "";
+        
+        if (jenisNotif === "SUBMIT_AWAL" || jenisNotif === "NEXT_APPROVER") {
+            let targetRole = reqData.PosisiFlow; 
+            if (!targetRole || targetRole === 'SELESAI') return; // Tidak ada approver berikutnya
+            
+            if (targetRole.includes('ATASAN')) {
+                let pemohon = allKary.find(k => (k.Nama_Karyawan || k.Nama || '').toUpperCase() === (reqData.NamaPemohon||'').toUpperCase());
+                if (pemohon && pemohon.Atasan) targetNames.push(pemohon.Atasan);
+            } else {
+                let targetUser = allUser.filter(u => (u.Role || '').toUpperCase().includes(targetRole.toUpperCase()));
+                targetUser.forEach(tu => {
+                    let k = allKary.find(x => x.NIK === tu.NIK || x.NIK_Karyawan === tu.NIK);
+                    if(k) targetNames.push(k.Nama_Karyawan || k.Nama);
+                });
+            }
+            
+            subjek = `[Otorisasi Dibutuhkan] Pengajuan ${reqData.NamaForm} - ${reqData.NamaPemohon}`;
+            isi = `Halo,<br><br>Terdapat pengajuan <b>${reqData.NamaForm}</b> baru dari <b>${reqData.NamaPemohon}</b> yang membutuhkan persetujuan Anda (Sebagai: ${targetRole}).<br><br><b>Detail Singkat:</b><br>ID Transaksi: ${reqData.ID}<br>Tgl Submit: ${reqData.Tanggal.split('T')[0]}<br><br>Silakan login ke Portal HRIS untuk meninjau dan memberikan persetujuan.<br><br>Sistem HRIS Terintegrasi`;
+        } 
+        else if (jenisNotif === "FINAL_APPROVED" || jenisNotif === "REJECTED") {
+            targetNames.push(reqData.NamaPemohon); // Email kembali ke pemohon
+            
+            // Tambahkan Tembusan (NotifyRoles / Finance / HRD) jika Form disetujui penuh
+            if (jenisNotif === "FINAL_APPROVED") {
+                let cfg = FORMS.find(f => f.FormID === reqData.Forn_ID);
+                if (cfg && cfg.NotifyRoles) {
+                    let roles = cfg.NotifyRoles.split(',').map(r => r.trim().toUpperCase());
+                    roles.forEach(r => {
+                        let tu = allUser.filter(u => {
+                            let uRoles = (u.Role || '').toUpperCase();
+                            return r.split(' ').every(part => uRoles.includes(part)); 
+                        });
+                        tu.forEach(u => {
+                            let k = allKary.find(x => x.NIK === u.NIK || x.NIK_Karyawan === u.NIK);
+                            if(k) targetNames.push(k.Nama_Karyawan || k.Nama);
+                        });
+                    });
+                }
+            }
+            
+            let sts = jenisNotif === "FINAL_APPROVED" ? "DISETUJUI SEPENUHNYA (APPROVED)" : "DITOLAK (REJECTED)";
+            let warna = jenisNotif === "FINAL_APPROVED" ? "color: green;" : "color: red;";
+            
+            subjek = `[Status Final: ${jenisNotif === "FINAL_APPROVED" ? "Approved" : "Rejected"}] Pengajuan ${reqData.NamaForm}`;
+            isi = `Halo <b>${reqData.NamaPemohon}</b>,<br><br>Pengajuan <b>${reqData.NamaForm}</b> Anda (ID: ${reqData.ID}) telah mencapai status akhir: <b style="${warna}">${sts}</b>.<br><br><b>Catatan / Komentar Terakhir:</b><br><i>${catatanAkhir || 'Tidak ada catatan khusus'}</i><br><br>Silakan login ke Portal HRIS untuk melihat rekam jejak lengkapnya.<br><br>Sistem HRIS Terintegrasi`;
+        }
+        
+        targetNames = [...new Set(targetNames)].filter(n => n && n.trim() !== '');
+        
+        if (targetNames.length > 0) {
+            // Kita eksekusi API Broadcast secara background tanpa bikin layar loading
+            api({ action: 'send_broadcast', user: CU, tipeTarget: 'NIK', valueTarget: targetNames.join(','), judul: subjek, isi: isi }).catch(e => console.error(e));
+        }
+    } catch(e) { console.error("Gagal menyusun email notif:", e); }
+}  
 </script>
 
 <!-- ==================================================================== -->
