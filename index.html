@@ -3730,6 +3730,79 @@ window.renderFormCards = function(list) {
     `;
   }).join('');
 };  
-</script>  
+</script>
+
+<!-- ==================================================================== -->
+<!-- ALAT MIGRASI RAHASIA (Bisa dihapus kalau sudah selesai)              -->
+<!-- ==================================================================== -->
+<div style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;">
+    <button onclick="document.getElementById('MIGRASI_MODAL').classList.remove('hidden')" class="bg-purple-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-purple-700 animate-bounce">
+        🚀 ALAT MIGRASI FIREBASE
+    </button>
+</div>
+
+<div id="MIGRASI_MODAL" class="hidden fixed inset-0 z-[10000] bg-slate-900/80 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4">
+        <h2 class="text-xl font-black text-slate-800">Mesin Pemindah Data</h2>
+        <p class="text-sm text-slate-500">Pilih data dari Google Sheets yang ingin disedot dan dipindahkan permanen ke Firestore.</p>
+        
+        <select id="MIGRASI_TIPE" class="inp !py-3 font-bold border-2 border-slate-200 rounded-xl">
+            <option value="KARYAWAN">Master Karyawan</option>
+            <option value="PENGAJUAN">Data Pengajuan Dokumen</option>
+            <option value="CUTI">Master Cuti</option>
+        </select>
+        
+        <button id="BTN_PROSES_MIGRASI" onclick="jalankanMigrasi()" class="bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">Mulai Sedot & Pindahkan</button>
+        <button onclick="document.getElementById('MIGRASI_MODAL').classList.add('hidden')" class="bg-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-200">Tutup</button>
+    </div>
+</div>
+
+<script>
+async function jalankanMigrasi() {
+    const tipe = document.getElementById('MIGRASI_TIPE').value;
+    const btn = document.getElementById('BTN_PROSES_MIGRASI');
+    btn.disabled = true;
+    
+    try {
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i> 1. Menyedot dari Excel...";
+        
+        // Kita pinjam fungsi export lama untuk menyedot data Excel!
+        const res = await api({ action: 'get_export_data', type: tipe, filterId: 'ALL' }); 
+        
+        if(!res.success || !res.data || res.data.length === 0) {
+            alert("Data Excel kosong atau gagal ditarik.");
+            btn.disabled = false; btn.innerHTML = "Mulai Sedot & Pindahkan";
+            return;
+        }
+        
+        const total = res.data.length;
+        let sukses = 0;
+        let namaKoleksi = tipe === 'KARYAWAN' ? 'master_karyawan' : (tipe === 'PENGAJUAN' ? 'data_pengajuan' : 'master_cuti');
+        
+        for(const row of res.data) {
+            btn.innerHTML = `<i class='fa-solid fa-spinner fa-spin mr-2'></i> Memindahkan: ${sukses} / ${total} data...`;
+            
+            if(tipe === 'KARYAWAN' && row.NIK) {
+                // Khusus Karyawan, jadikan NIK sebagai ID dokumen agar gampang dicari
+                const ref = window.fdb.doc(window.db, namaKoleksi, row.NIK.toString());
+                await window.fdb.setDoc(ref, row);
+            } else {
+                // Pengajuan & Cuti pakai ID acak otomatis dari Firebase
+                const colRef = window.fdb.collection(window.db, namaKoleksi);
+                await window.fdb.addDoc(colRef, row);
+            }
+            sukses++;
+        }
+        
+        alert(`🎉 LUAR BIASA! ${sukses} baris data ${tipe} berhasil mendarat di Firebase!`);
+        btn.innerHTML = "Mulai Sedot & Pindahkan";
+        btn.disabled = false;
+    } catch(e) {
+        alert("Terjadi Kesalahan: " + e.message);
+        btn.disabled = false; btn.innerHTML = "Mulai Sedot & Pindahkan";
+    }
+}
+</script>
+  
 </body>
 </html>
