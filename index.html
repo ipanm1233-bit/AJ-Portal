@@ -37,6 +37,35 @@ tailwind.config = {
   .tox-notifications-container, .tox-promotion { display: none !important; }
   .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
+
+<!-- ==================================================================== -->
+<!-- FIREBASE & FIRESTORE DATABASE INITIALIZATION                         -->
+<!-- ==================================================================== -->
+<script type="module">
+  // 1. Import Mesin Utama
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  
+  // 2. Import Mesin Database (Firestore) dan perintah-perintahnya
+  import { getFirestore, collection, addDoc, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCRAkee02Vhre6shscNnfI787qGCbBGO0c",
+    authDomain: "hris-andela-jaya.firebaseapp.com",
+    projectId: "hris-andela-jaya",
+    storageBucket: "hris-andela-jaya.firebasestorage.app",
+    messagingSenderId: "287817783969",
+    appId: "1:287817783969:web:0ceb6a14bd32ff86976ee0"
+  };
+
+  // 3. Nyalakan Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // 4. Jadikan Database Global (Agar bisa dibaca oleh kode Anda yang lain)
+  window.db = getFirestore(app);
+  window.fdb = { collection, addDoc, getDocs, setDoc, doc }; // Shortcut perintah database
+  
+  console.log("🔥 Firebase Firestore Berhasil Terhubung ke Sistem!");
+</script>  
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased h-screen flex flex-col w-full">
 
