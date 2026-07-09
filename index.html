@@ -1811,8 +1811,7 @@ on('FMLOGIN', 'submit', async e => {
   const inpPass = $('LP').value.trim();
 
   try {
-      // 1. CARI USERNAME DI KOLEKSI (Sesuaikan nama "Users" dengan yang Anda pakai saat migrasi)
-      // Jika saat migrasi Anda menamakannya "users" huruf kecil, ganti teks "Users" di bawah ini.
+      // 1. CARI USERNAME DI KOLEKSI user
       const usersRef = window.fdb.collection(window.db, "user"); 
       const qUser = window.fdb.query(usersRef, window.fdb.where("Username", "==", inpUser));
       const snapUser = await window.fdb.getDocs(qUser);
@@ -1825,31 +1824,42 @@ on('FMLOGIN', 'submit', async e => {
       snapUser.forEach((doc) => { userData = doc.data(); });
 
       // 2. COCOKKAN PASSWORD
-      if (userData.Password !== inpPass) {
+      if (userData.Password !== inpPass && userData.PASSWORD !== inpPass && userData.password !== inpPass) {
           hideL(); return toast('Kata sandi salah!', true);
       }
 
-      // 3. TARIK DATA LENGKAP KARYAWAN & CUTI BERDASARKAN NIK
+      // 3. TARIK MASTER KARYAWAN DENGAN RADAR ANTI-GAGAL
+      // Ambil NIK dari tabel user (Bisa bernama NIK, NIK_Karyawan, atau NIK Karyawan)
+      let userNIK = (userData.NIK || userData.NIK_Karyawan || userData['NIK Karyawan'] || "").toString().trim();
       let kData = null;
-      if (userData.NIK) {
+      
+      if (userNIK) {
+          // Tarik semua karyawan agar kita bisa memfilter pakai JavaScript (Kebal huruf besar/kecil & spasi)
           const karyRef = window.fdb.collection(window.db, "master_karyawan");
-          const qKary = window.fdb.query(karyRef, window.fdb.where("NIK", "==", userData.NIK));
-          const snapKary = await window.fdb.getDocs(qKary);
-          if (!snapKary.empty) {
-              snapKary.forEach((doc) => { kData = doc.data(); });
-          }
+          const snapKary = await window.fdb.getDocs(karyRef);
+          
+          snapKary.forEach((doc) => { 
+              let d = doc.data();
+              // Cek semua kemungkinan nama kolom NIK di master_karyawan
+              let kNIK = (d.NIK || d.NIK_Karyawan || d['NIK Karyawan'] || "").toString().trim();
+              if (kNIK === userNIK) {
+                  kData = d; 
+              }
+          });
       }
 
-      // 4. GABUNGKAN DATA KE MEMORI GLOBAL (CU) + OBATI ERROR "N/A" PADA CUTI
-      CU = { ...userData }; // Tarik dasar seperti Role & AksesMenu dari tabel Users
+      // 4. GABUNGKAN DATA KE MEMORI GLOBAL (CU)
+      CU = { ...userData }; 
+      CU.NIK = userNIK; // Pastikan NIK tersimpan seragam
       
       if (kData) {
-          CU.Nama = kData.Nama_Karyawan || kData.Nama || CU.Nama;
+          // Tangkap nama kolom apa pun bawaan Excel
+          CU.Nama = kData.Nama_Karyawan || kData['Nama Karyawan'] || kData.NAMA || kData.Nama || CU.Nama || "-";
           CU.Cabang = kData.Cabang || kData.CABANG || CU.Cabang || "-";
           CU.TanggalJoin = kData.TanggalJoin || kData['Tanggal Join'] || kData['TANGGAL JOIN'] || "-";
           CU.posisi = kData.Jabatan || kData.JABATAN || CU.posisi || "-";
           
-          // Obat Penawar VLOOKUP "N/A": Jika isinya N/A, paksa jadi angka 0
+          // Obat Penawar VLOOKUP "N/A"
           let sTahunan = kData.SisaCuti || kData['Sisa Cuti'] || "0";
           CU.SisaCuti = (sTahunan === "N/A" || sTahunan === "#N/A") ? "0" : sTahunan;
           
@@ -1863,6 +1873,12 @@ on('FMLOGIN', 'submit', async e => {
           CU.SisaAkumulasi = (sAkumulasi === "N/A" || sAkumulasi === "#N/A") ? "0" : sAkumulasi;
           
           CU.MasaKerja = window.calcMasaKerja ? window.calcMasaKerja(CU.TanggalJoin) : "-";
+      } else {
+          // Jika tidak ada di master_karyawan, set default agar tidak undefined
+          CU.Nama = CU.Username || "-";
+          CU.Cabang = "-";
+          CU.TanggalJoin = "-";
+          CU.MasaKerja = "-";
       }
 
       // 5. SIMPAN KE BROWSER & BUKA APLIKASI
@@ -1873,11 +1889,10 @@ on('FMLOGIN', 'submit', async e => {
 
   } catch (err) {
       hideL();
-      console.error(err);
+      console.error("Error Detail Firebase:", err);
       toast('Terjadi Kesalahan: ' + err.message, true);
   }
 });
-
 function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar.'); }
 
 const MENU_OPTS = [ { val: 'DASHBOARD', label: 'Dashboard Utama', el: 'NB-dashboard' }, { val: 'PENGAJUAN', label: 'Buat Pengajuan Dokumen', el: 'NB-pengajuan' }, { val: 'RIWAYAT', label: 'Rekam Jejak 360', el: 'NB-riwayat' }, { val: 'APPROVAL', label: 'Antrean Approval Form', el: 'NB-approval' }, { val: 'KONTRAK', label: 'Penilaian KPI & Evaluasi Kontrak', el: 'NB-kontrak' }, { val: 'CUTI', label: 'Manajemen Cuti & Izin', el: 'NB-cuti' }, { val: 'BROADCAST', label: 'Broadcast / Pengumuman', el: 'NB-broadcast' }, { val: 'DBKARY', label: 'Database Karyawan (HR)', el: 'NB-dbkary' }, { val: 'SP', label: 'Pemanggilan & SP (HR)', el: 'NB-sp' }, { val: 'FBUILDER', label: 'Form Builder (HR)', el: 'NB-fbuilder' }, { val: 'EXPORT', label: 'Export Data Database (HR)', el: 'NB-export' }, { val: 'KENDARAAN', label: 'Master Kendaraan & Log BBM', el: 'NB-kendaraan' }, { val: 'INVENTORY', label: 'Master Inventory & Stok Opname', el: 'NB-inventory' }, { val: 'LIFECYCLE', label: 'On/Offboarding Karyawan (HR)', el: 'NB-lifecycle' } ];
@@ -3213,7 +3228,8 @@ function filterCutiKaryawan(q){ if(!q){renderCutiCards(MASTER_CUTI_DATA);return;
 // TARIK RINCIAN CUTI KARYAWAN SPESIFIK (FIREBASE)
 // =========================================================================
 async function openCutiDetail(nama) {
-  $('MCD_NAMA').textContent = nama; $('MCM_NAMA').textContent = nama; $('MCM_NAMA_VAL').value = nama;
+  const safeNama = nama ? nama.toString().trim() : '';
+  $('MCD_NAMA').textContent = safeNama; $('MCM_NAMA').textContent = safeNama; $('MCM_NAMA_VAL').value = safeNama;
   $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></td></tr>`;
   openM('MCUTI_DETAIL');
   
@@ -3223,16 +3239,17 @@ async function openCutiDetail(nama) {
       
       let cutiHistory = [];
       
-      // Bersihkan nama yang di-klik dari spasi berlebih
-      const namaBersih = nama.trim().toUpperCase();
+      // MENGHANCURKAN SEMUA SPASI & JADIKAN HURUF KECIL
+      const keyword = safeNama.toLowerCase().replace(/\s+/g, '');
 
       snap.forEach(doc => {
           const d = doc.data();
-          // Bersihkan juga nama yang ada di database riwayat cuti
-          const empName = (d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '').trim().toUpperCase();
+          // Tangkap nama dari database riwayat, hancurkan juga spasinya
+          const rawName = (d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '').toString();
+          const dbNameClean = rawName.toLowerCase().replace(/\s+/g, '');
           
-          // Cocokkan!
-          if (empName === namaBersih) { 
+          // PENCOCOKAN EKSTREM: Jika nama beririsan/saling mengandung, maka cocok!
+          if (dbNameClean !== '' && keyword !== '' && (dbNameClean.includes(keyword) || keyword.includes(dbNameClean))) { 
               cutiHistory.push(d); 
           }
       });
@@ -3241,24 +3258,22 @@ async function openCutiDetail(nama) {
       cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || b.TANGGAL || 0) - new Date(a.Tanggal || a.Tgl || a.TANGGAL || 0));
       
       if(!cutiHistory.length) { 
-          $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; 
+          $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti untuk karyawan ini.</td></tr>`; return; 
       }
       
       $('MCD_BODY').innerHTML = cutiHistory.map(c => {
-        // Tangkap kolom potongan apa pun namanya dari Excel
-        const p = parseFloat(c.Count || c['Jumlah Ambil'] || c['Jumlah_Ambil'] || c.Potongan || c['Potong Jatah'] || c.Potong_Jatah) || 0; 
+        const p = parseFloat(c.Count || c.COUNT || c['Jumlah Ambil'] || c.Jumlah_Ambil || c.Potongan || c['Potong Jatah'] || c.Potong_Jatah) || 0; 
         const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
         
-        const tgl = c.Tanggal || c.Tgl || c.TANGGAL || '-';
-        const jenis = c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || c.JENIS || c.TYPE_CUTI || '-';
-        const alasan = c['Keterangan Cuti'] || c.Alasan || c.Keterangan || c.KETERANGAN || '-';
-        const setengah = c['Tipe Cuti Setengah Hari'] || c.Jenis_Setengah || c.Setengah_Hari || '-';
+        const tgl = c.Tanggal || c.Tgl || c.TANGGAL || c.DATE || '-';
+        const jenis = c['Type Cuti'] || c['TYPE CUTI'] || c.Jenis_Cuti || c.Jenis || c.JENIS || '-';
+        const alasan = c['Keterangan Cuti'] || c['KETERANGAN CUTI'] || c.Alasan || c.Keterangan || c.KETERANGAN || '-';
         const file = c.FORM || c.URL_PDF || c.File || '';
 
         return `<tr class="hover:bg-blue-50">
             <td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(tgl)}</td>
             <td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${jenis}</span></td>
-            <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${setengah}</td>
+            <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||c.Jenis_Setengah||'-'}</td>
             <td class="px-6 py-4 text-center">${pB}</td>
             <td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${alasan}</td>
             <td class="px-6 py-4 text-center">${file ? `<a href="${file}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td>
@@ -4501,28 +4516,25 @@ async function sinkronkanCutiFirebaseV2(btn) {
         
         for (let docKary of karySnap.docs) {
             let k = docKary.data();
-            // .trim() digunakan untuk menghapus "spasi gaib" bawaan Excel
-            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").trim().toUpperCase();
+            // Hapus semua spasi dan jadikan huruf kecil untuk pencocokan mutlak
+            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").toString().toLowerCase().replace(/\s+/g, '');
             if(!namaKar) continue;
             
-            // 1. TARIK JATAH ASLI DARI EXCEL (Bukan dipukul rata 12)
             let jTahunan = parseFloat(k.JatahTahunan || k['Jatah Tahunan'] || k['JATAH TAHUNAN']) || 0;
-            if (jTahunan === 0 && (!k.JatahTahunan && !k['Jatah Tahunan'])) jTahunan = 12; // Default hanya jika benar-benar kosong
+            if (jTahunan === 0 && (!k.JatahTahunan && !k['Jatah Tahunan'])) jTahunan = 12; 
             
-            // Anggap sisa cuti saat ini di master_karyawan sebagai Jatah Dasar untuk Akumulasi & Khusus
             let jAkumulasi = parseFloat(k.SisaAkumulasi || k['Sisa Akumulasi'] || k['Jatah Akumulasi']) || 0;
             let jKhusus = parseFloat(k.SisaKhusus || k['Sisa Khusus'] || k['Jatah Khusus']) || 0;
             
             let potongTahunan = 0, potongAkumulasi = 0, potongKhusus = 0;
             
-            // 2. BACA RIWAYAT DAN KELOMPOKKAN POTONGANNYA
             cutiList.forEach(c => {
-                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").trim().toUpperCase();
-                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || "").trim().toUpperCase();
-                let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c['Jumlah Ambil']) || 0;
+                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").toString().toLowerCase().replace(/\s+/g, '');
+                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || "").toString().toUpperCase();
+                let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c['Jumlah Ambil'] || c.Jumlah_Ambil) || 0;
                 
-                // Jika nama cocok
-                if (namaC === namaKar && angkaPotong > 0) {
+                // PENCOCOKAN EKSTREM: jika nama di Riwayat Cuti ada di dalam Nama Karyawan (atau sebaliknya)
+                if (namaC !== '' && (namaC.includes(namaKar) || namaKar.includes(namaC)) && angkaPotong > 0) {
                     if (tipeC.includes('AKUMULASI')) {
                         potongAkumulasi += angkaPotong;
                     } else if (tipeC.includes('KHUSUS') || tipeC.includes('LAHIRAN') || tipeC.includes('MENIKAH') || tipeC.includes('DUKA')) {
@@ -4533,17 +4545,14 @@ async function sinkronkanCutiFirebaseV2(btn) {
                 }
             });
             
-            // 3. KALKULASI MATEMATIKA FINAL
             let sisaTahunan = jTahunan - potongTahunan;
             let sisaAkumulasi = jAkumulasi - potongAkumulasi;
             let sisaKhusus = jKhusus - potongKhusus;
             
-            // 4. SIMPAN KEMBALI KE FIREBASE
             await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docKary.id), {
                 ...k,
                 JatahTahunan: jTahunan.toString(), "Jatah Tahunan": jTahunan.toString(),
                 SisaCuti: sisaTahunan.toString(), "Sisa Cuti": sisaTahunan.toString(),
-                
                 SisaAkumulasi: sisaAkumulasi.toString(), "Sisa Akumulasi": sisaAkumulasi.toString(),
                 SisaKhusus: sisaKhusus.toString(), "Sisa Khusus": sisaKhusus.toString()
             });
@@ -4551,7 +4560,7 @@ async function sinkronkanCutiFirebaseV2(btn) {
             suksesCount++;
         }
         
-        alert(`🎉 BERHASIL! ${suksesCount} profil karyawan telah disinkronkan lengkap (Tahunan, Akumulasi, & Khusus)!`);
+        alert(`🎉 BERHASIL! ${suksesCount} profil telah dihitung ulang menggunakan Radar Ekstrem!`);
         btn.innerHTML = "♻️ AUTO-HITUNG SEMUA CUTI"; 
         btn.disabled = false;
         
