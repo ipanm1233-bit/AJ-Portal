@@ -3222,12 +3222,19 @@ async function openCutiDetail(nama) {
       const snap = await window.fdb.getDocs(cutiRef);
       
       let cutiHistory = [];
+      
+      // Bersihkan nama yang di-klik dari spasi berlebih
+      const namaBersih = nama.trim().toUpperCase();
+
       snap.forEach(doc => {
           const d = doc.data();
-          // Radar nama yang menangkap segala jenis header dari Excel
-          const empName = d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '';
+          // Bersihkan juga nama yang ada di database riwayat cuti
+          const empName = (d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '').trim().toUpperCase();
           
-          if (empName.toUpperCase() === nama.toUpperCase()) { cutiHistory.push(d); }
+          // Cocokkan!
+          if (empName === namaBersih) { 
+              cutiHistory.push(d); 
+          }
       });
       
       // Urutkan dari yang terbaru ke terlama
@@ -4472,74 +4479,85 @@ async function jalankanMigrasi() {
 </script>
 
 <div style="position: fixed; bottom: 80px; left: 20px; z-index: 9999;">
-    <button onclick="sinkronkanCutiFirebase(this)" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-emerald-700 animate-bounce">
-        ♻️ AUTO-HITUNG SALDO CUTI
+    <button onclick="sinkronkanCutiFirebaseV2(this)" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-emerald-700 animate-bounce">
+        ♻️ AUTO-HITUNG SEMUA CUTI
     </button>
 </div>
 
 <script>
-async function sinkronkanCutiFirebase(btn) {
-    if(!confirm("Alat ini akan menghitung ulang sisa cuti semua karyawan berdasarkan Jatah Tahunan dan Riwayat masa lalu. Lanjutkan?")) return;
+async function sinkronkanCutiFirebaseV2(btn) {
+    if(!confirm("Hitung ulang SEMUA jatah cuti (Tahunan, Akumulasi, Khusus) berdasarkan data Excel?")) return;
     
     try {
         btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Menghitung..."; 
         btn.disabled = true;
         
-        // 1. Ambil data semua Karyawan & semua Riwayat Cuti dari Firebase
         const karySnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan"));
         const cutiSnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_cuti"));
         
         let cutiList = [];
         cutiSnap.forEach(d => cutiList.push(d.data()));
-        
         let suksesCount = 0;
         
-        // 2. Looping (Putar) untuk menghitung setiap karyawan
         for (let docKary of karySnap.docs) {
             let k = docKary.data();
-            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").toUpperCase();
+            // .trim() digunakan untuk menghapus "spasi gaib" bawaan Excel
+            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").trim().toUpperCase();
             if(!namaKar) continue;
             
-            // Ambil Jatah Tahunan Awal (Jika kosong, anggap 12 hari)
-            let jatahAwal = parseFloat(k.JatahTahunan || k['Jatah Tahunan']) || 12; 
+            // 1. TARIK JATAH ASLI DARI EXCEL (Bukan dipukul rata 12)
+            let jTahunan = parseFloat(k.JatahTahunan || k['Jatah Tahunan'] || k['JATAH TAHUNAN']) || 0;
+            if (jTahunan === 0 && (!k.JatahTahunan && !k['Jatah Tahunan'])) jTahunan = 12; // Default hanya jika benar-benar kosong
             
-            // 3. Cari riwayat cuti karyawan ini & jumlahkan potongannya
-            let totalPotong = 0;
+            // Anggap sisa cuti saat ini di master_karyawan sebagai Jatah Dasar untuk Akumulasi & Khusus
+            let jAkumulasi = parseFloat(k.SisaAkumulasi || k['Sisa Akumulasi'] || k['Jatah Akumulasi']) || 0;
+            let jKhusus = parseFloat(k.SisaKhusus || k['Sisa Khusus'] || k['Jatah Khusus']) || 0;
+            
+            let potongTahunan = 0, potongAkumulasi = 0, potongKhusus = 0;
+            
+            // 2. BACA RIWAYAT DAN KELOMPOKKAN POTONGANNYA
             cutiList.forEach(c => {
-                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").toUpperCase();
-                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || c.JenisCuti || "").toUpperCase();
+                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").trim().toUpperCase();
+                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || "").trim().toUpperCase();
+                let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c['Jumlah Ambil']) || 0;
                 
-                if (namaC === namaKar) {
-                    // Hanya hitung potongan untuk Cuti Tahunan (C - ...)
-                    if(tipeC.includes('C -') || tipeC.includes('TAHUNAN') || tipeC.includes('1/2')) {
-                        let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c.Jumlah_Ambil) || 0;
-                        totalPotong += angkaPotong;
+                // Jika nama cocok
+                if (namaC === namaKar && angkaPotong > 0) {
+                    if (tipeC.includes('AKUMULASI')) {
+                        potongAkumulasi += angkaPotong;
+                    } else if (tipeC.includes('KHUSUS') || tipeC.includes('LAHIRAN') || tipeC.includes('MENIKAH') || tipeC.includes('DUKA')) {
+                        potongKhusus += angkaPotong;
+                    } else if (tipeC.includes('C -') || tipeC.includes('TAHUNAN') || tipeC.includes('1/2')) {
+                        potongTahunan += angkaPotong;
                     }
                 }
             });
             
-            // 4. Lakukan Matematika: SISA CUTI = JATAH AWAL - TOTAL DIAMBIL
-            let sisaBaru = jatahAwal - totalPotong;
+            // 3. KALKULASI MATEMATIKA FINAL
+            let sisaTahunan = jTahunan - potongTahunan;
+            let sisaAkumulasi = jAkumulasi - potongAkumulasi;
+            let sisaKhusus = jKhusus - potongKhusus;
             
-            // 5. Simpan Saldo Sisa Cuti yang baru ke Firebase!
+            // 4. SIMPAN KEMBALI KE FIREBASE
             await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docKary.id), {
                 ...k,
-                SisaCuti: sisaBaru.toString(),
-                "Sisa Cuti": sisaBaru.toString(),
-                JatahTahunan: jatahAwal.toString(),
-                "Jatah Tahunan": jatahAwal.toString()
+                JatahTahunan: jTahunan.toString(), "Jatah Tahunan": jTahunan.toString(),
+                SisaCuti: sisaTahunan.toString(), "Sisa Cuti": sisaTahunan.toString(),
+                
+                SisaAkumulasi: sisaAkumulasi.toString(), "Sisa Akumulasi": sisaAkumulasi.toString(),
+                SisaKhusus: sisaKhusus.toString(), "Sisa Khusus": sisaKhusus.toString()
             });
             
             suksesCount++;
         }
         
-        alert(`🎉 LUAARRR BIASA! ${suksesCount} karyawan berhasil dihitung ulang saldo cutinya!`);
-        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
+        alert(`🎉 BERHASIL! ${suksesCount} profil karyawan telah disinkronkan lengkap (Tahunan, Akumulasi, & Khusus)!`);
+        btn.innerHTML = "♻️ AUTO-HITUNG SEMUA CUTI"; 
         btn.disabled = false;
         
     } catch(e) {
         alert("Terjadi Kesalahan: " + e.message);
-        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
+        btn.innerHTML = "♻️ AUTO-HITUNG SEMUA CUTI"; 
         btn.disabled = false;
     }
 }
