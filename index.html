@@ -2407,7 +2407,44 @@ on('DYNFORM','submit',async e=>{
   if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(); } else toast(res.message, true); 
 });
 
-async function loadRiwayat(){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_riwayat',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; renderRiwayatTable(); }
+// =========================================================================
+// TARIK RIWAYAT REKAM JEJAK 360 (FIREBASE)
+// =========================================================================
+async function loadRiwayat(){ 
+  $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; 
+  
+  try {
+      // Ambil data pengajuan khusus milik User yang sedang login
+      const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+      const snap = await window.fdb.getDocs(reqRef);
+      
+      CTX = [];
+      snap.forEach(doc => {
+          const d = doc.data();
+          const namaPemohon = d.NamaPemohon || d['Nama Pemohon'] || d.Nama || '';
+          
+          if (namaPemohon.toUpperCase() === CU.Nama.toUpperCase()) {
+              // Merapikan struktur agar bisa dibaca oleh tabel
+              CTX.push({
+                  ID: d.ID || d.ID_Pengajuan || d.id || d['ID Transaksi'] || '-',
+                  Kategori: d.Kategori || 'Pengajuan Form',
+                  NamaForm: d.NamaForm || d['Nama Form'] || d.Nama_Form || '-',
+                  Tanggal: d.Tanggal || d.Tgl || d.tgl || new Date().toISOString(),
+                  PosisiFlow: d.PosisiFlow || d['Posisi Flow'] || (d['Approval Steps JSON'] ? 'Terekam Sistem' : '-'),
+                  StatusFinal: d.StatusFinal || d['Status Final'] || d.Status || 'PROSES',
+                  ...d
+              });
+          }
+      });
+      
+      // Urutkan dari yang terbaru ke terlama
+      CTX.sort((a,b) => new Date(b.Tanggal) - new Date(a.Tanggal));
+      renderRiwayatTable();
+  } catch(e) {
+      toast('Gagal memuat riwayat Firebase: ' + e.message, true);
+      $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-20 text-center font-bold text-red-500">Error memuat data.</td></tr>`;
+  }
+}
 function renderRiwayatTable(){ const f=$('RWYTFILTER').value, rows=f?CTX.filter(r=>r.Kategori===f):CTX; if(!rows.length){ $('RWYTBODY').innerHTML=`<tr><td colspan="6" class="px-8 py-20 text-center text-slate-400">Kosong.</td></tr>`; return; } $('RWYTBODY').innerHTML=rows.map(r=>`<tr class="hover:bg-slate-50 border-l-4 border-transparent hover:border-corp"><td class="px-8 py-5">${kategoriBadge(r.Kategori)}</td><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${r.NamaForm||'-'}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-1">${r.ID||''}</p></td><td class="px-8 py-5 text-xs text-slate-500 font-semibold">${fmtDate(r.Tanggal)}</td><td class="px-8 py-5"><span class="text-[10px] uppercase bg-slate-100 text-slate-600 font-black px-3 py-1.5 rounded-lg border border-slate-200">${r.PosisiFlow||'-'}</span></td><td class="px-8 py-5">${badge(r.StatusFinal)}</td><td class="px-8 py-5 text-center"><button onclick="openDetail('${r.ID}')" class="text-xs font-black text-blue-600 bg-white hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl border border-blue-200">Detail</button></td></tr>`).join(''); }
 // ====================================================================
 // FUNGSI MEMBUKA DETAIL PENGAJUAN (SUPPORT MULTI-BARIS & PDF)
@@ -2759,16 +2796,26 @@ function calcMasaKerja(joinDateStr) {
   return `${y} Tahun, ${m} Bulan`;
 }
 
+// =========================================================================
+// TARIK MANAJEMEN CUTI (FIREBASE)
+// =========================================================================
 async function loadCutiKaryawan() {
   $('CUTIGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i></div>'; $('CUTI_EMPTY').classList.add('hide');
   
-  // VAKSIN: Variabel diganti menjadi hasilAPI
-  const hasilAPI = await api({action:'get_master_karyawan', user:CU});
-  if(!hasilAPI.success || !hasilAPI.data || !hasilAPI.data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
-  
-  MASTER_KARYAWAN_DATA = hasilAPI.data;
-  MASTER_CUTI_DATA = hasilAPI.data.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
-  renderCutiCards(MASTER_CUTI_DATA);
+  try {
+      const karyRef = window.fdb.collection(window.db, "master_karyawan");
+      const snap = await window.fdb.getDocs(karyRef);
+      
+      MASTER_KARYAWAN_DATA = [];
+      snap.forEach(doc => { MASTER_KARYAWAN_DATA.push(doc.data()); });
+      
+      if(!MASTER_KARYAWAN_DATA.length) { 
+          $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; 
+      }
+      
+      MASTER_CUTI_DATA = MASTER_KARYAWAN_DATA.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
+      renderCutiCards(MASTER_CUTI_DATA);
+  } catch(e) { console.error("Error Cuti:", e); }
 }
   
 function renderCutiCards(data) {
@@ -2827,16 +2874,40 @@ function renderCutiCards(data) {
   }).join('');
 }
 function filterCutiKaryawan(q){ if(!q){renderCutiCards(MASTER_CUTI_DATA);return;} const f=MASTER_CUTI_DATA.filter(k=>k.nama.toLowerCase().includes(q.toLowerCase())); renderCutiCards(f); }
+// =========================================================================
+// TARIK RINCIAN CUTI KARYAWAN SPESIFIK (FIREBASE)
+// =========================================================================
 async function openCutiDetail(nama) {
   $('MCD_NAMA').textContent = nama; $('MCM_NAMA').textContent = nama; $('MCM_NAMA_VAL').value = nama;
   $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></td></tr>`;
   openM('MCUTI_DETAIL');
-  const res = await api({action: 'get_cuti_history', namaKaryawan: nama});
-  if(!res.success || !res.data || !res.data.length) { $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; }
-  $('MCD_BODY').innerHTML = res.data.map(c => {
-    const p = parseFloat(c['Count']) || parseFloat(c['Jumlah_Ambil']) || parseFloat(c['Potong Jatah']) || 0; const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
-    return `<tr class="hover:bg-blue-50"><td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c['Tanggal'])}</td><td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||'-'}</span></td><td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||'-'}</td><td class="px-6 py-4 text-center">${pB}</td><td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||'-'}</td><td class="px-6 py-4 text-center">${c['FORM'] ? `<a href="${c['FORM']}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td></tr>`;
-  }).join('');
+  
+  try {
+      const cutiRef = window.fdb.collection(window.db, "master_cuti");
+      const snap = await window.fdb.getDocs(cutiRef);
+      
+      let cutiHistory = [];
+      snap.forEach(doc => {
+          const d = doc.data();
+          const empName = d.Nama_Karyawan || d['Nama Karyawan'] || d.NamaPemohon || d.Nama || '';
+          if (empName.toUpperCase() === nama.toUpperCase()) { cutiHistory.push(d); }
+      });
+      
+      // Urutkan dari yang terbaru ke terlama
+      cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || 0) - new Date(a.Tanggal || a.Tgl || 0));
+      
+      if(!cutiHistory.length) { 
+          $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; 
+      }
+      
+      $('MCD_BODY').innerHTML = cutiHistory.map(c => {
+        const p = parseFloat(c['Count']) || parseFloat(c['Jumlah_Ambil']) || parseFloat(c['Potongan']) || parseFloat(c['Potong Jatah']) || 0; 
+        const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
+        return `<tr class="hover:bg-blue-50"><td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c.Tanggal || c.Tgl)}</td><td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||c.Jenis_Cuti||c.Jenis||'-'}</span></td><td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||c.Jenis_Setengah||'-'}</td><td class="px-6 py-4 text-center">${pB}</td><td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||c.Alasan||'-'}</td><td class="px-6 py-4 text-center">${c.FORM||c.URL_PDF ? `<a href="${c.FORM||c.URL_PDF}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td></tr>`;
+      }).join('');
+  } catch(e) {
+      $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-red-500 font-bold">Error memuat data.</td></tr>`;
+  }
 }
 function openFormCutiManual(){ $('FM_CUTI_MANUAL').reset(); closeM('MCUTI_DETAIL'); openM('MCUTI_MANUAL'); }
 function toggleSetengahHari() {
@@ -2884,21 +2955,33 @@ on('FM_CUTI_MANUAL', 'submit', async e => {
 let MASTER_KARYAWAN_DATA = [];
 
 // 1. Tarik data dari server (HANYA 1 KALI saat menu dibuka)
+// =========================================================================
+// TARIK DATA KARYAWAN (FIREBASE)
+// =========================================================================
 async function loadKaryawan(){ 
   $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
-  
   const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
   
-  // Perhatikan: Kita TIDAK mengirimkan parameter search lagi ke server
-  const res = await api({action:'get_master_karyawan', user:CU, cabang: valCabang}); 
-  if(!res.success) { $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">${res.message}</div>`; return; } 
-  
-  MASTER_KARYAWAN_DATA = res.data || []; 
-  if($('TOTALKARY')) $('TOTALKARY').textContent = res.total || MASTER_KARYAWAN_DATA.length; 
-  
-  renderKaryawanGrid(MASTER_KARYAWAN_DATA);
+  try {
+      // Panggil dari Firebase koleksi master_karyawan
+      const karyRef = window.fdb.collection(window.db, "master_karyawan");
+      const snap = await window.fdb.getDocs(karyRef);
+      
+      MASTER_KARYAWAN_DATA = [];
+      snap.forEach(doc => { MASTER_KARYAWAN_DATA.push(doc.data()); });
+      
+      // Filter cabang via JavaScript agar kebal huruf besar/kecil
+      let finalData = MASTER_KARYAWAN_DATA;
+      if(valCabang) {
+          finalData = finalData.filter(k => (k.Cabang || k.CABANG || '').toUpperCase() === valCabang.toUpperCase());
+      }
+      
+      if($('TOTALKARY')) $('TOTALKARY').textContent = finalData.length; 
+      renderKaryawanGrid(finalData);
+  } catch(e) {
+      $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">Error Firebase: ${e.message}</div>`;
+  }
 }
-
 // 2. Fungsi menggambar kartu karyawan ke layar
 function renderKaryawanGrid(data) {
   if(!data.length){
