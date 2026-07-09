@@ -2958,19 +2958,27 @@ let MASTER_KARYAWAN_DATA = [];
 // =========================================================================
 // TARIK DATA KARYAWAN (FIREBASE)
 // =========================================================================
+// =========================================================================
+// TARIK DATA KARYAWAN (FIREBASE) - DENGAN PEMBERSIH N/A
+// =========================================================================
 async function loadKaryawan(){ 
   $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
   const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
   
   try {
-      // Panggil dari Firebase koleksi master_karyawan
       const karyRef = window.fdb.collection(window.db, "master_karyawan");
       const snap = await window.fdb.getDocs(karyRef);
       
       MASTER_KARYAWAN_DATA = [];
-      snap.forEach(doc => { MASTER_KARYAWAN_DATA.push(doc.data()); });
+      snap.forEach(doc => { 
+          let d = doc.data();
+          // OBAT ANTI N/A: Bersihkan data cuti dari huruf N/A sebelum masuk ke layar HRD
+          ['Sisa Cuti', 'SisaCuti', 'Jatah Tahunan', 'JatahTahunan', 'Sisa Khusus', 'SisaKhusus', 'Sisa Akumulasi', 'SisaAkumulasi'].forEach(key => {
+              if(d[key] === 'N/A' || d[key] === '#N/A') d[key] = '0';
+          });
+          MASTER_KARYAWAN_DATA.push(d); 
+      });
       
-      // Filter cabang via JavaScript agar kebal huruf besar/kecil
       let finalData = MASTER_KARYAWAN_DATA;
       if(valCabang) {
           finalData = finalData.filter(k => (k.Cabang || k.CABANG || '').toUpperCase() === valCabang.toUpperCase());
@@ -3013,16 +3021,47 @@ function filterKaryawan() {
 }
 
 // 4. Detail Karyawan (Tetap sama seperti milik Anda)
+// =========================================================================
+// DETAIL KARYAWAN (DENGAN PENGURUTAN KOLOM OTOMATIS)
+// =========================================================================
 function openKaryDetail(k){ 
   let namaK = k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '';
-  $('MKARY_TITLE').textContent=namaK; 
-  const sk=['_rowIndex', 'AKSES_MENU', 'AKSES MENU'], keys=Object.keys(k).filter(x=>!sk.includes(x)); 
+  $('MKARY_TITLE').textContent = namaK; 
   
-  let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${keys.map(kk=>{
+  // 1. Kolom yang harus disembunyikan dari layar
+  const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU']; 
+  
+  // 2. Prioritas Urutan Tampilan (Agar Rapi dan Tidak Acak)
+  const priority = [
+      'NIK', 'NIK_Karyawan', 'NIK Karyawan',
+      'Nama', 'NAMA', 'Nama_Karyawan', 'Nama Karyawan',
+      'Cabang', 'CABANG',
+      'Jabatan', 'JABATAN', 'Posisi', 'Divisi', 'Status', 'Atasan',
+      'Tanggal Join', 'TANGGAL JOIN', 'Tanggal_Join', 'Masa Kerja', 'Kontrak Habis',
+      'Sisa Cuti', 'Jatah Tahunan', 'Sisa Khusus', 'Sisa Akumulasi'
+  ];
+  
+  // 3. Susun Ulang Kunci (Keys) sesuai prioritas, sisanya ditaruh di bagian bawah
+  let sortedKeys = [];
+  priority.forEach(p => {
+      Object.keys(k).forEach(key => {
+          // Cari jika nama kolom cocok dengan daftar prioritas (tanpa memedulikan huruf besar/kecil)
+          if (key.toUpperCase() === p.toUpperCase() && !sortedKeys.includes(key)) {
+              sortedKeys.push(key);
+          }
+      });
+  });
+  
+  Object.keys(k).forEach(key => {
+      if (!sortedKeys.includes(key) && !sk.includes(key)) sortedKeys.push(key);
+  });
+  
+  // 4. Render ke HTML menggunakan sortedKeys yang sudah tertata rapi
+  let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${sortedKeys.map(kk=>{
       let val = (k[kk]!=null?k[kk]:'').toString(), upperK = kk.toUpperCase(), inputType = 'text', isReadonly = (upperK.includes('JOIN') || upperK === 'MASA KERJA') ? 'readonly' : '', extraClass = isReadonly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-transparent' : 'bg-slate-50 focus:border-corp border-slate-200';
       if((upperK.includes('TANGGAL') || upperK.includes('DATE') || upperK.includes('HABIS') || upperK.includes('LAHIR')) && !upperK.includes('JOIN')) { inputType = 'date'; let d = new Date(val); if(!isNaN(d.getTime()) && val.length > 5) val = d.toISOString().split('T')[0]; } 
       else if(upperK.includes('JOIN')) { let d = new Date(val); if(!isNaN(d.getTime()) && val.length > 5) { const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; val = `${d.getDate().toString().padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`; } }
-      if(upperK === 'MASA KERJA') { let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'] || k['Tanggal_Join']; if(joinVal) val = calcMasaKerja(joinVal); }
+      if(upperK === 'MASA KERJA') { let joinVal = k['TANGGAL JOIN'] || k['Tanggal Join'] || k['Tanggal_Join']; if(joinVal) val = window.calcMasaKerja(joinVal); }
       return `<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">${kk} ${isReadonly?'<i class="fa-solid fa-lock text-slate-300"></i>':''}</p><input type="${inputType}" class="kary-edit-field w-full font-bold text-sm mt-1 px-2 py-1.5 rounded outline-none border ${extraClass}" data-field="${kk}" value="${val.replace(/"/g,'&quot;')}" ${isReadonly}></div>`;
   }).join('')}</div>`;
   
@@ -3037,7 +3076,6 @@ function openKaryDetail(k){
   $('MKARY').dataset.editNik=k.NIK_Karyawan || k.NIK || ''; 
   openM('MKARY'); 
 }
-
 async function saveKaryawanEdit(){ 
   const u={}; 
   document.querySelectorAll('.kary-edit-field').forEach(e=>u[e.dataset.field]=e.value); 
