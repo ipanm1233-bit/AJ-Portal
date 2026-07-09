@@ -1940,96 +1940,152 @@ function nav(vId) {
 
 function initTinyMCE() { if(!tinymce.get('BCISI')){ tinymce.init({ selector:'#BCISI', menubar:false, plugins:'lists link table code', toolbar:'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link code', height:350, setup:function(ed){ ed.on('change',function(){ ed.save(); }); } }); } }
 
+// =========================================================================
+// FIREBASE DASHBOARD CONTROLLER (REAL-TIME ENGINE - KILAT & FULL WIDGET)
+// =========================================================================
 async function loadDashboard() {
+  if (!CU) return;
+
+  // 1. Tampilkan data sisa jatah dari memori lokal (CU)
   $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
   $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
   $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
   $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
   
-  // VAKSIN: Variabel diganti menjadi responseData agar tidak bentrok
-  const responseData = await api({action:'get_dashboard', user:CU}); 
-  if(!responseData.success) return;
-
-  if(responseData.freshUser) {
-      CU = responseData.freshUser;
-      localStorage.setItem('hris_u', JSON.stringify(CU));
-      $('DSISA_TAHUNAN').textContent = CU.SisaCuti || 0; 
-      $('DJATAH_TAHUNAN').textContent = CU.JatahTahunan || 0;
-      $('DSISA_KHUSUS').textContent = CU.SisaKhusus || 0; 
-      $('DSISA_AKUMULASI').textContent = CU.SisaAkumulasi || 0;
-  }
-  
-  const ctEl = $('DCUTI_TODAY'); 
-  if(responseData.cutiHariIni && responseData.cutiHariIni.length){ 
-    ctEl.innerHTML = responseData.cutiHariIni.map(c => {
-      const ket = c['Keterangan Cuti'] || c.Keterangan_Cuti || c.Keterangan || c.Alasan || c.AlasanCuti || c.Keperluan || 'Tidak ada keterangan khusus';
-      const jenis = c['Type Cuti'] || c.Type_Cuti || c.Jenis || c.JenisCuti || 'Cuti';
-      const namaKar = c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || 'Tanpa Nama';
+  try {
+      // 2. KITA TARIK SEMUA DATABASE SECARA SERENTAK (Agar secepat kilat!)
+      const cutiRef = window.fdb.collection(window.db, "master_cuti");
+      const bcRef = window.fdb.collection(window.db, "broadcast_memo"); 
+      const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+      const karyRef = window.fdb.collection(window.db, "master_karyawan");
       
-      return `
-      <div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex flex-shrink-0 items-center justify-center mt-1"><i class="fa-solid fa-user"></i></div>
-        <div>
-          <p class="font-black text-slate-800 text-sm">${namaKar}</p>
-          <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${jenis}</p>
-          <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${ket}"</p>
-        </div>
-      </div>`;
-    }).join(''); 
-  } else { 
-    ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
-  }
-  
-  const bcEl = $('DBC'); 
-  DASH_BC_DATA = responseData.broadcasts || []; 
-  bcEl.innerHTML = DASH_BC_DATA.length ? DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer"><p class="font-black text-sm">${b.Judul||''}</p></div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Tidak ada pengumuman.</div>';
-  
-  const rwEl = $('DRWYT'); 
-  rwEl.innerHTML = (responseData.riwayat_singkat && responseData.riwayat_singkat.length) ? responseData.riwayat_singkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID}</p></div>${badge(r.StatusFinal)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
-  
-  const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
-  $('WGT_KB').classList.add('hide');
-  
-  if(responseData.alertKontrak && responseData.alertKontrak.length > 0 && isHrdOrGm){ 
-    $('WGT_KB').classList.remove('hide'); 
-    WGT_KB_DATA = responseData.alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
-    $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
-    
-    $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
-      const isLewat = k.SisaHari < 0;
-      const clsBadges = isLewat ? 'text-red-700 bg-red-50 border border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-50 border border-orange-200' : 'text-yellow-700 bg-yellow-50 border border-yellow-200'); 
-      const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' Hari' : k.SisaHari + ' Hari';
-      const tglHabis = k.KontrakHabis ? new Date(k.KontrakHabis).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+      const isHrdOrGm = CU.Role.toUpperCase().includes('HRD') || CU.Role.toUpperCase().includes('GM');
       
-      return `
-      <tr class="hover:bg-slate-50 border-b border-slate-100 transition group">
-        <td class="px-4 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
-        <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Jabatan||'-'}</td>
-        <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Cabang||'-'}</td>
-        <td class="px-4 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">${tglHabis}</td>
-        <td class="px-4 py-4 text-center whitespace-nowrap">
-           <span class="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-black ${clsBadges}">${txtHari}</span>
-        </td>
-        <td class="px-4 py-4 text-right whitespace-nowrap">
-           <button type="button" onclick="bukaAksiKontrak(${i})" class="inline-flex items-center justify-center bg-white text-slate-500 border border-slate-200 hover:border-corp hover:bg-corp hover:text-white px-4 py-2 rounded-xl text-xs font-black transition shadow-sm">
-             Tindak Lanjut
-           </button>
-        </td>
-      </tr>`;
-    }).join(''); 
-  }
-  
-  if(CU.Role.toUpperCase().includes('HRD') && $('WGT_OFF')) {
-    if(responseData.offboardingTasks && responseData.offboardingTasks.length > 0) {
-      $('WGT_OFF').classList.remove('hide');
-      $('WGT_OFF_N').textContent = responseData.offboardingTasks.length;
-      $('WGT_OFF_BODY').innerHTML = responseData.offboardingTasks.map(t => `<tr class="cursor-pointer" onclick="openOffboarding('${t.ID}')"><td class="px-6 py-4 font-bold text-sm">${t.Nama}</td><td class="px-6 py-4 text-xs">${t.Jenis}</td><td class="px-6 py-4 text-xs font-bold text-red-600">${fmtDate(t.TglEfektif)}</td></tr>`).join('');
-    } else {
-      $('WGT_OFF').classList.add('hide');
-    }
+      // Menggunakan Promise.all agar ke-4 database ditarik dalam milidetik yang sama
+      const [snapCuti, snapBc, snapReq, snapKary] = await Promise.all([
+          window.fdb.getDocs(cutiRef).catch(()=>({ empty: true, forEach: ()=>{} })),
+          window.fdb.getDocs(bcRef).catch(()=>({ empty: true, forEach: ()=>{} })),
+          window.fdb.getDocs(reqRef).catch(()=>({ empty: true, forEach: ()=>{} })),
+          isHrdOrGm ? window.fdb.getDocs(karyRef).catch(()=>({ empty: true, forEach: ()=>{} })) : Promise.resolve({ empty: true, forEach: ()=>{} })
+      ]);
+      
+      // --- WIDGET 1: CUTI HARI INI ---
+      let cutiHariIni = [];
+      const tglHariIni = new Date().toISOString().split('T')[0]; 
+      
+      snapCuti.forEach(doc => {
+          const c = doc.data();
+          const tglMulai = c.TglMulai || c.Tanggal || '';
+          if(tglMulai.includes(tglHariIni)) { cutiHariIni.push(c); }
+      });
+      
+      const ctEl = $('DCUTI_TODAY'); 
+      if(cutiHariIni.length){ 
+        ctEl.innerHTML = cutiHariIni.map(c => `
+          <div class="bg-white border border-emerald-100 shadow-sm rounded-xl px-4 py-3 min-w-[200px] flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 font-black flex flex-shrink-0 items-center justify-center mt-1"><i class="fa-solid fa-user"></i></div>
+            <div>
+              <p class="font-black text-slate-800 text-sm">${c.NamaKaryawan || c.Nama_Karyawan || c.Nama || 'Tanpa Nama'}</p>
+              <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">${c['Type Cuti'] || c.JenisCuti || 'Cuti'}</p>
+              <p class="text-[10px] font-medium text-slate-500 mt-1.5 italic line-clamp-2 leading-tight bg-slate-50 p-1.5 rounded">"${c['Keterangan Cuti'] || c.Alasan || '-'}"</p>
+            </div>
+          </div>`).join(''); 
+      } else { 
+        ctEl.innerHTML = `<div class="w-full text-center text-slate-400 text-sm font-medium p-4">Tidak ada cuti/izin disetujui hari ini.</div>`; 
+      }
+      
+      // --- WIDGET 2: BROADCAST MEMO ---
+      DASH_BC_DATA = [];
+      snapBc.forEach(doc => { DASH_BC_DATA.push(doc.data()); });
+      
+      $('DBC').innerHTML = DASH_BC_DATA.length ? DASH_BC_DATA.map((b,i) => `<div onclick="openBroadcast(${i})" class="px-6 py-4 hover:bg-slate-50 border-l-4 border-transparent hover:border-corp cursor-pointer"><p class="font-black text-sm">${b.Judul||''}</p></div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Tidak ada pengumuman.</div>';
+      
+      // --- WIDGET 3: RIWAYAT PENGAJUAN (REKAM JEJAK) ---
+      let rSingkat = [];
+      snapReq.forEach(doc => {
+          const d = doc.data();
+          if((d.NamaPemohon || d['Nama Pemohon'] || '').toUpperCase() === CU.Nama.toUpperCase()) { rSingkat.push(d); }
+      });
+      rSingkat.sort((a,b) => new Date(b.Tanggal || 0) - new Date(a.Tanggal || 0));
+      rSingkat = rSingkat.slice(0, 5); 
+      
+      $('DRWYT').innerHTML = rSingkat.length ? rSingkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.NamaForm || r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID || ''}</p></div>${badge(r.StatusFinal || r.Status)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
+      
+      // --- WIDGET 4: KONTRAK HABIS (KHUSUS HRD/GM) ---
+      if ($('WGT_KB')) $('WGT_KB').classList.add('hide');
+      
+      if(isHrdOrGm) {
+          let alertKontrak = [];
+          const now = new Date();
+          now.setHours(0,0,0,0);
+          
+          snapKary.forEach(doc => {
+              const k = doc.data();
+              // Deteksi kolom tanggal habis kontrak dari Firebase
+              const tglHabisStr = k['Kontrak Habis'] || k.KontrakHabis || k.Kontrak_Habis || k['Tanggal Habis Kontrak'];
+              
+              if (tglHabisStr) {
+                  const tglHabis = new Date(tglHabisStr);
+                  if (!isNaN(tglHabis)) {
+                      // Hitung selisih hari
+                      const diffTime = tglHabis.getTime() - now.getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      // Masukkan ke peringatan JIKA sisa hari kurang dari 45 Hari (Silakan ubah angka 45 jika ingin lebih lama)
+                      if (diffDays <= 45) {
+                          alertKontrak.push({
+                              ...k,
+                              Nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '-',
+                              Jabatan: k.Jabatan || k.JABATAN || '-',
+                              Cabang: k.Cabang || k.CABANG || '-',
+                              KontrakHabis: tglHabisStr,
+                              SisaHari: diffDays
+                          });
+                      }
+                  }
+              }
+          });
+          
+          // Sembunyikan user yang sedang login dari daftar kontraknya sendiri
+          WGT_KB_DATA = alertKontrak.filter(k => k.Nama.toUpperCase() !== CU.Nama.toUpperCase()); 
+          
+          if(WGT_KB_DATA.length > 0 && $('WGT_KB')) {
+              $('WGT_KB').classList.remove('hide'); 
+              if($('WGT_KB_N')) $('WGT_KB_N').textContent = WGT_KB_DATA.length; 
+              
+              // Urutkan dari yang paling mendesak (Sisa hari paling minus)
+              WGT_KB_DATA.sort((a,b) => a.SisaHari - b.SisaHari);
+              
+              if($('WGT_KB_BODY')) $('WGT_KB_BODY').innerHTML = WGT_KB_DATA.map((k,i) => {
+                  const isLewat = k.SisaHari < 0;
+                  const clsBadges = isLewat ? 'text-red-700 bg-red-50 border border-red-200' : (k.SisaHari <= 7 ? 'text-orange-700 bg-orange-50 border border-orange-200' : 'text-yellow-700 bg-yellow-50 border border-yellow-200'); 
+                  const txtHari = isLewat ? 'Lewat ' + Math.abs(k.SisaHari) + ' Hari' : k.SisaHari + ' Hari';
+                  const tglBagus = new Date(k.KontrakHabis).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+                  
+                  return `
+                  <tr class="hover:bg-slate-50 border-b border-slate-100 transition group">
+                    <td class="px-4 py-4 font-black text-slate-800 text-sm whitespace-nowrap">${k.Nama}</td>
+                    <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Jabatan}</td>
+                    <td class="px-4 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">${k.Cabang}</td>
+                    <td class="px-4 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">${tglBagus}</td>
+                    <td class="px-4 py-4 text-center whitespace-nowrap">
+                       <span class="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-black ${clsBadges}">${txtHari}</span>
+                    </td>
+                    <td class="px-4 py-4 text-right whitespace-nowrap">
+                       <button type="button" onclick="bukaAksiKontrak(${i})" class="inline-flex items-center justify-center bg-white text-slate-500 border border-slate-200 hover:border-corp hover:bg-corp hover:text-white px-4 py-2 rounded-xl text-xs font-black transition shadow-sm">
+                         Tindak Lanjut
+                       </button>
+                    </td>
+                  </tr>`;
+              }).join(''); 
+          }
+      }
+      
+  } catch(e) {
+      console.error("Dashboard Firebase error:", e);
   }
 }
-
+  
 window.bukaAksiKontrak = function(idx) {
    if(!WGT_KB_DATA || !WGT_KB_DATA[idx]) return;
    window.TARGET_KONTRAK_IDX = idx;
@@ -2359,6 +2415,9 @@ window.runDynLogic = function() {
   });
 };
 
+// =========================================================================
+// SUBMIT PENGAJUAN BARU (LANGSUNG TULIS KE FIREBASE)
+// =========================================================================
 on('DYNFORM','submit',async e=>{ 
   e.preventDefault(); 
   const fid=$('SELFORM').value, cfg=FORMS.find(f=>f.FormID===fid); 
@@ -2366,9 +2425,9 @@ on('DYNFORM','submit',async e=>{
   
   let f=[]; try{f=JSON.parse(cfg.FieldsJSON||'[]');}catch(e){} 
   let det={}, proms=[]; 
+  
   for(const x of f){ 
     if(x.type==='tabel') {
-       // Tarik data tabel menjadi Array of Objects
        let tableData = [];
        document.querySelectorAll(`#TBODY_${x.name} tr`).forEach(tr => {
           let rowObj = {}; let hasValue = false;
@@ -2384,7 +2443,6 @@ on('DYNFORM','submit',async e=>{
        document.querySelectorAll('.multi-inp-' + x.name).forEach(el => {
           if(el.value && el.value.trim() !== '') arr.push(el.value.trim());
        });
-       if(x.required && arr.length === 0) return toast('Harap isi minimal 1 baris pada: ' + x.label, true);
        det[x.name] = arr.length > 0 ? "• " + arr.join('\n• ') : "-";
     } else {
        const el=$('DF_'+x.name); if(!el) continue; 
@@ -2399,14 +2457,38 @@ on('DYNFORM','submit',async e=>{
   if(proms.length) await Promise.all(proms); 
   
   const b=$('BTNSUBMIT'); 
-  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mengirim Email & Menyimpan...'; 
+  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan ke Firebase...'; 
   
-  const res=await api({action:'submit_pengajuan',user:CU,formId:fid,namaForm:cfg.NamaForm,detail:det}); 
-  
-  b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
-  if(res.success){ toast('Berhasil dikirim!'); closeDynForm(); checkApprovalStatus(); nav('riwayat'); loadRiwayat(); } else toast(res.message, true); 
+  try {
+      const txID = 'TRX-' + new Date().toISOString().replace(/[^0-9]/g, "").substring(0,14);
+      const payloadIdm = {
+          ID: txID,
+          Tanggal: new Date().toISOString(),
+          NIK: CU.NIK,
+          NamaPemohon: CU.Nama,
+          Forn_ID: fid,
+          NamaForm: cfg.NamaForm,
+          DetailJSON: JSON.stringify(det),
+          ApprovalFlowJson: cfg.ApprovalFlowJson || '[]',
+          ApprovalStepsJSON: JSON.stringify(new Array(JSON.parse(cfg.ApprovalFlowJson || '[]').length).fill('PENDING')),
+          StatusFinal: 'PROSES',
+          Kategori: 'Pengajuan Form'
+      };
+      
+      // Tulis data ke Firebase
+      const colRef = window.fdb.collection(window.db, "data_pengajuan");
+      await window.fdb.addDoc(colRef, payloadIdm);
+      
+      b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
+      toast('Berhasil disimpan ke Cloud Firebase!'); 
+      closeDynForm(); 
+      nav('riwayat'); 
+      loadRiwayat();
+  } catch(err) {
+      b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
+      toast('Gagal: ' + err.message, true);
+  }
 });
-
 // =========================================================================
 // TARIK RIWAYAT REKAM JEJAK 360 (FIREBASE)
 // =========================================================================
@@ -2918,37 +3000,76 @@ function toggleSetengahHari() {
     $('WRAP_SETENGAH_HARI').classList.add('hide');
   }
 }  
+// =========================================================================
+// INPUT CUTI MANUAL + POTONG JATAH OTOMATIS (FIREBASE)
+// =========================================================================
 on('FM_CUTI_MANUAL', 'submit', async e => {
   e.preventDefault(); 
   const empName = $('MCM_NAMA_VAL').value;
-  // Cari data karyawan yang dipilih, BUKAN data CU (HRD)
-  const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === empName || x['Nama Karyawan'] === empName || x.Nama === empName) || {};
   
+  // Ambil pilihan jenis cuti & kalkulasi potongan hari
   const selOpt = $('MCM_JENIS').options[$('MCM_JENIS').selectedIndex];
   const potongCount = parseFloat(selOpt.getAttribute('data-potong')) || 0;
   const jenisText = selOpt.text; 
   const valWaktuSetengah = !$('WRAP_SETENGAH_HARI').classList.contains('hide') ? $('MCM_WAKTU_SETENGAH').value : '-';
 
   const b=$('MCM_BTN'), o=b.innerHTML; 
-  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Mencetak PDF...';
+  b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memotong Jatah Cuti...';
   
-  const res = await api({ 
-    action: 'input_cuti_manual', user: CU, namaKaryawan: empName, 
-    jenisCuti: jenisText, jenisSetengahHari: valWaktuSetengah, potongan: potongCount, 
-    tglMulai: $('MCM_TGL_M').value, tglSelesai: $('MCM_TGL_S').value, alasan: $('MCM_ALASAN').value,
-    
-    // Kirim data Karyawan Asli (emp) untuk Placeholder
-    cabang: emp.Cabang || emp.CABANG || '-',
-    jabatan: emp.Jabatan || emp.JABATAN || '-',
-    alamat: emp.Alamat || emp.ALAMAT || '-',
-    hp: emp['No HP'] || emp['No. HP'] || emp.HP || emp.NOHP || '-',
-    sisaCutiTahunan: emp.SisaCuti || emp['Sisa Cuti'] || '0',
-    sisaCutiKhusus: emp.SisaKhusus || '0',
-    sisaCutiAkumulasi: emp.SisaAkumulasi || '0'
-  });
-  
-  b.disabled=false; b.innerHTML=o; 
-  if(res.success){ toast('Cuti berhasil terekam & PDF telah dibuat!'); closeM('MCUTI_MANUAL'); openCutiDetail(empName); } else toast(res.message, true);
+  try {
+      // 1. CARI DOKUMEN KARYAWAN DI FIREBASE UNTUK DIUPDATE JATAHNYA
+      const karyRef = window.fdb.collection(window.db, "master_karyawan");
+      const qKary = window.fdb.query(karyRef, window.fdb.where("Nama_Karyawan", "==", empName));
+      const snapKary = await window.fdb.getDocs(qKary);
+      
+      if(snapKary.empty) {
+          b.disabled=false; b.innerHTML=o; return toast('Gagal: Akun karyawan tidak ditemukan di Firebase!', true);
+      }
+      
+      let docIdKary = ""; let currentDataKary = {};
+      snapKary.forEach(doc => { docIdKary = doc.id; currentDataKary = doc.data(); });
+      
+      // 2. PROSES MATEMATIKA POTONG JATAH
+      let sTahunan = parseFloat(currentDataKary.SisaCuti || currentDataKary['Sisa Cuti'] || 0);
+      
+      if (jenisText.includes('C -') || jenisText.includes('C1/2')) {
+          // Jika jatah cuti habis, tolak!
+          if (sTahunan < potongCount) {
+              b.disabled=false; b.innerHTML=o; return toast(`Gagal: Jatah Cuti Tahunan ${empName} tidak mencukupi (Sisa: ${sTahunan} Hari)`, true);
+          }
+          sTahunan = sTahunan - potongCount; // Kurangi jatahnya!
+      }
+      
+      // 3. UPDATE DATA SISA JATAH BARU KE FIREBASE MASTER KARYAWAN
+      const targetDocRef = window.fdb.doc(window.db, "master_karyawan", docIdKary);
+      await window.fdb.setDoc(targetDocRef, { 
+          ...currentDataKary, 
+          SisaCuti: sTahunan.toString(),
+          "Sisa Cuti": sTahunan.toString() 
+      });
+      
+      // 4. CATAT LOG TRANSAKSI DI TABEL MASTER_CUTI FIREBASE
+      const logCutiRef = window.fdb.collection(window.db, "master_cuti");
+      await window.fdb.addDoc(logCutiRef, {
+          Nama_Karyawan: empName,
+          Tanggal: $('MCM_TGL_M').value,
+          TglMulai: $('MCM_TGL_M').value,
+          TglSelesai: $('MCM_TGL_S').value,
+          "Type Cuti": $('MCM_JENIS').value,
+          "Tipe Cuti Setengah Hari": valWaktuSetengah,
+          "Potong Jatah": potongCount.toString(),
+          "Keterangan Cuti": $('MCM_ALASAN').value
+      });
+      
+      b.disabled=false; b.innerHTML=o; 
+      toast('Sempurna! Jatah Cuti berhasil terpotong otomatis di Firebase!'); 
+      closeM('MCUTI_MANUAL'); 
+      openCutiDetail(empName);
+      
+  } catch(err) {
+      b.disabled=false; b.innerHTML=o;
+      toast('Error Operasi Cuti: ' + err.message, true);
+  }
 });
 
 // --- MASTER KARYAWAN (PERBAIKAN ANTI-BLANK & INSTANT SEARCH) ---
