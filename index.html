@@ -1710,6 +1710,21 @@ tailwind.config = {
 
 const API = 'https://script.google.com/macros/s/AKfycbyRITxttWixOtQtZMSgdTIi8u3mc75aktpYCA1xs_xOSe3FJTUn_gyKGDhTPY1CJmRf4Q/exec';
 
+// =========================================================================
+// SATPAM DATA (Pembersih N/A dan Error dari Excel Lama)
+// =========================================================================
+function sanitizeData(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    for (let key in obj) {
+        let val = obj[key];
+        // Jika mendeteksi string N/A bawaan Excel, paksa jadi angka 0 atau string kosong
+        if (val === 'N/A' || val === '#N/A' || val === null || val === undefined) {
+            obj[key] = (key.toLowerCase().includes('sisa') || key.toLowerCase().includes('jatah') || key.toLowerCase().includes('terpakai')) ? '0' : '-';
+        }
+    }
+    return obj;
+}
+  
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
 const $ = id => document.getElementById(id), on = (id,ev,fn) => $(id) && $(id).addEventListener(ev,fn);
@@ -2724,70 +2739,148 @@ function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value
 // Proses persetujuan/penolakan dalam SATU transaction Firestore, supaya kalau 2 approver
 // menekan tombol nyaris bersamaan, tidak terjadi step ke-timpa / approval ganda (race condition).
 async function submitApprovalAction(){
-  const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value;
-  if(!note) return toast('Anda wajib mengisi catatan!',true);
+  const id = $('MAA_ID').value, type = $('MAA_TYPE').value, note = $('MAA_NOTE').value;
+  if(!note) return toast('Anda wajib mengisi catatan!', true);
 
-  const b=$('MAA_BTN'), o=b.innerHTML;
-  b.disabled=true; b.innerHTML='Memproses...';
+  const b = $('MAA_BTN'), o = b.innerHTML;
+  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Merekam Otorisasi...';
 
   try {
-    // 1. Cari dokumen Firestore-nya berdasarkan field custom "ID" (bukan doc-id Firestore)
-    const reqRef = window.fdb.collection(window.db, "data_pengajuan");
-    const qFind = window.fdb.query(reqRef, window.fdb.where("ID", "==", id));
-    const snapFind = await window.fdb.getDocs(qFind);
-    if (snapFind.empty) throw new Error('Data pengajuan tidak ditemukan.');
-    const firestoreDocId = snapFind.docs[0].id;
-    const targetRef = window.fdb.doc(window.db, "data_pengajuan", firestoreDocId);
+      // 1. CARI DOKUMEN PENGAJUAN DI FIREBASE DI DALAM TRANSAKSI
+      const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+      const qReq = window.fdb.query(reqRef, window.fdb.where("ID", "==", id));
+      const snapReq = await window.fdb.getDocs(qReq);
 
-    await window.fdb.runTransaction(window.db, async (tx) => {
-      const snap = await tx.get(targetRef);
-      if (!snap.exists()) throw new Error('Data pengajuan sudah tidak ada.');
-      const d = snap.data();
-
-      let flow = [], steps = [];
-      try { flow = JSON.parse(d.ApprovalFlowJson || '[]'); } catch(e) {}
-      try { steps = JSON.parse(d.ApprovalStepsJSON || '[]'); } catch(e) {}
-
-      const idx = findPendingStepIndex(steps);
-      if (idx === -1) throw new Error('Pengajuan ini sudah diproses oleh approver lain.');
-
-      // Validasi ulang di dalam transaction: pastikan memang giliran role user ini,
-      // supaya klik ganda / approval oleh role yang salah tidak lolos.
-      if (!roleMatchesStep(flow[idx], CU)) throw new Error('Bukan giliran Anda untuk memproses pengajuan ini.');
-
-      steps[idx] = type; // 'APPROVE' atau 'REJECT'
-
-      let statusFinal, posisiFlow;
-      if (type === 'REJECT') {
-        statusFinal = 'REJECTED';
-        posisiFlow = 'SELESAI';
-      } else if (idx === flow.length - 1) {
-        // Ini step terakhir dan disetujui -> pengajuan tuntas
-        statusFinal = 'APPROVED FINAL';
-        posisiFlow = 'SELESAI';
-      } else {
-        statusFinal = 'PROSES';
-        posisiFlow = flow[idx + 1]; // lempar ke approver berikutnya
+      if(snapReq.empty) {
+          b.disabled = false; b.innerHTML = o; return toast('Dokumen pengajuan tidak ditemukan!', true);
       }
 
-      tx.update(targetRef, {
-        ApprovalStepsJSON: JSON.stringify(steps),
-        StatusFinal: statusFinal,
-        PosisiFlow: posisiFlow,
-        Catatan: note,
-        ProcessedBy: CU.Nama,
-        ProcessedAt: window.fdb.serverTimestamp()
-      });
-    });
+      let docIdReq = ""; let reqData = {};
+      snapReq.forEach(doc => { docIdReq = doc.id; reqData = doc.data(); });
 
-    toast('Berhasil diproses.');
-    closeM('MAPPROVE_ACTION');
-    loadApproval();
-    checkApprovalStatus();
+      // 2. PARSE ALUR APPROVAL BERJENJANG
+      let arrSteps = []; try { arrSteps = JSON.parse(reqData.ApprovalStepsJSON || '[]'); } catch(e){}
+      let arrFlow = []; try { arrFlow = JSON.parse(reqData.ApprovalFlowJson || '[]'); } catch(e){}
+
+      let pendingIdx = arrSteps.findIndex(s => s === 'PENDING');
+      if(pendingIdx === -1) {
+          b.disabled = false; b.innerHTML = o; return toast('Pengajuan ini sudah selesai diproses.', true);
+      }
+
+      // Catat keputusan step saat ini (APPROVE / REJECT)
+      arrSteps[pendingIdx] = type;
+      let catatStr = (reqData.Catatan || "") + `\n[${CU.Nama} - ${type}]: ${note}`;
+
+      let finalStatus = "PROSES";
+      let posisiBerikutnya = reqData.PosisiFlow || "SELESAI";
+
+      if (type === 'REJECT') {
+          finalStatus = "REJECTED";
+          posisiBerikutnya = "DITOLAK";
+      } else if (!arrSteps.includes('PENDING')) {
+          finalStatus = "APPROVED FINAL"; // Seluruh rantai approval sudah menyetujui
+          posisiBerikutnya = "SELESAI";
+      } else {
+          // Masih ada step pending berikutnya, alihkan posisi flow ke role selanjutnya
+          posisiBerikutnya = arrFlow[pendingIdx + 1] || "SELESAI";
+      }
+
+      // ================================================================
+      // 3. LOGIKA AUTO-DEDUCTION (POTONG CUTI OTOMATIS SAAT FINAL APPROVED)
+      // ================================================================
+      let namaForm = (reqData.NamaForm || "").toUpperCase();
+      if (finalStatus === "APPROVED FINAL" && (namaForm.includes("CUTI") || namaForm.includes("IZIN"))) {
+          let dJson = {}; try { dJson = JSON.parse(reqData.DetailJSON || '{}'); } catch(e){}
+
+          // Mapping field dinamis dari Form Builder Anda
+          let jenisCuti = dJson.jenis_cuti || dJson.tipe_cuti || dJson.jenis || "Cuti Tahunan";
+          let tglMulai = dJson.tanggal_mulai || dJson.tgl_mulai || reqData.Tanggal;
+          let tglSelesai = dJson.tanggal_selesai || dJson.tgl_selesai || tglMulai;
+          let alasanCuti = dJson.alasan || dJson.keterangan || dJson.catatan || "Disetujui via System";
+
+          // Hitung jarak hari pengambilan
+          let d1 = new Date(tglMulai); let d2 = new Date(tglSelesai);
+          let selisihHari = 1;
+          if(!isNaN(d1) && !isNaN(d2) && d2 >= d1) {
+              selisihHari = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+          }
+
+          let jenisUpper = jenisCuti.toUpperCase();
+          let potongCount = selisihHari;
+          if (jenisUpper.includes('SETENGAH') || jenisUpper.includes('1/2')) potongCount = 0.5;
+          
+          // Kecualikan jika formnya adalah izin sakit resmi atau dinas luar yang tidak memotong saldo
+          if (jenisUpper.includes('SAKIT') && !jenisUpper.includes('TANPA KETERANGAN')) potongCount = 0;
+          if (jenisUpper.includes('DINAS')) potongCount = 0;
+
+          if (potongCount > 0) {
+              // Cari data karyawan di master_karyawan berdasarkan nama pemohon
+              const karyRef = window.fdb.collection(window.db, "master_karyawan");
+              const qKary = window.fdb.query(karyRef, window.fdb.where("Nama_Karyawan", "==", reqData.NamaPemohon));
+              const snapKary = await window.fdb.getDocs(qKary);
+
+              if(!snapKary.empty) {
+                  let docIdKary = ""; let kData = {};
+                  snapKary.forEach(doc => { docIdKary = doc.id; kData = doc.data(); });
+                  
+                  // Bersihkan data awal dari potensi string "N/A"
+                  let cleanKData = sanitizeData(kData);
+                  let sTahunan = parseFloat(cleanKData.SisaCuti || cleanKData['Sisa Cuti'] || 0);
+                  
+                  sTahunan = Math.max(0, sTahunan - potongCount); // Tarik potongan dan cegah angka minus
+
+                  // Update Saldo Baru ke Master Karyawan
+                  await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docIdKary), {
+                      ...kData, 
+                      SisaCuti: sTahunan.toString(), 
+                      "Sisa Cuti": sTahunan.toString()
+                  });
+
+                  // Catat Log ke Koleksi master_cuti agar sinkron di Riwayat Detail HRD
+                  const logCutiRef = window.fdb.collection(window.db, "master_cuti");
+                  await window.fdb.addDoc(logCutiRef, {
+                      Nama_Karyawan: reqData.NamaPemohon,
+                      Tanggal: new Date().toISOString(),
+                      TglMulai: tglMulai,
+                      TglSelesai: tglSelesai,
+                      "Type Cuti": jenisCuti,
+                      "Potong Jatah": potongCount.toString(),
+                      "Keterangan Cuti": alasanCuti
+                  });
+              }
+          }
+      }
+
+      // 4. SIMPAN STATUS TERBARU KE DOKUMEN PENGAJUAN FIREBASE
+      const docRef = window.fdb.doc(window.db, "data_pengajuan", docIdReq);
+      await window.fdb.setDoc(docRef, {
+          ...reqData,
+          ApprovalStepsJSON: JSON.stringify(arrSteps),
+          Catatan: catatStr,
+          StatusFinal: finalStatus,
+          PosisiFlow: posisiBerikutnya
+      });
+
+      // 5. PICU EMAIL BERJENJANG (SILENT TRIGGER KE GOOGLE APPS SCRIPT)
+      // Mengirimkan data agar GAS mengirim notifikasi email ke karyawan / approver berikutnya
+      api({
+         action: 'process_approval', 
+         user: CU, 
+         txId: id, 
+         decision: type, 
+         alasan: note
+      }).catch(err => console.log("Email trigger background skip:", err));
+
+      b.disabled = false; b.innerHTML = o;
+      toast('Otorisasi berhasil direkam & Database sinkron!');
+      closeM('MAPPROVE_ACTION');
+      loadApproval();
+      checkApprovalStatus();
+
   } catch(err) {
-    toast(err.message, true);
-  } finally {
-    b.disabled=false; b.innerHTML=o;
+      b.disabled = false; b.innerHTML = o;
+      console.error(err);
+      toast('Error Alur Approval: ' + err.message, true);
   }
 }
 
@@ -3230,8 +3323,8 @@ let MASTER_KARYAWAN_DATA = [];
 // TARIK DATA KARYAWAN (FIREBASE) - DENGAN PEMBERSIH N/A
 // =========================================================================
 async function loadKaryawan(){ 
-  $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
-  const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
+  const el = $('KARYGRID');
+  if(el) el.innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
   
   try {
       const karyRef = window.fdb.collection(window.db, "master_karyawan");
@@ -3239,23 +3332,14 @@ async function loadKaryawan(){
       
       MASTER_KARYAWAN_DATA = [];
       snap.forEach(doc => { 
-          let d = doc.data();
-          // OBAT ANTI N/A: Bersihkan data cuti dari huruf N/A sebelum masuk ke layar HRD
-          ['Sisa Cuti', 'SisaCuti', 'Jatah Tahunan', 'JatahTahunan', 'Sisa Khusus', 'SisaKhusus', 'Sisa Akumulasi', 'SisaAkumulasi'].forEach(key => {
-              if(d[key] === 'N/A' || d[key] === '#N/A') d[key] = '0';
-          });
+          let d = sanitizeData(doc.data()); // Bersihkan data di sini
           MASTER_KARYAWAN_DATA.push(d); 
       });
       
-      let finalData = MASTER_KARYAWAN_DATA;
-      if(valCabang) {
-          finalData = finalData.filter(k => (k.Cabang || k.CABANG || '').toUpperCase() === valCabang.toUpperCase());
-      }
-      
-      if($('TOTALKARY')) $('TOTALKARY').textContent = finalData.length; 
-      renderKaryawanGrid(finalData);
+      if($('TOTALKARY')) $('TOTALKARY').textContent = MASTER_KARYAWAN_DATA.length; 
+      renderKaryawanGrid(MASTER_KARYAWAN_DATA);
   } catch(e) {
-      $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">Error Firebase: ${e.message}</div>`;
+      console.error("Gagal memuat Karyawan:", e);
   }
 }
 // 2. Fungsi menggambar kartu karyawan ke layar
