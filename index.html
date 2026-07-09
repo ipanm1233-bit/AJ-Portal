@@ -1784,6 +1784,7 @@ window.onload = async () => {
   } 
   $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide');
 };
+
 // =========================================================================
 // SUPER LOGIN FIREBASE (VERIFIKASI & PENGGABUNGAN DATA CUTI)
 // =========================================================================
@@ -1797,7 +1798,7 @@ on('FMLOGIN', 'submit', async e => {
   try {
       // 1. CARI USERNAME DI KOLEKSI (Sesuaikan nama "Users" dengan yang Anda pakai saat migrasi)
       // Jika saat migrasi Anda menamakannya "users" huruf kecil, ganti teks "Users" di bawah ini.
-      const usersRef = window.fdb.collection(window.db, "Uuser"); 
+      const usersRef = window.fdb.collection(window.db, "user"); 
       const qUser = window.fdb.query(usersRef, window.fdb.where("Username", "==", inpUser));
       const snapUser = await window.fdb.getDocs(qUser);
 
