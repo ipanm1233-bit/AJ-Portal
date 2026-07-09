@@ -46,7 +46,7 @@ tailwind.config = {
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   
   // 2. Import Mesin Database (Firestore) BESERTA ALAT PENCARINYA (query, where)
-  import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCRAkee02Vhre6shscNnfI787qGCbBGO0c",
@@ -62,7 +62,7 @@ tailwind.config = {
   
   // 4. Jadikan Database Global 
   window.db = getFirestore(app);
-  window.fdb = { collection, addDoc, getDocs, setDoc, doc, query, where }; // Alat pencari sudah masuk sini
+  window.fdb = { collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp }; // Alat pencari sudah masuk sini
   
   console.log("🔥 Firebase Firestore Berhasil Terhubung ke Sistem!");
 </script>  
@@ -1895,7 +1895,16 @@ function bootApp() {
   Promise.all([loadForms(), prefetchDD(), checkApprovalStatus()]); nav('dashboard');
 }
 
-async function checkApprovalStatus(){ const res=await api({action:'get_approval_list',user:CU}); if(res.success&&res.data&&res.data.length){ $('MNU_LEADER').classList.remove('hide'); $('BAPPR').textContent=res.data.length; $('BAPPR').classList.remove('hide'); }else $('BAPPR').classList.add('hide'); }
+async function checkApprovalStatus(){
+  try {
+    const queue = await fetchApprovalQueue(CU);
+    if (queue.length) { $('MNU_LEADER').classList.remove('hide'); $('BAPPR').textContent=queue.length; $('BAPPR').classList.remove('hide'); }
+    else $('BAPPR').classList.add('hide');
+  } catch(err) {
+    console.error('Gagal cek status approval:', err);
+    $('BAPPR').classList.add('hide');
+  }
+}
 
 function nav(vId) {
   document.querySelectorAll('.app-view').forEach(el => el.classList.add('hide'));
@@ -2466,6 +2475,10 @@ on('DYNFORM','submit',async e=>{
   
   try {
       const txID = 'TRX-' + new Date().toISOString().replace(/[^0-9]/g, "").substring(0,14);
+      const flowRoles = JSON.parse(cfg.ApprovalFlowJson || '[]');
+      // Form tanpa approval flow (array kosong) langsung dianggap selesai, tidak nyangkut di antrean siapapun
+      const initStatusFinal = flowRoles.length === 0 ? 'APPROVED FINAL' : 'PROSES';
+      const initPosisiFlow = flowRoles.length === 0 ? 'SELESAI' : flowRoles[0];
       const payloadIdm = {
           ID: txID,
           Tanggal: new Date().toISOString(),
@@ -2475,9 +2488,11 @@ on('DYNFORM','submit',async e=>{
           NamaForm: cfg.NamaForm,
           DetailJSON: JSON.stringify(det),
           ApprovalFlowJson: cfg.ApprovalFlowJson || '[]',
-          ApprovalStepsJSON: JSON.stringify(new Array(JSON.parse(cfg.ApprovalFlowJson || '[]').length).fill('PENDING')),
-          StatusFinal: 'PROSES',
-          Kategori: 'Pengajuan Form'
+          ApprovalStepsJSON: JSON.stringify(new Array(flowRoles.length).fill('PENDING')),
+          PosisiFlow: initPosisiFlow,
+          StatusFinal: initStatusFinal,
+          Kategori: 'Pengajuan Form',
+          CreatedAt: window.fdb.serverTimestamp()
       };
       
       // Tulis data ke Firebase
@@ -2645,9 +2660,136 @@ function openDetail(id) {
     openM('MDETAIL');
 }
 
-async function loadApproval(){ $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`; const res=await api({action:'get_approval_list',user:CU}); if(!res.success) return toast(res.message,true); CTX=res.data||[]; const b=$('BAPPR'); if(CTX.length){b.textContent=CTX.length;b.classList.remove('hide');}else b.classList.add('hide'); if(!CTX.length){$('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-20 text-center font-bold text-slate-400">Antrean Kosong.</td></tr>`;return;} $('APPRBODY').innerHTML=CTX.map(t=>`<tr class="hover:bg-slate-50"><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${t.NamaPemohon}</p></td><td class="px-8 py-5 text-xs">${fmtDate(t.Tanggal)}</td><td class="px-8 py-5 font-black text-corp text-sm">${t.NamaForm}</td><td class="px-8 py-5"><span class="text-[10px] bg-slate-100 font-black px-3 py-1.5 rounded-lg">${t.PosisiFlow}</span></td><td class="px-8 py-5 text-center"><button onclick="openDetail('${t.ID}')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 shadow-sm"><i class="fa-solid fa-eye"></i></button> <button onclick="openApproveAction('${t.ID}','APPROVE')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Setuju</button> <button onclick="openApproveAction('${t.ID}','REJECT')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Tolak</button></td></tr>`).join(''); }
+// =========================================================================
+// APPROVAL WORKFLOW (FIREBASE NATIVE) — menggantikan get_approval_list & process_approval
+// =========================================================================
+
+// Cocokkan role user dengan role yang sedang giliran approve.
+// Mengikuti pola matching yang sama dengan bootApp() (baris ~1875-1877) supaya konsisten.
+function roleMatchesStep(stepRole, cu) {
+  const s = (stepRole || '').toUpperCase().trim();
+  const r = (cu.Role || '').toUpperCase();
+  if (!s) return false;
+  if (s === 'LEADER') {
+    return !!cu.IsAtasan || r.includes('SPV') || r.includes('GM') || r.includes('MANAGER') || r.includes('FINANCE');
+  }
+  return r.includes(s) || s.includes(r);
+}
+
+// Cari index step pertama yang statusnya masih PENDING. -1 kalau semua sudah diputuskan.
+function findPendingStepIndex(stepsArr) {
+  return stepsArr.findIndex(s => s === 'PENDING');
+}
+
+// Tarik semua data_pengajuan berstatus PROSES, lalu saring: hanya yang gilirannya ada di tangan user ini.
+// Dipakai bersama oleh loadApproval() dan checkApprovalStatus() supaya logikanya satu sumber (tidak duplikat & tidak drift).
+async function fetchApprovalQueue(cu) {
+  const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+  const qProses = window.fdb.query(reqRef, window.fdb.where("StatusFinal", "==", "PROSES"));
+  const snap = await window.fdb.getDocs(qProses);
+
+  const queue = [];
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+    let flow = [], steps = [];
+    try { flow = JSON.parse(d.ApprovalFlowJson || '[]'); } catch (e) {}
+    try { steps = JSON.parse(d.ApprovalStepsJSON || '[]'); } catch (e) {}
+
+    const idx = findPendingStepIndex(steps);
+    if (idx === -1) return; // tidak ada step pending (harusnya sudah SELESAI, data lama/anomali — lewati)
+
+    const currentRole = flow[idx];
+    if (roleMatchesStep(currentRole, cu)) {
+      queue.push({ ...d, _firestoreDocId: docSnap.id, _pendingIndex: idx });
+    }
+  });
+  return queue;
+}
+
+async function loadApproval(){
+  $('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-16 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl"></i></td></tr>`;
+  try {
+    CTX = await fetchApprovalQueue(CU);
+  } catch(err) {
+    return toast('Gagal memuat antrean approval: ' + err.message, true);
+  }
+  const b=$('BAPPR');
+  if(CTX.length){b.textContent=CTX.length;b.classList.remove('hide');}else b.classList.add('hide');
+  if(!CTX.length){$('APPRBODY').innerHTML=`<tr><td colspan="5" class="px-8 py-20 text-center font-bold text-slate-400">Antrean Kosong.</td></tr>`;return;}
+  $('APPRBODY').innerHTML=CTX.map(t=>`<tr class="hover:bg-slate-50"><td class="px-8 py-5"><p class="font-black text-slate-800 text-sm">${t.NamaPemohon}</p></td><td class="px-8 py-5 text-xs">${fmtDate(t.Tanggal)}</td><td class="px-8 py-5 font-black text-corp text-sm">${t.NamaForm}</td><td class="px-8 py-5"><span class="text-[10px] bg-slate-100 font-black px-3 py-1.5 rounded-lg">${t.PosisiFlow}</span></td><td class="px-8 py-5 text-center"><button onclick="openDetail('${t.ID}')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 shadow-sm"><i class="fa-solid fa-eye"></i></button> <button onclick="openApproveAction('${t.ID}','APPROVE')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Setuju</button> <button onclick="openApproveAction('${t.ID}','REJECT')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm ml-1">Tolak</button></td></tr>`).join('');
+}
+
 function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value=type; $('MAA_NOTE').value=''; $('MAA_TITLE').textContent = type==='APPROVE' ? 'Setujui Pengajuan' : 'Tolak Pengajuan'; $('MAA_ICON').className = type==='APPROVE' ? 'fa-solid fa-check text-emerald-600' : 'fa-solid fa-xmark text-red-600'; $('MAA_ICON_WRAP').className = type==='APPROVE' ? 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-emerald-100' : 'w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner bg-red-100'; $('MAA_BORDER').className = type==='APPROVE' ? 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-emerald-500' : 'bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden fade border-t-8 border-t-red-500'; $('MAA_BTN').className = type==='APPROVE' ? 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-emerald-600' : 'px-6 py-2.5 text-white rounded-xl text-sm font-black shadow-lg flex items-center gap-2 bg-red-600'; openM('MAPPROVE_ACTION'); }
-async function submitApprovalAction(){ const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value; if(!note) return toast('Anda wajib mengisi catatan!',true); const b=$('MAA_BTN'),o=b.innerHTML; b.disabled=true; b.innerHTML='Memproses...'; const res=await api({action:'process_approval',user:CU,txId:id,decision:type,alasan:note}); b.disabled=false; b.innerHTML=o; if(res.success){toast('Berhasil diproses.');closeM('MAPPROVE_ACTION');loadApproval();checkApprovalStatus();}else toast(res.message,true); }
+
+// Proses persetujuan/penolakan dalam SATU transaction Firestore, supaya kalau 2 approver
+// menekan tombol nyaris bersamaan, tidak terjadi step ke-timpa / approval ganda (race condition).
+async function submitApprovalAction(){
+  const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value;
+  if(!note) return toast('Anda wajib mengisi catatan!',true);
+
+  const b=$('MAA_BTN'), o=b.innerHTML;
+  b.disabled=true; b.innerHTML='Memproses...';
+
+  try {
+    // 1. Cari dokumen Firestore-nya berdasarkan field custom "ID" (bukan doc-id Firestore)
+    const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+    const qFind = window.fdb.query(reqRef, window.fdb.where("ID", "==", id));
+    const snapFind = await window.fdb.getDocs(qFind);
+    if (snapFind.empty) throw new Error('Data pengajuan tidak ditemukan.');
+    const firestoreDocId = snapFind.docs[0].id;
+    const targetRef = window.fdb.doc(window.db, "data_pengajuan", firestoreDocId);
+
+    await window.fdb.runTransaction(window.db, async (tx) => {
+      const snap = await tx.get(targetRef);
+      if (!snap.exists()) throw new Error('Data pengajuan sudah tidak ada.');
+      const d = snap.data();
+
+      let flow = [], steps = [];
+      try { flow = JSON.parse(d.ApprovalFlowJson || '[]'); } catch(e) {}
+      try { steps = JSON.parse(d.ApprovalStepsJSON || '[]'); } catch(e) {}
+
+      const idx = findPendingStepIndex(steps);
+      if (idx === -1) throw new Error('Pengajuan ini sudah diproses oleh approver lain.');
+
+      // Validasi ulang di dalam transaction: pastikan memang giliran role user ini,
+      // supaya klik ganda / approval oleh role yang salah tidak lolos.
+      if (!roleMatchesStep(flow[idx], CU)) throw new Error('Bukan giliran Anda untuk memproses pengajuan ini.');
+
+      steps[idx] = type; // 'APPROVE' atau 'REJECT'
+
+      let statusFinal, posisiFlow;
+      if (type === 'REJECT') {
+        statusFinal = 'REJECTED';
+        posisiFlow = 'SELESAI';
+      } else if (idx === flow.length - 1) {
+        // Ini step terakhir dan disetujui -> pengajuan tuntas
+        statusFinal = 'APPROVED FINAL';
+        posisiFlow = 'SELESAI';
+      } else {
+        statusFinal = 'PROSES';
+        posisiFlow = flow[idx + 1]; // lempar ke approver berikutnya
+      }
+
+      tx.update(targetRef, {
+        ApprovalStepsJSON: JSON.stringify(steps),
+        StatusFinal: statusFinal,
+        PosisiFlow: posisiFlow,
+        Catatan: note,
+        ProcessedBy: CU.Nama,
+        ProcessedAt: window.fdb.serverTimestamp()
+      });
+    });
+
+    toast('Berhasil diproses.');
+    closeM('MAPPROVE_ACTION');
+    loadApproval();
+    checkApprovalStatus();
+  } catch(err) {
+    toast(err.message, true);
+  } finally {
+    b.disabled=false; b.innerHTML=o;
+  }
+}
 
 let WGT_KB_MODE='konseling', MKONTRAK_ACTION_MAP={penilaian:'kontrak_request_penilaian',konseling:'kontrak_kirim_konseling',dokumen:'kontrak_request_dokumen'};
 function mkontrakSetMode(m){ 
