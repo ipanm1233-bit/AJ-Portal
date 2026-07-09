@@ -45,8 +45,8 @@ tailwind.config = {
   // 1. Import Mesin Utama
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   
-  // 2. Import Mesin Database (Firestore) dan perintah-perintahnya
-  import { getFirestore, collection, addDoc, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  // 2. Import Mesin Database (Firestore) BESERTA ALAT PENCARINYA (query, where)
+  import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCRAkee02Vhre6shscNnfI787qGCbBGO0c",
@@ -60,9 +60,9 @@ tailwind.config = {
   // 3. Nyalakan Firebase
   const app = initializeApp(firebaseConfig);
   
-  // 4. Jadikan Database Global (Agar bisa dibaca oleh kode Anda yang lain)
+  // 4. Jadikan Database Global 
   window.db = getFirestore(app);
-  window.fdb = { collection, addDoc, getDocs, setDoc, doc }; // Shortcut perintah database
+  window.fdb = { collection, addDoc, getDocs, setDoc, doc, query, where }; // Alat pencari sudah masuk sini
   
   console.log("🔥 Firebase Firestore Berhasil Terhubung ke Sistem!");
 </script>  
@@ -1784,11 +1784,82 @@ window.onload = async () => {
   } 
   $('PGlogin').classList.remove('hide'); $('PGapp').classList.add('hide');
 };
+// =========================================================================
+// SUPER LOGIN FIREBASE (VERIFIKASI & PENGGABUNGAN DATA CUTI)
+// =========================================================================
 on('FMLOGIN', 'submit', async e => {
-  e.preventDefault(); showL('Otentikasi...'); 
-  const res = await api({action: 'login', username: $('LU').value, password: $('LP').value}); hideL();
-  if(res.success) { CU = res.user; localStorage.setItem('hris_u', JSON.stringify(CU)); toast('Login Berhasil!'); bootApp(); } 
-  else toast(res.message, true);
+  e.preventDefault(); 
+  showL('Otentikasi Firebase...'); 
+  
+  const inpUser = $('LU').value.trim();
+  const inpPass = $('LP').value.trim();
+
+  try {
+      // 1. CARI USERNAME DI KOLEKSI (Sesuaikan nama "Users" dengan yang Anda pakai saat migrasi)
+      // Jika saat migrasi Anda menamakannya "users" huruf kecil, ganti teks "Users" di bawah ini.
+      const usersRef = window.fdb.collection(window.db, "Uuser"); 
+      const qUser = window.fdb.query(usersRef, window.fdb.where("Username", "==", inpUser));
+      const snapUser = await window.fdb.getDocs(qUser);
+
+      if (snapUser.empty) {
+          hideL(); return toast('Username tidak ditemukan di Database!', true);
+      }
+
+      let userData = null;
+      snapUser.forEach((doc) => { userData = doc.data(); });
+
+      // 2. COCOKKAN PASSWORD
+      if (userData.Password !== inpPass) {
+          hideL(); return toast('Kata sandi salah!', true);
+      }
+
+      // 3. TARIK DATA LENGKAP KARYAWAN & CUTI BERDASARKAN NIK
+      let kData = null;
+      if (userData.NIK) {
+          const karyRef = window.fdb.collection(window.db, "master_karyawan");
+          const qKary = window.fdb.query(karyRef, window.fdb.where("NIK", "==", userData.NIK));
+          const snapKary = await window.fdb.getDocs(qKary);
+          if (!snapKary.empty) {
+              snapKary.forEach((doc) => { kData = doc.data(); });
+          }
+      }
+
+      // 4. GABUNGKAN DATA KE MEMORI GLOBAL (CU) + OBATI ERROR "N/A" PADA CUTI
+      CU = { ...userData }; // Tarik dasar seperti Role & AksesMenu dari tabel Users
+      
+      if (kData) {
+          CU.Nama = kData.Nama_Karyawan || kData.Nama || CU.Nama;
+          CU.Cabang = kData.Cabang || kData.CABANG || CU.Cabang || "-";
+          CU.TanggalJoin = kData.TanggalJoin || kData['Tanggal Join'] || kData['TANGGAL JOIN'] || "-";
+          CU.posisi = kData.Jabatan || kData.JABATAN || CU.posisi || "-";
+          
+          // Obat Penawar VLOOKUP "N/A": Jika isinya N/A, paksa jadi angka 0
+          let sTahunan = kData.SisaCuti || kData['Sisa Cuti'] || "0";
+          CU.SisaCuti = (sTahunan === "N/A" || sTahunan === "#N/A") ? "0" : sTahunan;
+          
+          let jTahunan = kData.JatahTahunan || kData['Jatah Tahunan'] || "0";
+          CU.JatahTahunan = (jTahunan === "N/A" || jTahunan === "#N/A") ? "0" : jTahunan;
+          
+          let sKhusus = kData.SisaKhusus || kData['Sisa Khusus'] || "0";
+          CU.SisaKhusus = (sKhusus === "N/A" || sKhusus === "#N/A") ? "0" : sKhusus;
+          
+          let sAkumulasi = kData.SisaAkumulasi || kData['Sisa Akumulasi'] || "0";
+          CU.SisaAkumulasi = (sAkumulasi === "N/A" || sAkumulasi === "#N/A") ? "0" : sAkumulasi;
+          
+          CU.MasaKerja = window.calcMasaKerja ? window.calcMasaKerja(CU.TanggalJoin) : "-";
+      }
+
+      // 5. SIMPAN KE BROWSER & BUKA APLIKASI
+      localStorage.setItem('hris_u', JSON.stringify(CU)); 
+      hideL(); 
+      toast('Login Firebase Berhasil!'); 
+      bootApp(); 
+
+  } catch (err) {
+      hideL();
+      console.error(err);
+      toast('Terjadi Kesalahan: ' + err.message, true);
+  }
 });
 
 function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar.'); }
