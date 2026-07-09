@@ -2004,12 +2004,17 @@ async function loadDashboard() {
       let rSingkat = [];
       snapReq.forEach(doc => {
           const d = doc.data();
-          if((d.NamaPemohon || d['Nama Pemohon'] || '').toUpperCase() === CU.Nama.toUpperCase()) { rSingkat.push(d); }
+          // Radar nama yang lebih kebal (mencari NamaPemohon, Nama Pemohon, atau Nama)
+          const pName = (d.NamaPemohon || d['Nama Pemohon'] || d.Nama || '').toUpperCase();
+          
+          if(pName === CU.Nama.toUpperCase()) { rSingkat.push(d); }
       });
-      rSingkat.sort((a,b) => new Date(b.Tanggal || 0) - new Date(a.Tanggal || 0));
+      
+      // Radar tanggal yang lebih kebal
+      rSingkat.sort((a,b) => new Date(b.Tanggal || b.Tgl || 0) - new Date(a.Tanggal || a.Tgl || 0));
       rSingkat = rSingkat.slice(0, 5); 
       
-      $('DRWYT').innerHTML = rSingkat.length ? rSingkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.NamaForm || r.JenisForm}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID || ''}</p></div>${badge(r.StatusFinal || r.Status)}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
+      $('DRWYT').innerHTML = rSingkat.length ? rSingkat.map(r => `<div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 border-l-4 border-transparent hover:border-blue-500"><div><p class="font-black text-slate-800 text-sm">${r.NamaForm || r['Nama Form'] || r.JenisForm || 'Form Pengajuan'}</p><p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">${r.ID || r['ID Transaksi'] || ''}</p></div>${badge(r.StatusFinal || r.Status || 'PROSES')}</div>`).join('') : '<div class="p-8 text-center text-slate-400 text-sm">Belum ada riwayat.</div>';
       
       // --- WIDGET 4: KONTRAK HABIS (KHUSUS HRD/GM) ---
       if ($('WGT_KB')) $('WGT_KB').classList.add('hide');
@@ -4138,6 +4143,80 @@ async function jalankanMigrasi() {
     } catch(e) {
         alert("Terjadi Kesalahan: " + e.message);
         btn.disabled = false; btn.innerHTML = "Mulai Sedot & Pindahkan";
+    }
+}
+</script>
+
+<div style="position: fixed; bottom: 80px; left: 20px; z-index: 9999;">
+    <button onclick="sinkronkanCutiFirebase(this)" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-emerald-700 animate-bounce">
+        ♻️ AUTO-HITUNG SALDO CUTI
+    </button>
+</div>
+
+<script>
+async function sinkronkanCutiFirebase(btn) {
+    if(!confirm("Alat ini akan menghitung ulang sisa cuti semua karyawan berdasarkan Jatah Tahunan dan Riwayat masa lalu. Lanjutkan?")) return;
+    
+    try {
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Menghitung..."; 
+        btn.disabled = true;
+        
+        // 1. Ambil data semua Karyawan & semua Riwayat Cuti dari Firebase
+        const karySnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan"));
+        const cutiSnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_cuti"));
+        
+        let cutiList = [];
+        cutiSnap.forEach(d => cutiList.push(d.data()));
+        
+        let suksesCount = 0;
+        
+        // 2. Looping (Putar) untuk menghitung setiap karyawan
+        for (let docKary of karySnap.docs) {
+            let k = docKary.data();
+            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").toUpperCase();
+            if(!namaKar) continue;
+            
+            // Ambil Jatah Tahunan Awal (Jika kosong, anggap 12 hari)
+            let jatahAwal = parseFloat(k.JatahTahunan || k['Jatah Tahunan']) || 12; 
+            
+            // 3. Cari riwayat cuti karyawan ini & jumlahkan potongannya
+            let totalPotong = 0;
+            cutiList.forEach(c => {
+                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").toUpperCase();
+                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || c.JenisCuti || "").toUpperCase();
+                
+                if (namaC === namaKar) {
+                    // Hanya hitung potongan untuk Cuti Tahunan (C - ...)
+                    if(tipeC.includes('C -') || tipeC.includes('TAHUNAN') || tipeC.includes('1/2')) {
+                        let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c.Jumlah_Ambil) || 0;
+                        totalPotong += angkaPotong;
+                    }
+                }
+            });
+            
+            // 4. Lakukan Matematika: SISA CUTI = JATAH AWAL - TOTAL DIAMBIL
+            let sisaBaru = jatahAwal - totalPotong;
+            
+            // 5. Simpan Saldo Sisa Cuti yang baru ke Firebase!
+            await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docKary.id), {
+                ...k,
+                SisaCuti: sisaBaru.toString(),
+                "Sisa Cuti": sisaBaru.toString(),
+                JatahTahunan: jatahAwal.toString(),
+                "Jatah Tahunan": jatahAwal.toString()
+            });
+            
+            suksesCount++;
+        }
+        
+        alert(`🎉 LUAARRR BIASA! ${suksesCount} karyawan berhasil dihitung ulang saldo cutinya!`);
+        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
+        btn.disabled = false;
+        
+    } catch(e) {
+        alert("Terjadi Kesalahan: " + e.message);
+        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
+        btn.disabled = false;
     }
 }
 </script>
