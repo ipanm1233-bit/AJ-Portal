@@ -46,7 +46,7 @@ tailwind.config = {
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   
   // 2. Import Mesin Database (Firestore) BESERTA ALAT PENCARINYA (query, where)
-  import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCRAkee02Vhre6shscNnfI787qGCbBGO0c",
@@ -62,7 +62,7 @@ tailwind.config = {
   
   // 4. Jadikan Database Global 
   window.db = getFirestore(app);
-  window.fdb = { collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp }; // Alat pencari sudah masuk sini
+  window.fdb = { collection, addDoc, getDocs, setDoc, doc, query, where, updateDoc, runTransaction, serverTimestamp, deleteDoc, writeBatch }; // Alat pencari sudah masuk sini
   
   console.log("🔥 Firebase Firestore Berhasil Terhubung ke Sistem!");
 </script>  
@@ -1710,21 +1710,6 @@ tailwind.config = {
 
 const API = 'https://script.google.com/macros/s/AKfycbyRITxttWixOtQtZMSgdTIi8u3mc75aktpYCA1xs_xOSe3FJTUn_gyKGDhTPY1CJmRf4Q/exec';
 
-// =========================================================================
-// SATPAM DATA (Pembersih N/A dan Error dari Excel Lama)
-// =========================================================================
-function sanitizeData(obj) {
-    if (!obj || typeof obj !== 'object') return obj;
-    for (let key in obj) {
-        let val = obj[key];
-        // Jika mendeteksi string N/A bawaan Excel, paksa jadi angka 0 atau string kosong
-        if (val === 'N/A' || val === '#N/A' || val === null || val === undefined) {
-            obj[key] = (key.toLowerCase().includes('sisa') || key.toLowerCase().includes('jatah') || key.toLowerCase().includes('terpakai')) ? '0' : '-';
-        }
-    }
-    return obj;
-}
-  
 let CU = null, FORMS = [], AVAILABLE_FORMS = [], CTX = [], DD_KARY = [], DD_KEND = [], DD_INV = [], KEND_DATA = [], INV_DATA = [], DASH_BC_DATA = [], WGT_KB_DATA = [], PNL_BAWAHAN_DATA = [], MASTER_CUTI_DATA = [], LOG_INV_DATA = [];
 
 const $ = id => document.getElementById(id), on = (id,ev,fn) => $(id) && $(id).addEventListener(ev,fn);
@@ -1741,6 +1726,23 @@ function kategoriBadge(k){ const m={'Pengajuan Form':'bg-blue-100 text-blue-800'
 
 const getV = (obj, keys) => { if(!obj) return undefined; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return obj[k]; } } return undefined; };
 const exactKey = (obj, keys) => { if(!obj) return keys[0]; const ok = Object.keys(obj); for(let k of ok) { const ck = k.toUpperCase().replace(/[^A-Z0-9]/g, ''); for(let q of keys) { if(ck === q.toUpperCase().replace(/[^A-Z0-9]/g, '')) return k; } } return keys[0]; };
+
+// Bersihkan satu object data sebelum ditulis ke Firestore: buang N/A, trim spasi, rapikan angka kosong.
+// Dipakai di semua fungsi save/update supaya tidak ada lagi "N/A" nyangkut jadi string di database.
+function sanitizeRow(row) {
+  const clean = {};
+  for (const [key, val] of Object.entries(row)) {
+    if (val === undefined || val === null) { clean[key] = ""; continue; }
+    let v = val;
+    if (typeof v === 'string') {
+      v = v.trim();
+      if (['N/A', '#N/A', '#REF!', '#VALUE!', 'null', 'undefined'].includes(v)) v = "";
+    }
+    if (typeof v === 'number' && isNaN(v)) v = 0;
+    clean[key] = v;
+  }
+  return clean;
+}
 
 async function api(payload, msg=null) { 
   try { 
@@ -1811,7 +1813,8 @@ on('FMLOGIN', 'submit', async e => {
   const inpPass = $('LP').value.trim();
 
   try {
-      // 1. CARI USERNAME DI KOLEKSI user
+      // 1. CARI USERNAME DI KOLEKSI (Sesuaikan nama "Users" dengan yang Anda pakai saat migrasi)
+      // Jika saat migrasi Anda menamakannya "users" huruf kecil, ganti teks "Users" di bawah ini.
       const usersRef = window.fdb.collection(window.db, "user"); 
       const qUser = window.fdb.query(usersRef, window.fdb.where("Username", "==", inpUser));
       const snapUser = await window.fdb.getDocs(qUser);
@@ -1824,42 +1827,31 @@ on('FMLOGIN', 'submit', async e => {
       snapUser.forEach((doc) => { userData = doc.data(); });
 
       // 2. COCOKKAN PASSWORD
-      if (userData.Password !== inpPass && userData.PASSWORD !== inpPass && userData.password !== inpPass) {
+      if (userData.Password !== inpPass) {
           hideL(); return toast('Kata sandi salah!', true);
       }
 
-      // 3. TARIK MASTER KARYAWAN DENGAN RADAR ANTI-GAGAL
-      // Ambil NIK dari tabel user (Bisa bernama NIK, NIK_Karyawan, atau NIK Karyawan)
-      let userNIK = (userData.NIK || userData.NIK_Karyawan || userData['NIK Karyawan'] || "").toString().trim();
+      // 3. TARIK DATA LENGKAP KARYAWAN & CUTI BERDASARKAN NIK
       let kData = null;
-      
-      if (userNIK) {
-          // Tarik semua karyawan agar kita bisa memfilter pakai JavaScript (Kebal huruf besar/kecil & spasi)
+      if (userData.NIK) {
           const karyRef = window.fdb.collection(window.db, "master_karyawan");
-          const snapKary = await window.fdb.getDocs(karyRef);
-          
-          snapKary.forEach((doc) => { 
-              let d = doc.data();
-              // Cek semua kemungkinan nama kolom NIK di master_karyawan
-              let kNIK = (d.NIK || d.NIK_Karyawan || d['NIK Karyawan'] || "").toString().trim();
-              if (kNIK === userNIK) {
-                  kData = d; 
-              }
-          });
+          const qKary = window.fdb.query(karyRef, window.fdb.where("NIK", "==", userData.NIK));
+          const snapKary = await window.fdb.getDocs(qKary);
+          if (!snapKary.empty) {
+              snapKary.forEach((doc) => { kData = doc.data(); });
+          }
       }
 
-      // 4. GABUNGKAN DATA KE MEMORI GLOBAL (CU)
-      CU = { ...userData }; 
-      CU.NIK = userNIK; // Pastikan NIK tersimpan seragam
+      // 4. GABUNGKAN DATA KE MEMORI GLOBAL (CU) + OBATI ERROR "N/A" PADA CUTI
+      CU = { ...userData }; // Tarik dasar seperti Role & AksesMenu dari tabel Users
       
       if (kData) {
-          // Tangkap nama kolom apa pun bawaan Excel
-          CU.Nama = kData.Nama_Karyawan || kData['Nama Karyawan'] || kData.NAMA || kData.Nama || CU.Nama || "-";
+          CU.Nama = kData.Nama_Karyawan || kData.Nama || CU.Nama;
           CU.Cabang = kData.Cabang || kData.CABANG || CU.Cabang || "-";
           CU.TanggalJoin = kData.TanggalJoin || kData['Tanggal Join'] || kData['TANGGAL JOIN'] || "-";
           CU.posisi = kData.Jabatan || kData.JABATAN || CU.posisi || "-";
           
-          // Obat Penawar VLOOKUP "N/A"
+          // Obat Penawar VLOOKUP "N/A": Jika isinya N/A, paksa jadi angka 0
           let sTahunan = kData.SisaCuti || kData['Sisa Cuti'] || "0";
           CU.SisaCuti = (sTahunan === "N/A" || sTahunan === "#N/A") ? "0" : sTahunan;
           
@@ -1873,12 +1865,6 @@ on('FMLOGIN', 'submit', async e => {
           CU.SisaAkumulasi = (sAkumulasi === "N/A" || sAkumulasi === "#N/A") ? "0" : sAkumulasi;
           
           CU.MasaKerja = window.calcMasaKerja ? window.calcMasaKerja(CU.TanggalJoin) : "-";
-      } else {
-          // Jika tidak ada di master_karyawan, set default agar tidak undefined
-          CU.Nama = CU.Username || "-";
-          CU.Cabang = "-";
-          CU.TanggalJoin = "-";
-          CU.MasaKerja = "-";
       }
 
       // 5. SIMPAN KE BROWSER & BUKA APLIKASI
@@ -1889,10 +1875,11 @@ on('FMLOGIN', 'submit', async e => {
 
   } catch (err) {
       hideL();
-      console.error("Error Detail Firebase:", err);
+      console.error(err);
       toast('Terjadi Kesalahan: ' + err.message, true);
   }
 });
+
 function doLogout() { localStorage.removeItem('hris_u'); CU=null; $('PGapp').classList.add('hide'); $('PGlogin').classList.remove('hide'); $('LU').value=''; $('LP').value=''; toast('Berhasil keluar.'); }
 
 const MENU_OPTS = [ { val: 'DASHBOARD', label: 'Dashboard Utama', el: 'NB-dashboard' }, { val: 'PENGAJUAN', label: 'Buat Pengajuan Dokumen', el: 'NB-pengajuan' }, { val: 'RIWAYAT', label: 'Rekam Jejak 360', el: 'NB-riwayat' }, { val: 'APPROVAL', label: 'Antrean Approval Form', el: 'NB-approval' }, { val: 'KONTRAK', label: 'Penilaian KPI & Evaluasi Kontrak', el: 'NB-kontrak' }, { val: 'CUTI', label: 'Manajemen Cuti & Izin', el: 'NB-cuti' }, { val: 'BROADCAST', label: 'Broadcast / Pengumuman', el: 'NB-broadcast' }, { val: 'DBKARY', label: 'Database Karyawan (HR)', el: 'NB-dbkary' }, { val: 'SP', label: 'Pemanggilan & SP (HR)', el: 'NB-sp' }, { val: 'FBUILDER', label: 'Form Builder (HR)', el: 'NB-fbuilder' }, { val: 'EXPORT', label: 'Export Data Database (HR)', el: 'NB-export' }, { val: 'KENDARAAN', label: 'Master Kendaraan & Log BBM', el: 'NB-kendaraan' }, { val: 'INVENTORY', label: 'Master Inventory & Stok Opname', el: 'NB-inventory' }, { val: 'LIFECYCLE', label: 'On/Offboarding Karyawan (HR)', el: 'NB-lifecycle' } ];
@@ -2249,7 +2236,22 @@ function renderFormCards(list) {
 function filterForms(q) { if(!q) return renderFormCards(AVAILABLE_FORMS); const filtered = AVAILABLE_FORMS.filter(f => f.NamaForm.toLowerCase().includes(q.toLowerCase())); renderFormCards(filtered); }
 function openDynForm(id) { $('SELFORM').value = id; $('FORM_LIST_VIEW').classList.add('hide'); $('FORM_FILL_VIEW').classList.remove('hide'); const cfg = FORMS.find(f => f.FormID === id); $('FORM_FILL_TITLE').textContent = cfg ? cfg.NamaForm : 'Isi Formulir'; renderDynFormFields(); }
 function closeDynForm() { $('FORM_LIST_VIEW').classList.remove('hide'); $('FORM_FILL_VIEW').classList.add('hide'); $('DYNFORM').reset(); $('DYNFORM').classList.add('hide'); $('KBWARN').classList.add('hide'); $('DYNFIELDS').innerHTML = ''; }
-async function prefetchDD(){ const [kr,kd,iv]=await Promise.all([api({action:'get_dropdown_karyawan',user:CU}),api({action:'get_dropdown_kendaraan'}),api({action:'get_dropdown_inventory'})]); if(kr.success) { DD_KARY=kr.data||[]; renderFBKaryList(); } if(kd.success) DD_KEND=kd.data||[]; if(iv.success) DD_INV=iv.data||[]; }
+async function prefetchDD(){
+  try {
+    const [karySnap, kendSnap, invSnap] = await Promise.all([
+      window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan")),
+      window.fdb.getDocs(window.fdb.collection(window.db, "master_kendaraan")).catch(()=>({forEach:()=>{}})),
+      window.fdb.getDocs(window.fdb.collection(window.db, "master_inventory")).catch(()=>({forEach:()=>{}}))
+    ]);
+    DD_KARY = []; karySnap.forEach(d => { const k = d.data(); DD_KARY.push({ nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || '-', nik: k.NIK || k.NIK_Karyawan || '' }); });
+    DD_KEND = []; kendSnap.forEach(d => { const k = d.data(); DD_KEND.push({ nopol: k['No. Polisi'] || k['No Polisi'] || '-' }); });
+    DD_INV = []; invSnap.forEach(d => { const k = d.data(); DD_INV.push({ id: getV(k, ['IDITEM','IDBARANG','ID Barang','ID Item']) || d.id, nama: getV(k, ['NAMABARANG','Nama Barang']) || '-' }); });
+    renderFBKaryList();
+  } catch(err) {
+    console.error('Gagal memuat dropdown:', err);
+    toast('Gagal memuat data dropdown karyawan/kendaraan/inventory: ' + err.message, true);
+  }
+}
 
 // --- DYNAMIC FORM ENGINE (LOGIC & CALCULATOR) ---
 let CURRENT_FORM_FIELDS = []; // Memori untuk menyimpan struktur form saat sedang diisi
@@ -2529,12 +2531,6 @@ on('DYNFORM','submit',async e=>{
       const colRef = window.fdb.collection(window.db, "data_pengajuan");
       await window.fdb.addDoc(colRef, payloadIdm);
       
-      // ==========================================================
-      // PICU EMAIL KE APPROVER PERTAMA
-      // ==========================================================
-      kirimNotifEmail(payloadIdm, "SUBMIT_AWAL");
-      // ==========================================================
-      
       b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
       toast('Berhasil disimpan ke Cloud Firebase!'); 
       closeDynForm(); 
@@ -2760,152 +2756,70 @@ function openApproveAction(id, type) { $('MAA_ID').value=id; $('MAA_TYPE').value
 // Proses persetujuan/penolakan dalam SATU transaction Firestore, supaya kalau 2 approver
 // menekan tombol nyaris bersamaan, tidak terjadi step ke-timpa / approval ganda (race condition).
 async function submitApprovalAction(){
-  const id = $('MAA_ID').value, type = $('MAA_TYPE').value, note = $('MAA_NOTE').value;
-  if(!note) return toast('Anda wajib mengisi catatan!', true);
+  const id=$('MAA_ID').value, type=$('MAA_TYPE').value, note=$('MAA_NOTE').value;
+  if(!note) return toast('Anda wajib mengisi catatan!',true);
 
-  const b = $('MAA_BTN'), o = b.innerHTML;
-  b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Merekam Otorisasi...';
+  const b=$('MAA_BTN'), o=b.innerHTML;
+  b.disabled=true; b.innerHTML='Memproses...';
 
   try {
-      // 1. CARI DOKUMEN PENGAJUAN DI FIREBASE DI DALAM TRANSAKSI
-      const reqRef = window.fdb.collection(window.db, "data_pengajuan");
-      const qReq = window.fdb.query(reqRef, window.fdb.where("ID", "==", id));
-      const snapReq = await window.fdb.getDocs(qReq);
+    // 1. Cari dokumen Firestore-nya berdasarkan field custom "ID" (bukan doc-id Firestore)
+    const reqRef = window.fdb.collection(window.db, "data_pengajuan");
+    const qFind = window.fdb.query(reqRef, window.fdb.where("ID", "==", id));
+    const snapFind = await window.fdb.getDocs(qFind);
+    if (snapFind.empty) throw new Error('Data pengajuan tidak ditemukan.');
+    const firestoreDocId = snapFind.docs[0].id;
+    const targetRef = window.fdb.doc(window.db, "data_pengajuan", firestoreDocId);
 
-      if(snapReq.empty) {
-          b.disabled = false; b.innerHTML = o; return toast('Dokumen pengajuan tidak ditemukan!', true);
-      }
+    await window.fdb.runTransaction(window.db, async (tx) => {
+      const snap = await tx.get(targetRef);
+      if (!snap.exists()) throw new Error('Data pengajuan sudah tidak ada.');
+      const d = snap.data();
 
-      let docIdReq = ""; let reqData = {};
-      snapReq.forEach(doc => { docIdReq = doc.id; reqData = doc.data(); });
+      let flow = [], steps = [];
+      try { flow = JSON.parse(d.ApprovalFlowJson || '[]'); } catch(e) {}
+      try { steps = JSON.parse(d.ApprovalStepsJSON || '[]'); } catch(e) {}
 
-      // 2. PARSE ALUR APPROVAL BERJENJANG
-      let arrSteps = []; try { arrSteps = JSON.parse(reqData.ApprovalStepsJSON || '[]'); } catch(e){}
-      let arrFlow = []; try { arrFlow = JSON.parse(reqData.ApprovalFlowJson || '[]'); } catch(e){}
+      const idx = findPendingStepIndex(steps);
+      if (idx === -1) throw new Error('Pengajuan ini sudah diproses oleh approver lain.');
 
-      let pendingIdx = arrSteps.findIndex(s => s === 'PENDING');
-      if(pendingIdx === -1) {
-          b.disabled = false; b.innerHTML = o; return toast('Pengajuan ini sudah selesai diproses.', true);
-      }
+      // Validasi ulang di dalam transaction: pastikan memang giliran role user ini,
+      // supaya klik ganda / approval oleh role yang salah tidak lolos.
+      if (!roleMatchesStep(flow[idx], CU)) throw new Error('Bukan giliran Anda untuk memproses pengajuan ini.');
 
-      // Catat keputusan step saat ini (APPROVE / REJECT)
-      arrSteps[pendingIdx] = type;
-      let catatStr = (reqData.Catatan || "") + `\n[${CU.Nama} - ${type}]: ${note}`;
+      steps[idx] = type; // 'APPROVE' atau 'REJECT'
 
-      let finalStatus = "PROSES";
-      let posisiBerikutnya = reqData.PosisiFlow || "SELESAI";
-
+      let statusFinal, posisiFlow;
       if (type === 'REJECT') {
-          finalStatus = "REJECTED";
-          posisiBerikutnya = "DITOLAK";
-      } else if (!arrSteps.includes('PENDING')) {
-          finalStatus = "APPROVED FINAL"; // Seluruh rantai approval sudah menyetujui
-          posisiBerikutnya = "SELESAI";
+        statusFinal = 'REJECTED';
+        posisiFlow = 'SELESAI';
+      } else if (idx === flow.length - 1) {
+        // Ini step terakhir dan disetujui -> pengajuan tuntas
+        statusFinal = 'APPROVED FINAL';
+        posisiFlow = 'SELESAI';
       } else {
-          // Masih ada step pending berikutnya, alihkan posisi flow ke role selanjutnya
-          posisiBerikutnya = arrFlow[pendingIdx + 1] || "SELESAI";
+        statusFinal = 'PROSES';
+        posisiFlow = flow[idx + 1]; // lempar ke approver berikutnya
       }
 
-      // ================================================================
-      // 3. LOGIKA AUTO-DEDUCTION (POTONG CUTI OTOMATIS SAAT FINAL APPROVED)
-      // ================================================================
-      let namaForm = (reqData.NamaForm || "").toUpperCase();
-      if (finalStatus === "APPROVED FINAL" && (namaForm.includes("CUTI") || namaForm.includes("IZIN"))) {
-          let dJson = {}; try { dJson = JSON.parse(reqData.DetailJSON || '{}'); } catch(e){}
-
-          // Mapping field dinamis dari Form Builder Anda
-          let jenisCuti = dJson.jenis_cuti || dJson.tipe_cuti || dJson.jenis || "Cuti Tahunan";
-          let tglMulai = dJson.tanggal_mulai || dJson.tgl_mulai || reqData.Tanggal;
-          let tglSelesai = dJson.tanggal_selesai || dJson.tgl_selesai || tglMulai;
-          let alasanCuti = dJson.alasan || dJson.keterangan || dJson.catatan || "Disetujui via System";
-
-          // Hitung jarak hari pengambilan
-          let d1 = new Date(tglMulai); let d2 = new Date(tglSelesai);
-          let selisihHari = 1;
-          if(!isNaN(d1) && !isNaN(d2) && d2 >= d1) {
-              selisihHari = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-          }
-
-          let jenisUpper = jenisCuti.toUpperCase();
-          let potongCount = selisihHari;
-          if (jenisUpper.includes('SETENGAH') || jenisUpper.includes('1/2')) potongCount = 0.5;
-          
-          // Kecualikan jika formnya adalah izin sakit resmi atau dinas luar yang tidak memotong saldo
-          if (jenisUpper.includes('SAKIT') && !jenisUpper.includes('TANPA KETERANGAN')) potongCount = 0;
-          if (jenisUpper.includes('DINAS')) potongCount = 0;
-
-          if (potongCount > 0) {
-              // Cari data karyawan di master_karyawan berdasarkan nama pemohon
-              const karyRef = window.fdb.collection(window.db, "master_karyawan");
-              const qKary = window.fdb.query(karyRef, window.fdb.where("Nama_Karyawan", "==", reqData.NamaPemohon));
-              const snapKary = await window.fdb.getDocs(qKary);
-
-              if(!snapKary.empty) {
-                  let docIdKary = ""; let kData = {};
-                  snapKary.forEach(doc => { docIdKary = doc.id; kData = doc.data(); });
-                  
-                  // Bersihkan data awal dari potensi string "N/A"
-                  let cleanKData = sanitizeData(kData);
-                  let sTahunan = parseFloat(cleanKData.SisaCuti || cleanKData['Sisa Cuti'] || 0);
-                  
-                  sTahunan = Math.max(0, sTahunan - potongCount); // Tarik potongan dan cegah angka minus
-
-                  // Update Saldo Baru ke Master Karyawan
-                  await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docIdKary), {
-                      ...kData, 
-                      SisaCuti: sTahunan.toString(), 
-                      "Sisa Cuti": sTahunan.toString()
-                  });
-
-                  // Catat Log ke Koleksi master_cuti agar sinkron di Riwayat Detail HRD
-                  const logCutiRef = window.fdb.collection(window.db, "master_cuti");
-                  await window.fdb.addDoc(logCutiRef, {
-                      Nama_Karyawan: reqData.NamaPemohon,
-                      Tanggal: new Date().toISOString(),
-                      TglMulai: tglMulai,
-                      TglSelesai: tglSelesai,
-                      "Type Cuti": jenisCuti,
-                      "Potong Jatah": potongCount.toString(),
-                      "Keterangan Cuti": alasanCuti
-                  });
-              }
-          }
-      }
-
-      // 4. SIMPAN STATUS TERBARU KE DOKUMEN PENGAJUAN FIREBASE
-      const docRef = window.fdb.doc(window.db, "data_pengajuan", docIdReq);
-      await window.fdb.setDoc(docRef, {
-          ...reqData,
-          ApprovalStepsJSON: JSON.stringify(arrSteps),
-          Catatan: catatStr,
-          StatusFinal: finalStatus,
-          PosisiFlow: posisiBerikutnya
+      tx.update(targetRef, {
+        ApprovalStepsJSON: JSON.stringify(steps),
+        StatusFinal: statusFinal,
+        PosisiFlow: posisiFlow,
+        Catatan: note,
+        ProcessedBy: CU.Nama,
+        ProcessedAt: window.fdb.serverTimestamp()
       });
+    });
 
-      // ==========================================================
-      // 5. PICU EMAIL BERJENJANG MENGGUNAKAN MESIN BARU
-      // ==========================================================
-      let jenisNotif = "NEXT_APPROVER";
-      if (finalStatus === "APPROVED FINAL") jenisNotif = "FINAL_APPROVED";
-      if (finalStatus === "REJECTED") jenisNotif = "REJECTED";
-      
-      // Berikan posisi flow yang terbaru agar email dikirim ke orang yang tepat
-      reqData.PosisiFlow = posisiBerikutnya; 
-      
-      // Panggil mesin kurir (sengaja tanpa 'await' agar berjalan kilat di background)
-      kirimNotifEmail(reqData, jenisNotif, catatStr);
-      // ==========================================================
-
-      b.disabled = false; b.innerHTML = o;
-      toast('Otorisasi berhasil direkam & Database sinkron!');
-      closeM('MAPPROVE_ACTION');
-      loadApproval();
-      checkApprovalStatus();
-
+    toast('Berhasil diproses.');
+    closeM('MAPPROVE_ACTION');
+    loadApproval();
+    checkApprovalStatus();
   } catch(err) {
-      b.disabled = false; b.innerHTML = o;
-      console.error(err);
-      toast('Error Alur Approval: ' + err.message, true);
+    toast(err.message, true);
+  } finally {
+    b.disabled=false; b.innerHTML=o;
   }
 }
 
@@ -3160,15 +3074,7 @@ async function loadCutiKaryawan() {
           $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; 
       }
       
-      // Radar nama kebal huruf besar/kecil
-      MASTER_CUTI_DATA = MASTER_KARYAWAN_DATA.map(k => ({
-          nama: k.Nama_Karyawan || k['Nama Karyawan'] || k['NAMA KARYAWAN'] || k.NAMA || k.Nama || 'Tanpa Nama',
-          cabang: k.Cabang || k.CABANG || '-'
-      }));
-      
-      // Hapus data karyawan ganda (jika ada)
-      MASTER_CUTI_DATA = MASTER_CUTI_DATA.filter((v,i,a) => a.findIndex(t => (t.nama === v.nama)) === i);
-      
+      MASTER_CUTI_DATA = MASTER_KARYAWAN_DATA.map(k => ({nama: k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || ''}));
       renderCutiCards(MASTER_CUTI_DATA);
   } catch(e) { console.error("Error Cuti:", e); }
 }
@@ -3177,17 +3083,22 @@ function renderCutiCards(data) {
   if(!data.length) { $('CUTIGRID').innerHTML=''; $('CUTI_EMPTY').classList.remove('hide'); return; }
   
   $('CUTIGRID').innerHTML = data.map(k => {
-    // Cari data karyawan spesifik
-    const emp = MASTER_KARYAWAN_DATA.find(x => 
-        (x.Nama_Karyawan || x['Nama Karyawan'] || x['NAMA KARYAWAN'] || x.NAMA || x.Nama || '') === k.nama
-    ) || {};
-    
+    // Mencari data lengkap dari MASTER_KARYAWAN_DATA
+    const emp = MASTER_KARYAWAN_DATA.find(x => x.Nama_Karyawan === k.nama || x['Nama Karyawan'] === k.nama || x.Nama === k.nama) || {};
     const pos = emp.Jabatan || emp.JABATAN || emp.Posisi || k.cabang || 'KARYAWAN';
     
-    // AMBIL LANGSUNG DARI FIREBASE, JANGAN DIHITUNG ULANG! (Anti NaN)
-    const sTahunan = parseFloat(emp.SisaCuti || emp['Sisa Cuti'] || emp.SISA_CUTI) || 0;
-    const sAkumulasi = parseFloat(emp.SisaAkumulasi || emp['Sisa Akumulasi'] || emp.SISA_AKUMULASI) || 0;
-    const sKhusus = parseFloat(emp.SisaKhusus || emp['Sisa Khusus'] || emp.SISA_KHUSUS) || 0;
+    // PERBAIKAN: Kalkulasi sisa cuti (Jatah dikurangi Terpakai)
+    const jtTahunan = parseFloat(emp.jatah_tahunan || emp['jatah tahunan'] || 0);
+    const tpTahunan = parseFloat(emp['Terpakai Tahunan'] || emp.terpakai_tahunan || 0);
+    const sTahunan = Math.max(0, jtTahunan - tpTahunan); // Math.max agar tidak minus
+
+    const jtAkumulasi = parseFloat(emp.jatah_akumulasi || emp['jatah akumulasi'] || 0);
+    const tpAkumulasi = parseFloat(emp['Terpakai Akumulasi'] || emp.terpakai_akumulasi || 0);
+    const sAkumulasi = Math.max(0, jtAkumulasi - tpAkumulasi);
+
+    const jtKhusus = parseFloat(emp.jatah_khusus || emp['jatah khusus'] || 0);
+    const tpKhusus = parseFloat(emp['Terpakai Khusus'] || emp.terpakai_khusus || 0);
+    const sKhusus = Math.max(0, jtKhusus - tpKhusus);
     
     return `
     <div onclick="openCutiDetail('${k.nama.replace(/'/g,"\\'")}')" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 cursor-pointer hover:border-blue-500 transition group flex flex-col h-full">
@@ -3228,8 +3139,7 @@ function filterCutiKaryawan(q){ if(!q){renderCutiCards(MASTER_CUTI_DATA);return;
 // TARIK RINCIAN CUTI KARYAWAN SPESIFIK (FIREBASE)
 // =========================================================================
 async function openCutiDetail(nama) {
-  const safeNama = nama ? nama.toString().trim() : '';
-  $('MCD_NAMA').textContent = safeNama; $('MCM_NAMA').textContent = safeNama; $('MCM_NAMA_VAL').value = safeNama;
+  $('MCD_NAMA').textContent = nama; $('MCM_NAMA').textContent = nama; $('MCM_NAMA_VAL').value = nama;
   $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></td></tr>`;
   openM('MCUTI_DETAIL');
   
@@ -3238,46 +3148,23 @@ async function openCutiDetail(nama) {
       const snap = await window.fdb.getDocs(cutiRef);
       
       let cutiHistory = [];
-      
-      // MENGHANCURKAN SEMUA SPASI & JADIKAN HURUF KECIL
-      const keyword = safeNama.toLowerCase().replace(/\s+/g, '');
-
       snap.forEach(doc => {
           const d = doc.data();
-          // Tangkap nama dari database riwayat, hancurkan juga spasinya
-          const rawName = (d.Nama_Karyawan || d['Nama Karyawan'] || d['NAMA KARYAWAN'] || d.NamaPemohon || d.NAMA || d.Nama || '').toString();
-          const dbNameClean = rawName.toLowerCase().replace(/\s+/g, '');
-          
-          // PENCOCOKAN EKSTREM: Jika nama beririsan/saling mengandung, maka cocok!
-          if (dbNameClean !== '' && keyword !== '' && (dbNameClean.includes(keyword) || keyword.includes(dbNameClean))) { 
-              cutiHistory.push(d); 
-          }
+          const empName = d.Nama_Karyawan || d['Nama Karyawan'] || d.NamaPemohon || d.Nama || '';
+          if (empName.toUpperCase() === nama.toUpperCase()) { cutiHistory.push(d); }
       });
       
       // Urutkan dari yang terbaru ke terlama
-      cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || b.TANGGAL || 0) - new Date(a.Tanggal || a.Tgl || a.TANGGAL || 0));
+      cutiHistory.sort((a,b) => new Date(b.Tanggal || b.Tgl || 0) - new Date(a.Tanggal || a.Tgl || 0));
       
       if(!cutiHistory.length) { 
-          $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti untuk karyawan ini.</td></tr>`; return; 
+          $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 font-bold">Tidak ada riwayat cuti.</td></tr>`; return; 
       }
       
       $('MCD_BODY').innerHTML = cutiHistory.map(c => {
-        const p = parseFloat(c.Count || c.COUNT || c['Jumlah Ambil'] || c.Jumlah_Ambil || c.Potongan || c['Potong Jatah'] || c.Potong_Jatah) || 0; 
+        const p = parseFloat(c['Count']) || parseFloat(c['Jumlah_Ambil']) || parseFloat(c['Potongan']) || parseFloat(c['Potong Jatah']) || 0; 
         const pB = p > 0 ? `<span class="bg-red-100 text-red-700 font-black px-2 py-1 rounded text-[10px]">- ${p} Hari</span>` : `<span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded text-[10px]">0 Hari</span>`;
-        
-        const tgl = c.Tanggal || c.Tgl || c.TANGGAL || c.DATE || '-';
-        const jenis = c['Type Cuti'] || c['TYPE CUTI'] || c.Jenis_Cuti || c.Jenis || c.JENIS || '-';
-        const alasan = c['Keterangan Cuti'] || c['KETERANGAN CUTI'] || c.Alasan || c.Keterangan || c.KETERANGAN || '-';
-        const file = c.FORM || c.URL_PDF || c.File || '';
-
-        return `<tr class="hover:bg-blue-50">
-            <td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(tgl)}</td>
-            <td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${jenis}</span></td>
-            <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||c.Jenis_Setengah||'-'}</td>
-            <td class="px-6 py-4 text-center">${pB}</td>
-            <td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${alasan}</td>
-            <td class="px-6 py-4 text-center">${file ? `<a href="${file}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td>
-        </tr>`;
+        return `<tr class="hover:bg-blue-50"><td class="px-6 py-4 font-bold text-xs text-slate-500">${fmtDate(c.Tanggal || c.Tgl)}</td><td class="px-6 py-4"><span class="bg-blue-100 text-blue-700 font-black px-2.5 py-1 rounded-lg text-[10px]">${c['Type Cuti']||c.Jenis_Cuti||c.Jenis||'-'}</span></td><td class="px-6 py-4 text-center text-xs font-bold text-slate-600">${c['Tipe Cuti Setengah Hari']||c.Jenis_Setengah||'-'}</td><td class="px-6 py-4 text-center">${pB}</td><td class="px-6 py-4 text-xs text-slate-500 font-medium truncate max-w-[150px]">${c['Keterangan Cuti']||c.Alasan||'-'}</td><td class="px-6 py-4 text-center">${c.FORM||c.URL_PDF ? `<a href="${c.FORM||c.URL_PDF}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white mx-auto"><i class="fa-solid fa-file-pdf"></i></a>` : '-'}</td></tr>`;
       }).join('');
   } catch(e) {
       $('MCD_BODY').innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-red-500 font-bold">Error memuat data.</td></tr>`;
@@ -3375,8 +3262,8 @@ let MASTER_KARYAWAN_DATA = [];
 // TARIK DATA KARYAWAN (FIREBASE) - DENGAN PEMBERSIH N/A
 // =========================================================================
 async function loadKaryawan(){ 
-  const el = $('KARYGRID');
-  if(el) el.innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
+  $('KARYGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>'; 
+  const valCabang = $('FILTCAB') ? $('FILTCAB').value : '';
   
   try {
       const karyRef = window.fdb.collection(window.db, "master_karyawan");
@@ -3384,14 +3271,24 @@ async function loadKaryawan(){
       
       MASTER_KARYAWAN_DATA = [];
       snap.forEach(doc => { 
-          let d = sanitizeData(doc.data()); // Bersihkan data di sini
+          let d = doc.data();
+          // OBAT ANTI N/A: Bersihkan data cuti dari huruf N/A sebelum masuk ke layar HRD
+          ['Sisa Cuti', 'SisaCuti', 'Jatah Tahunan', 'JatahTahunan', 'Sisa Khusus', 'SisaKhusus', 'Sisa Akumulasi', 'SisaAkumulasi'].forEach(key => {
+              if(d[key] === 'N/A' || d[key] === '#N/A') d[key] = '0';
+          });
+          d._docId = doc.id; // simpan doc-id Firestore supaya bisa di-update nanti (bukan ditampilkan ke user)
           MASTER_KARYAWAN_DATA.push(d); 
       });
       
-      if($('TOTALKARY')) $('TOTALKARY').textContent = MASTER_KARYAWAN_DATA.length; 
-      renderKaryawanGrid(MASTER_KARYAWAN_DATA);
+      let finalData = MASTER_KARYAWAN_DATA;
+      if(valCabang) {
+          finalData = finalData.filter(k => (k.Cabang || k.CABANG || '').toUpperCase() === valCabang.toUpperCase());
+      }
+      
+      if($('TOTALKARY')) $('TOTALKARY').textContent = finalData.length; 
+      renderKaryawanGrid(finalData);
   } catch(e) {
-      console.error("Gagal memuat Karyawan:", e);
+      $('KARYGRID').innerHTML=`<div class="col-span-full text-center text-red-500 font-bold">Error Firebase: ${e.message}</div>`;
   }
 }
 // 2. Fungsi menggambar kartu karyawan ke layar
@@ -3433,7 +3330,7 @@ function openKaryDetail(k){
   $('MKARY_TITLE').textContent = namaK; 
   
   // 1. Kolom yang harus disembunyikan dari layar
-  const sk = ['_rowIndex', 'AKSES_MENU', 'AKSES MENU']; 
+  const sk = ['_rowIndex', '_docId', 'AKSES_MENU', 'AKSES MENU']; 
   
   // 2. Prioritas Urutan Tampilan (Agar Rapi dan Tidak Acak)
   const priority = [
@@ -3478,6 +3375,7 @@ function openKaryDetail(k){
   $('MKARY_BODY').innerHTML = html; 
   $('MKARY').dataset.editNama=namaK; 
   $('MKARY').dataset.editNik=k.NIK_Karyawan || k.NIK || ''; 
+  $('MKARY').dataset.editDocId=k._docId || '';
   openM('MKARY'); 
 }
 async function saveKaryawanEdit(){ 
@@ -3497,18 +3395,25 @@ async function saveKaryawanEdit(){
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-  // VAKSIN: Variabel diganti menjadi responEdit
-  const responEdit = await api({action:'update_karyawan',user:CU,Nama:$('MKARY').dataset.editNama,NIK:$('MKARY').dataset.editNik,updates:u}); 
-  
-  btn.disabled = false;
-  btn.innerHTML = oHtml;
+  try {
+    const docId = $('MKARY').dataset.editDocId;
+    if (!docId) throw new Error('Dokumen karyawan tidak ditemukan (docId kosong). Coba refresh data.');
 
-  if(responEdit.success){
-     toast('Perubahan karyawan & Hak Akses berhasil disimpan!');
-     closeM('MKARY');
-     loadKaryawan();
-  } else {
-     toast(responEdit.message, true);
+    // Sanitasi: buang N/A dan kosongkan spasi liar sebelum ditulis ke Firestore
+    const cleanUpdates = sanitizeRow(u);
+    cleanUpdates.UpdatedAt = window.fdb.serverTimestamp();
+
+    const targetRef = window.fdb.doc(window.db, "master_karyawan", docId);
+    await window.fdb.updateDoc(targetRef, cleanUpdates);
+
+    toast('Perubahan karyawan & Hak Akses berhasil disimpan!');
+    closeM('MKARY');
+    loadKaryawan();
+  } catch(err) {
+    toast('Gagal: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oHtml;
   }
 }
 // --- SIKLUS KARYAWAN & OFFBOARDING TRACKER ---
@@ -3722,7 +3627,42 @@ function fbRenderFieldsList() {
   </div>`).join(''); 
 }
 function fbAddField(){ FB_STATE.fields.push({name:'baru',label:'Baru',type:'text'}); fbRenderFieldsList(); }
-async function saveForm(){ let allowed = 'ALL'; if(!$('FB_ALL_KARY').checked) { const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value); if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true); allowed = checked.join(','); } const b = document.activeElement; if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...'; const res=await api({action:'save_form_config',user:CU,formId:$('FBID').value,namaForm:$('FBNAMA').value,flowJson:JSON.stringify(FB_STATE.flow),fieldsJson:JSON.stringify(FB_STATE.fields),allowedRoles:allowed, notifyRoles:$('FBNOTIFY').value}); if(b) b.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi'; if(res.success){ toast('Disimpan'); await loadForms(); loadFBList(); } }
+async function saveForm(){
+  let allowed = 'ALL';
+  if(!$('FB_ALL_KARY').checked) {
+    const checked = Array.from(document.querySelectorAll('.fb-kary-cb:checked')).map(cb => cb.value);
+    if(checked.length === 0) return toast('Pilih minimal 1 karyawan atau centang Izinkan Semua!', true);
+    allowed = checked.join(',');
+  }
+  const b = document.activeElement;
+  const oHtml = b ? b.innerHTML : '';
+  if(b) b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
+
+  try {
+    const formId = $('FBID').value;
+    if (!formId) throw new Error('Form ID kosong.');
+
+    const payload = {
+      FormID: formId,
+      NamaForm: $('FBNAMA').value,
+      ApprovalFlowJson: JSON.stringify(FB_STATE.flow),
+      FieldsJSON: JSON.stringify(FB_STATE.fields),
+      AllowedRoles: allowed,
+      NotifyRoles: $('FBNOTIFY').value,
+      UpdatedAt: window.fdb.serverTimestamp()
+    };
+
+    await window.fdb.setDoc(window.fdb.doc(window.db, "form_config", formId), payload, { merge: true });
+
+    toast('Disimpan');
+    await loadForms();
+    loadFBList();
+  } catch(err) {
+    toast('Gagal menyimpan form: ' + err.message, true);
+  } finally {
+    if(b) b.innerHTML = oHtml || '<i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Konfigurasi';
+  }
+}
 
 // --- KENDARAAN & INVENTORY ---
 function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').value=''; $('KF_ST').value='TERSEDIA'; openM('MKEND'); }
@@ -3730,9 +3670,14 @@ function openKendM() { $('KF_POL').value=''; $('KF_THN').value=''; $('KF_MERK').
 // 1. Tarik Data Kendaraan (1 Kali)
 async function loadKend(){ 
   $('KENDGRID').innerHTML='<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-3xl text-slate-300"></i></div>';
-  const res = await api({action:'get_kendaraan'}); 
-  KEND_DATA = res.data || []; 
-  renderKendaraanGrid(KEND_DATA);
+  try {
+    const snap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_kendaraan"));
+    KEND_DATA = [];
+    snap.forEach(d => KEND_DATA.push({ ...d.data(), _docId: d.id }));
+    renderKendaraanGrid(KEND_DATA);
+  } catch(err) {
+    $('KENDGRID').innerHTML = `<div class="col-span-full p-8 text-center text-red-500 font-bold">Gagal memuat data: ${err.message}</div>`;
+  }
 }
 
 // 2. Render Kartu Kendaraan ke Layar
@@ -3757,51 +3702,322 @@ function filterKendaraan() {
   renderKendaraanGrid(filtered);
 }
 
-function openKendDetail(i){ const k=KEND_DATA[i]; $('MKD_NOPOL').textContent=k['No. Polisi']||k['No Polisi']; $('MKD_NOPOL_VAL').value=k['No. Polisi']||k['No Polisi']; const sk=['_rowIndex'], keys=Object.keys(k).filter(x=>!sk.includes(x)); $('MKD_DYNAMIC_FIELDS').innerHTML = keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kend-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-emerald-500" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join(''); mkdSetTab('info'); openM('MKEND_DETAIL'); }
-async function saveKendDetail(){ const u={}; document.querySelectorAll('.kend-edit-field').forEach(e=>u[e.dataset.field]=e.value); const res=await api({action:'save_kendaraan',user:CU,updates:u}); if(res.success){toast('Identitas armada diperbarui.');closeM('MKEND_DETAIL');loadKend();} }
+function openKendDetail(i){ const k=KEND_DATA[i]; $('MKD_NOPOL').textContent=k['No. Polisi']||k['No Polisi']; $('MKD_NOPOL_VAL').value=k['No. Polisi']||k['No Polisi']; $('MKEND_DETAIL').dataset.docId=k._docId||''; const sk=['_rowIndex','_docId'], keys=Object.keys(k).filter(x=>!sk.includes(x)); $('MKD_DYNAMIC_FIELDS').innerHTML = keys.map(kk=>`<div class="bg-white border rounded-xl p-3 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${kk}</p><input type="text" class="kend-edit-field w-full font-bold text-sm bg-slate-50 mt-1 px-2 py-1.5 rounded outline-none border border-transparent focus:border-emerald-500" data-field="${kk}" value="${(k[kk]!=null?k[kk]:'').toString().replace(/"/g,'&quot;')}"></div>`).join(''); mkdSetTab('info'); openM('MKEND_DETAIL'); }
+async function saveKendDetail(){
+  const u={}; document.querySelectorAll('.kend-edit-field').forEach(e=>u[e.dataset.field]=e.value);
+  try {
+    const docId = $('MKEND_DETAIL').dataset.docId;
+    if (!docId) throw new Error('Dokumen kendaraan tidak ditemukan.');
+    const clean = sanitizeRow(u);
+    clean.UpdatedAt = window.fdb.serverTimestamp();
+    await window.fdb.updateDoc(window.fdb.doc(window.db, "master_kendaraan", docId), clean);
+    toast('Identitas armada diperbarui.');
+    closeM('MKEND_DETAIL');
+    loadKend();
+  } catch(err) {
+    toast('Gagal menyimpan: ' + err.message, true);
+  }
+}
+
+// Tambah kendaraan baru — sebelumnya tombol "Simpan" di modal MKEND memanggil fungsi yang belum pernah ada.
+async function saveKend(){
+  const nopol = $('KF_POL').value.trim();
+  if (!nopol) return toast('No. Polisi wajib diisi!', true);
+  try {
+    await window.fdb.addDoc(window.fdb.collection(window.db, "master_kendaraan"), {
+      'No. Polisi': nopol,
+      'Tahun': $('KF_THN').value,
+      'Merk / Tipe': $('KF_MERK').value,
+      'Status': $('KF_ST').value,
+      CreatedAt: window.fdb.serverTimestamp()
+    });
+    toast('Kendaraan baru berhasil ditambahkan.');
+    closeM('MKEND');
+    loadKend();
+  } catch(err) {
+    toast('Gagal menambah kendaraan: ' + err.message, true);
+  }
+}
 function mkdSetTab(t){ ['info','fuel','service','compliance','riwayat'].forEach(x=>{ $('MKD_TAB_'+x).classList.toggle('border-emerald-500',x===t); $('MKD_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='riwayat')loadKendRiwayat(); }
-async function submitLogFuel(){ const r=await api({action:'log_kendaraan_fuel',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggal:$('MKDF_TGL').value,namaDriver:$('MKDF_DRIVER').value,kmAwal:$('MKDF_KMAWAL').value,kmAkhir:$('MKDF_KMAKHIR').value,liter:$('MKDF_LITER').value,jenisBBM:$('MKDF_JENISBBM').value,totalBiaya:$('MKDF_BIAYA').value}); if(r.success){toast('BBM Dicatat');['MKDF_KMAWAL','MKDF_KMAKHIR','MKDF_LITER','MKDF_BIAYA'].forEach(id=>$(id).value='');} }
-async function submitLogService(){ const r=await api({action:'log_kendaraan_service',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggal:$('MKDS_TGL').value,namaDriver:$('MKDS_DRIVER').value,detailPerbaikan:$('MKDS_DETAIL').value,bengkel:$('MKDS_BENGKEL').value,noInvoice:$('MKDS_INVOICE').value,totalBiaya:$('MKDS_BIAYA').value}); if(r.success){toast('Servis Dicatat');['MKDS_DETAIL','MKDS_BENGKEL','MKDS_INVOICE','MKDS_BIAYA'].forEach(id=>$(id).value='');} }
-async function submitLogCompliance(){ const r=await api({action:'log_kendaraan_compliance',user:CU,nopol:$('MKD_NOPOL_VAL').value,tanggalBayar:new Date().toISOString(),namaDriver:$('MKDC_DRIVER').value,jenisDokumen:$('MKDC_JENIS').value,masaBerlaku:$('MKDC_MASA').value,vendor:$('MKDC_VENDOR').value,totalBiaya:$('MKDC_BIAYA').value}); if(r.success){toast('Kepatuhan Dicatat');['MKDC_MASA','MKDC_VENDOR','MKDC_BIAYA'].forEach(id=>$(id).value='');} }
+async function submitLogFuel(){
+  try {
+    await window.fdb.addDoc(window.fdb.collection(window.db, "log_kendaraan_fuel"), {
+      Nopol: $('MKD_NOPOL_VAL').value, Tanggal: $('MKDF_TGL').value, NamaDriver: $('MKDF_DRIVER').value,
+      KmAwal: $('MKDF_KMAWAL').value, KmAkhir: $('MKDF_KMAKHIR').value, Liter: $('MKDF_LITER').value,
+      JenisBBM: $('MKDF_JENISBBM').value, TotalBiaya: $('MKDF_BIAYA').value, CreatedAt: window.fdb.serverTimestamp()
+    });
+    toast('BBM Dicatat');
+    ['MKDF_KMAWAL','MKDF_KMAKHIR','MKDF_LITER','MKDF_BIAYA'].forEach(id=>$(id).value='');
+  } catch(err) { toast('Gagal mencatat BBM: ' + err.message, true); }
+}
+async function submitLogService(){
+  try {
+    await window.fdb.addDoc(window.fdb.collection(window.db, "log_kendaraan_service"), {
+      Nopol: $('MKD_NOPOL_VAL').value, Tanggal: $('MKDS_TGL').value, NamaDriver: $('MKDS_DRIVER').value,
+      DetailPerbaikan: $('MKDS_DETAIL').value, Bengkel: $('MKDS_BENGKEL').value, NoInvoice: $('MKDS_INVOICE').value,
+      TotalBiaya: $('MKDS_BIAYA').value, CreatedAt: window.fdb.serverTimestamp()
+    });
+    toast('Servis Dicatat');
+    ['MKDS_DETAIL','MKDS_BENGKEL','MKDS_INVOICE','MKDS_BIAYA'].forEach(id=>$(id).value='');
+  } catch(err) { toast('Gagal mencatat servis: ' + err.message, true); }
+}
+async function submitLogCompliance(){
+  try {
+    await window.fdb.addDoc(window.fdb.collection(window.db, "log_kendaraan_compliance"), {
+      Nopol: $('MKD_NOPOL_VAL').value, TanggalBayar: new Date().toISOString(), NamaDriver: $('MKDC_DRIVER').value,
+      JenisDokumen: $('MKDC_JENIS').value, MasaBerlaku: $('MKDC_MASA').value, Vendor: $('MKDC_VENDOR').value,
+      TotalBiaya: $('MKDC_BIAYA').value, CreatedAt: window.fdb.serverTimestamp()
+    });
+    toast('Kepatuhan Dicatat');
+    ['MKDC_MASA','MKDC_VENDOR','MKDC_BIAYA'].forEach(id=>$(id).value='');
+  } catch(err) { toast('Gagal mencatat kepatuhan: ' + err.message, true); }
+}
 async function loadKendRiwayat(){ 
    $('MKD_RIWAYAT_LIST').innerHTML = '<div class="p-8 text-center"><i class="fa-solid fa-spinner fa-spin text-emerald-500 text-2xl"></i></div>';
-   
-   const res = await api({action:'get_riwayat_kendaraan', noPolisi:$('MKD_NOPOL_VAL').value}); 
-   
-   if(res.success && res.data && res.data.length > 0) {
-       $('MKD_RIWAYAT_LIST').innerHTML = res.data.map(r => {
-           // Kalkulasi aman untuk nilai uang (mencegah NaN)
+   const nopol = $('MKD_NOPOL_VAL').value;
+
+   try {
+     const [fuelSnap, svcSnap, compSnap] = await Promise.all([
+       window.fdb.getDocs(window.fdb.query(window.fdb.collection(window.db, "log_kendaraan_fuel"), window.fdb.where("Nopol", "==", nopol))),
+       window.fdb.getDocs(window.fdb.query(window.fdb.collection(window.db, "log_kendaraan_service"), window.fdb.where("Nopol", "==", nopol))),
+       window.fdb.getDocs(window.fdb.query(window.fdb.collection(window.db, "log_kendaraan_compliance"), window.fdb.where("Nopol", "==", nopol)))
+     ]);
+
+     let riwayat = [];
+     fuelSnap.forEach(d => { const r=d.data(); riwayat.push({ Tanggal:r.Tanggal, Kategori:'BBM', Ringkasan:`${r.Liter||0} L (KM ${r.KmAwal||'-'} - ${r.KmAkhir||'-'})`, Driver:r.NamaDriver, TotalBiaya:r.TotalBiaya }); });
+     svcSnap.forEach(d => { const r=d.data(); riwayat.push({ Tanggal:r.Tanggal, Kategori:'Servis', Ringkasan:`${r.DetailPerbaikan||'-'} @ ${r.Bengkel||'-'}`, Driver:r.NamaDriver, TotalBiaya:r.TotalBiaya }); });
+     compSnap.forEach(d => { const r=d.data(); riwayat.push({ Tanggal:r.TanggalBayar, Kategori:'Kepatuhan', Ringkasan:`${r.JenisDokumen||'-'} @ ${r.Vendor||'-'}`, Driver:r.NamaDriver, TotalBiaya:r.TotalBiaya }); });
+
+     riwayat.sort((a,b) => new Date(b.Tanggal||0) - new Date(a.Tanggal||0));
+
+     if (riwayat.length > 0) {
+       $('MKD_RIWAYAT_LIST').innerHTML = riwayat.map(r => {
            const biaya = parseFloat(r.TotalBiaya) || 0;
            return `
            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-emerald-300 transition">
               <p class="font-black text-sm text-slate-800">${r.Kategori}: ${r.Ringkasan}</p>
               <div class="flex items-center gap-4 mt-2">
-                 <p class="text-[10px] font-bold text-slate-500"><i class="fa-solid fa-user-tag text-emerald-600 mr-1"></i>Driver: ${r.Driver}</p>
+                 <p class="text-[10px] font-bold text-slate-500"><i class="fa-solid fa-user-tag text-emerald-600 mr-1"></i>Driver: ${r.Driver||'-'}</p>
                  <p class="text-[10px] font-bold text-slate-500"><i class="fa-solid fa-wallet text-emerald-600 mr-1"></i>Biaya: Rp ${biaya.toLocaleString('id-ID')}</p>
               </div>
            </div>`;
-       }).join(''); 
-   } else {
+       }).join('');
+     } else {
        $('MKD_RIWAYAT_LIST').innerHTML = '<div class="p-8 text-center text-slate-400 font-bold border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">Belum ada riwayat transaksi pada kendaraan ini.</div>';
+     }
+   } catch(err) {
+     $('MKD_RIWAYAT_LIST').innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Gagal memuat riwayat: ${err.message}</div>`;
    }
 }
 
-async function loadInv(){ const res=await api({action:'get_inventory'}); INV_DATA=res.data||[]; $('INVGRID').innerHTML=INV_DATA.map((i,idx)=>{ const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || ''; return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`; }).join(''); if($('BATCH_KARY')) $('BATCH_KARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); if(!$('BATCH_TBODY').children.length) { $('BATCH_TGL').value = new Date().toISOString().split('T')[0]; addBatchRow(); } }
+async function loadInv(){
+  try {
+    const snap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_inventory"));
+    INV_DATA = [];
+    snap.forEach(d => INV_DATA.push({ ...d.data(), _docId: d.id }));
+  } catch(err) {
+    $('INVGRID').innerHTML = `<div class="col-span-full p-8 text-center text-red-500 font-bold">Gagal memuat inventory: ${err.message}</div>`;
+    return;
+  }
+  $('INVGRID').innerHTML=INV_DATA.map((i,idx)=>{ const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || ''; return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`; }).join(''); if($('BATCH_KARY')) $('BATCH_KARY').innerHTML='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); if(!$('BATCH_TBODY').children.length) { $('BATCH_TGL').value = new Date().toISOString().split('T')[0]; addBatchRow(); } }
 function filterInventory(q){ if(!q){loadInv();return;} $('INVGRID').innerHTML=INV_DATA.filter(i=>(getV(i,['NAMABARANG', 'Nama Barang'])||'').toLowerCase().includes(q.toLowerCase())).map((i,idx)=>{ const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) || '-'; const nama = getV(i, ['NAMABARANG', 'Nama Barang']) || '-'; const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || '0'; const sat = getV(i, ['SATUAN']) || ''; return `<div onclick="openInvM(INV_DATA[${idx}])" class="bg-white border p-6 rounded-3xl cursor-pointer hover:border-cyan-500 transition shadow-sm"><p class="font-black text-slate-800">${nama}</p><p class="text-[10px] font-mono font-black text-cyan-600 mt-1">ID: ${id}</p><p class="text-xs font-bold text-slate-500 mt-2">Stok: <span class="font-black text-slate-800">${stok}</span> ${sat}</p></div>`; }).join(''); }
 function openInvM(iv){ $('IF_ID').value=iv ? getV(iv, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']) : ''; $('IF_NAMA').value=iv ? getV(iv, ['NAMABARANG', 'Nama Barang']) : ''; $('IF_STOK').value=iv ? getV(iv, ['STOKSAATINI', 'STOK', 'QTY']) : 0; $('IF_SAT').value=iv ? getV(iv, ['SATUAN']) : ''; openM('MINV'); }
-async function saveInv(){ let refObj = INV_DATA.length > 0 ? INV_DATA[0] : null; let updates = {}; updates[exactKey(refObj, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item'])] = $('IF_ID').value; updates[exactKey(refObj, ['NAMABARANG', 'Nama Barang'])] = $('IF_NAMA').value; updates[exactKey(refObj, ['STOKSAATINI', 'STOK', 'QTY'])] = $('IF_STOK').value; updates[exactKey(refObj, ['SATUAN'])] = $('IF_SAT').value; const res=await api({action:'save_inventory',user:CU,updates:updates}); if(res.success){toast('Aset Inventory disimpan');closeM('MINV');loadInv();} }
+
+// Simpan barang: doc-id Firestore = ID Barang (natural key), pakai setDoc+merge supaya create & edit sama-sama aman.
+async function saveInv(){
+  const idBarang = $('IF_ID').value.trim();
+  if (!idBarang) return toast('ID Barang wajib diisi!', true);
+  try {
+    await window.fdb.setDoc(window.fdb.doc(window.db, "master_inventory", idBarang), {
+      IDBARANG: idBarang,
+      NAMABARANG: $('IF_NAMA').value,
+      STOKSAATINI: $('IF_STOK').value,
+      SATUAN: $('IF_SAT').value,
+      UpdatedAt: window.fdb.serverTimestamp()
+    }, { merge: true });
+    toast('Aset Inventory disimpan');
+    closeM('MINV');
+    loadInv();
+  } catch(err) {
+    toast('Gagal menyimpan inventory: ' + err.message, true);
+  }
+}
+
 function invSetTab(t){ ['list','ambil','riwayat','opname'].forEach(x=>{ $('INV_TAB_'+x).classList.toggle('bg-slate-800',x===t); $('INV_TAB_'+x).classList.toggle('text-white',x===t); $('INV_PANEL_'+x).classList.toggle('hide',x!==t); }); if(t==='opname') { $('OPNAME_BODY').innerHTML='<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">Data kosong. Klik "Tarik Data Stok Sistem".</td></tr>'; } if(t==='riwayat')loadInvRiwayat(); }
 
 function addBatchRow() { const optsInv=INV_DATA.map(i=> { const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']); return `<option value="${id}">${nama} (Sisa: ${stok})</option>`; }).join(''); const optsKary='<option value="">— Pilih Karyawan —</option>'+DD_KARY.map(k=>`<option value="${k.nama}">${k.nama}</option>`).join(''); const tr=document.createElement('tr'); tr.innerHTML=`<td class="px-3 py-3"><select class="batch-item inp !py-2 font-bold">${optsInv}</select></td><td class="px-3 py-3"><input type="number" class="batch-qty inp !py-2 text-center font-black" placeholder="0" min="1"></td><td class="px-3 py-3"><select class="batch-kary inp !py-2 font-bold">${optsKary}</select></td><td class="px-3 py-3"><input type="text" class="batch-kep inp !py-2 font-medium" placeholder="Contoh: ATK Sales"></td><td class="px-3 py-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td>`; $('BATCH_TBODY').appendChild(tr); }
-async function submitBatchAmbil(){ const tgl=$('BATCH_TGL').value; if(!tgl) return toast('Harap isi Tanggal Pengambilan!',true); let err=false, items=[]; document.querySelectorAll('#BATCH_TBODY tr').forEach(r=>{ const id=r.querySelector('.batch-item').value, q=parseInt(r.querySelector('.batch-qty').value); const kary=r.querySelector('.batch-kary').value, kep=r.querySelector('.batch-kep').value; if(!id||isNaN(q)||q<=0||!kary||!kep) err=true; else items.push({idBarang:id,jumlahAmbil:q,namaKaryawan:kary,keperluan:kep,tanggal:tgl}); }); if(err||!items.length)return toast('Lengkapi pilihan Barang, Qty, Karyawan, dan Keperluan per baris!',true); if(!confirm('Potong jatah stok di database?'))return; showL('Sedang memotong stok...'); for(const x of items) { await api({action:'ambil_inventory',user:CU,...x}); } hideL(); toast('Transaksi log pengambilan berhasil terekam.'); $('BATCH_TBODY').innerHTML=''; addBatchRow(); loadInv(); }
-async function loadInvRiwayat(){ const res=await api({action:'get_riwayat_inventory'}); LOG_INV_DATA = res.data||[]; $('TBODY_LOG_INV').innerHTML=LOG_INV_DATA.map((r,idx)=>{ const idB = getV(r, ['ID_Barang', 'IDBarang', 'ID Item', 'ID_Item']) || '-'; const qtyB = getV(r, ['Jumlah_Ambil', 'JumlahAmbil', 'Qty', 'Jumlah']) || 0; const nmB = getV(r, ['Nama_Barang', 'NamaBarang']) || '-'; const nmK = getV(r, ['Nama_Karyawan', 'NamaKaryawan']) || '-'; const kep = getV(r, ['Keperluan']) || '-'; return `<tr><td class="px-6 py-4">${fmtDate(r.Tanggal)}</td><td class="px-6 py-4 font-mono font-bold">${idB}</td><td class="px-6 py-4 font-black">${nmB}</td><td class="px-6 py-4 text-center font-black text-cyan-600">${qtyB}</td><td class="px-6 py-4 font-bold">${nmK}</td><td class="px-6 py-4 text-xs max-w-[200px] truncate">${kep}</td><td class="px-6 py-4 text-center"><button onclick="openEditLogInv(${idx})" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-blue-600 border hover:bg-blue-50">Edit</button> <button onclick="deleteLogInv('${r.ID_Log}')" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-red-600 border hover:bg-red-50 ml-1">Hapus</button></td></tr>`; }).join('') || '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada log pengambilan.</td></tr>'; }
+
+// Potong stok 1 barang dalam transaction (anti race-condition: 2 orang ambil barang yang sama nyaris bersamaan tidak akan bikin stok minus).
+async function ambilInventoryTx(idBarang, jumlahAmbil, namaKaryawan, keperluan, tanggal) {
+  const itemRef = window.fdb.doc(window.db, "master_inventory", idBarang);
+  await window.fdb.runTransaction(window.db, async (tx) => {
+    const snap = await tx.get(itemRef);
+    if (!snap.exists()) throw new Error(`Barang ${idBarang} tidak ditemukan.`);
+    const stokSaatIni = parseInt(getV(snap.data(), ['STOKSAATINI','STOK','QTY'])) || 0;
+    if (stokSaatIni < jumlahAmbil) throw new Error(`Stok ${idBarang} tidak cukup (sisa ${stokSaatIni}).`);
+    tx.update(itemRef, { STOKSAATINI: (stokSaatIni - jumlahAmbil).toString(), UpdatedAt: window.fdb.serverTimestamp() });
+  });
+  await window.fdb.addDoc(window.fdb.collection(window.db, "log_inventory"), {
+    ID_Log: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    ID_Barang: idBarang,
+    Nama_Barang: getV(INV_DATA.find(i => getV(i,['IDITEM','IDBARANG','ID Barang','ID Item'])===idBarang) || {}, ['NAMABARANG','Nama Barang']) || idBarang,
+    Jumlah_Ambil: jumlahAmbil,
+    Nama_Karyawan: namaKaryawan,
+    Keperluan: keperluan,
+    Tanggal: tanggal,
+    CreatedAt: window.fdb.serverTimestamp()
+  });
+}
+
+async function submitBatchAmbil(){
+  const tgl=$('BATCH_TGL').value; if(!tgl) return toast('Harap isi Tanggal Pengambilan!',true);
+  let err=false, items=[];
+  document.querySelectorAll('#BATCH_TBODY tr').forEach(r=>{
+    const id=r.querySelector('.batch-item').value, q=parseInt(r.querySelector('.batch-qty').value);
+    const kary=r.querySelector('.batch-kary').value, kep=r.querySelector('.batch-kep').value;
+    if(!id||isNaN(q)||q<=0||!kary||!kep) err=true;
+    else items.push({idBarang:id,jumlahAmbil:q,namaKaryawan:kary,keperluan:kep,tanggal:tgl});
+  });
+  if(err||!items.length) return toast('Lengkapi pilihan Barang, Qty, Karyawan, dan Keperluan per baris!',true);
+  if(!confirm('Potong jatah stok di database?')) return;
+
+  showL('Sedang memotong stok...');
+  const gagal = [];
+  for(const x of items) {
+    try { await ambilInventoryTx(x.idBarang, x.jumlahAmbil, x.namaKaryawan, x.keperluan, x.tanggal); }
+    catch(err) { gagal.push(`${x.idBarang}: ${err.message}`); }
+  }
+  hideL();
+
+  if (gagal.length) toast('Sebagian gagal: ' + gagal.join('; '), true);
+  else toast('Transaksi log pengambilan berhasil terekam.');
+  $('BATCH_TBODY').innerHTML=''; addBatchRow(); loadInv();
+}
+async function loadInvRiwayat(){
+  try {
+    const snap = await window.fdb.getDocs(window.fdb.collection(window.db, "log_inventory"));
+    LOG_INV_DATA = [];
+    snap.forEach(d => LOG_INV_DATA.push({ ...d.data(), _docId: d.id }));
+    LOG_INV_DATA.sort((a,b) => new Date(b.Tanggal||0) - new Date(a.Tanggal||0));
+  } catch(err) {
+    $('TBODY_LOG_INV').innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500 font-bold">Gagal memuat riwayat: ${err.message}</td></tr>`;
+    return;
+  }
+  $('TBODY_LOG_INV').innerHTML=LOG_INV_DATA.map((r,idx)=>{ const idB = getV(r, ['ID_Barang', 'IDBarang', 'ID Item', 'ID_Item']) || '-'; const qtyB = getV(r, ['Jumlah_Ambil', 'JumlahAmbil', 'Qty', 'Jumlah']) || 0; const nmB = getV(r, ['Nama_Barang', 'NamaBarang']) || '-'; const nmK = getV(r, ['Nama_Karyawan', 'NamaKaryawan']) || '-'; const kep = getV(r, ['Keperluan']) || '-'; return `<tr><td class="px-6 py-4">${fmtDate(r.Tanggal)}</td><td class="px-6 py-4 font-mono font-bold">${idB}</td><td class="px-6 py-4 font-black">${nmB}</td><td class="px-6 py-4 text-center font-black text-cyan-600">${qtyB}</td><td class="px-6 py-4 font-bold">${nmK}</td><td class="px-6 py-4 text-xs max-w-[200px] truncate">${kep}</td><td class="px-6 py-4 text-center"><button onclick="openEditLogInv(${idx})" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-blue-600 border hover:bg-blue-50">Edit</button> <button onclick="deleteLogInv('${r.ID_Log}')" class="text-xs bg-slate-100 font-bold px-2.5 py-1 rounded text-red-600 border hover:bg-red-50 ml-1">Hapus</button></td></tr>`; }).join('') || '<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada log pengambilan.</td></tr>'; }
 function openEditLogInv(idx) { const r = LOG_INV_DATA[idx]; $('ELI_ID').value = r.ID_Log; $('ELI_TGL').value = r.Tanggal ? r.Tanggal.split('T')[0] : ''; const nmK = getV(r, ['Nama_Karyawan', 'NamaKaryawan']); $('ELI_KARY').innerHTML = DD_KARY.map(k=>`<option value="${k.nama}" ${k.nama===nmK?'selected':''}>${k.nama}</option>`).join(''); $('ELI_QTY').value = getV(r, ['Jumlah_Ambil', 'JumlahAmbil', 'Qty', 'Jumlah']); $('ELI_KEP').value = getV(r, ['Keperluan']); openM('MEDIT_LOG_INV'); }
-async function submitUpdateLogInv() { const res = await api({action:'update_log_inventory', user:CU, idLog:$('ELI_ID').value, tanggalBaru:$('ELI_TGL').value, karyawanBaru:$('ELI_KARY').value, jumlahBaru:$('ELI_QTY').value, keperluanBaru:$('ELI_KEP').value}); if(res.success){ toast(res.message); closeM('MEDIT_LOG_INV'); loadInvRiwayat(); loadInv(); } }
-async function deleteLogInv(id) { if(!confirm('Hapus log ini? Jumlah qty akan otomatis dikembalikan (restore) ke master stok.')) return; const res = await api({action:'delete_log_inventory', user:CU, idLog:id}); if(res.success){ toast(res.message); loadInvRiwayat(); loadInv(); } }
+
+// Edit log: kalau qty berubah, selisihnya harus disesuaikan ke stok master (transaction, bukan tulis polos)
+async function submitUpdateLogInv() {
+  const idLog = $('ELI_ID').value;
+  const logEntry = LOG_INV_DATA.find(r => r.ID_Log === idLog);
+  if (!logEntry) return toast('Log tidak ditemukan.', true);
+
+  const jumlahBaru = parseInt($('ELI_QTY').value) || 0;
+  const jumlahLama = parseInt(getV(logEntry, ['Jumlah_Ambil','JumlahAmbil','Qty','Jumlah'])) || 0;
+  const idBarang = getV(logEntry, ['ID_Barang','IDBarang','ID Item','ID_Item']);
+  const selisih = jumlahBaru - jumlahLama; // positif = ambil lebih banyak lagi dari stok
+
+  try {
+    if (selisih !== 0 && idBarang) {
+      const itemRef = window.fdb.doc(window.db, "master_inventory", idBarang);
+      await window.fdb.runTransaction(window.db, async (tx) => {
+        const snap = await tx.get(itemRef);
+        if (!snap.exists()) throw new Error(`Barang ${idBarang} tidak ditemukan di master.`);
+        const stokSaatIni = parseInt(getV(snap.data(), ['STOKSAATINI','STOK','QTY'])) || 0;
+        const stokBaru = stokSaatIni - selisih;
+        if (stokBaru < 0) throw new Error(`Stok tidak cukup untuk perubahan ini (sisa ${stokSaatIni}).`);
+        tx.update(itemRef, { STOKSAATINI: stokBaru.toString(), UpdatedAt: window.fdb.serverTimestamp() });
+      });
+    }
+    await window.fdb.updateDoc(window.fdb.doc(window.db, "log_inventory", logEntry._docId), {
+      Tanggal: $('ELI_TGL').value,
+      Nama_Karyawan: $('ELI_KARY').value,
+      Jumlah_Ambil: jumlahBaru,
+      Keperluan: $('ELI_KEP').value,
+      UpdatedAt: window.fdb.serverTimestamp()
+    });
+    toast('Log berhasil diperbarui.');
+    closeM('MEDIT_LOG_INV');
+    loadInvRiwayat();
+    loadInv();
+  } catch(err) {
+    toast('Gagal update log: ' + err.message, true);
+  }
+}
+
+// Hapus log: qty yang dulu diambil dikembalikan ke stok master (transaction), baru dokumen log dihapus.
+async function deleteLogInv(id) {
+  if(!confirm('Hapus log ini? Jumlah qty akan otomatis dikembalikan (restore) ke master stok.')) return;
+  const logEntry = LOG_INV_DATA.find(r => r.ID_Log === id);
+  if (!logEntry) return toast('Log tidak ditemukan.', true);
+
+  const jumlah = parseInt(getV(logEntry, ['Jumlah_Ambil','JumlahAmbil','Qty','Jumlah'])) || 0;
+  const idBarang = getV(logEntry, ['ID_Barang','IDBarang','ID Item','ID_Item']);
+
+  try {
+    if (idBarang) {
+      const itemRef = window.fdb.doc(window.db, "master_inventory", idBarang);
+      await window.fdb.runTransaction(window.db, async (tx) => {
+        const snap = await tx.get(itemRef);
+        if (snap.exists()) {
+          const stokSaatIni = parseInt(getV(snap.data(), ['STOKSAATINI','STOK','QTY'])) || 0;
+          tx.update(itemRef, { STOKSAATINI: (stokSaatIni + jumlah).toString(), UpdatedAt: window.fdb.serverTimestamp() });
+        }
+      });
+    }
+    await window.fdb.deleteDoc(window.fdb.doc(window.db, "log_inventory", logEntry._docId));
+    toast('Log dihapus & stok dikembalikan.');
+    loadInvRiwayat();
+    loadInv();
+  } catch(err) {
+    toast('Gagal menghapus log: ' + err.message, true);
+  }
+}
 
 function loadOpnameDraft() { if(!INV_DATA.length) return toast('Data barang sistem kosong. Harap refresh data.', true); $('OPNAME_BODY').innerHTML = INV_DATA.map((i, idx) => { const id = getV(i, ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']); const nama = getV(i, ['NAMABARANG', 'Nama Barang']); const stok = getV(i, ['STOKSAATINI', 'STOK', 'QTY']) || 0; return `<tr><td class="px-6 py-4 font-black text-slate-800">${nama}<br><span class="text-[10px] font-mono font-bold text-slate-400">${id}</span></td><td class="px-6 py-4 text-center font-bold text-slate-600 bg-slate-50"><span id="SO_SIS_${idx}">${stok}</span></td><td class="px-6 py-4 text-center"><input type="number" id="SO_FISIK_${idx}" data-idx="${idx}" class="so-fisik-input border-2 border-slate-200 p-1.5 w-20 text-center font-black rounded-lg" value="${stok}" oninput="calcOpnameRow(${idx})"></td><td class="px-6 py-4 text-center font-black"><span id="SO_SELISIH_${idx}" class="text-emerald-600">0</span></td><td class="px-6 py-4"><input type="text" id="SO_NOTE_${idx}" class="inp !py-1.5 text-xs font-medium" placeholder="Catatan audit..."></td></tr>`; }).join(''); toast('Stok sistem ditarik ke memori lokal.'); }
 function calcOpnameRow(idx) { const sis = parseInt($('SO_SIS_'+idx).textContent) || 0; const fisik = parseInt($('SO_FISIK_'+idx).value) || 0; const selisih = fisik - sis; const el = $('SO_SELISIH_'+idx); el.textContent = (selisih > 0 ? '+' : '') + selisih; el.className = selisih === 0 ? 'text-emerald-600 font-black' : 'text-red-600 font-black'; }
-async function submitOpname() { let items = []; document.querySelectorAll('.so-fisik-input').forEach(el => { const idx = parseInt(el.dataset.idx,10); items.push({ idBarang: getV(INV_DATA[idx], ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']), namaBarang: getV(INV_DATA[idx], ['NAMABARANG', 'Nama Barang']), stokSistem: parseInt($('SO_SIS_'+idx).textContent)||0, stokFisik: parseInt(el.value)||0, catatan: $('SO_NOTE_'+idx).value||'' }); }); if(!items.length) return toast('Harap tarik data stok sistem terlebih dahulu!', true); const res = await api({action:'submit_stock_opname', user:CU, items:items}); if(res.success){ toast(res.message); invSetTab('list'); loadInv(); } }
+async function submitOpname() {
+  let items = [];
+  document.querySelectorAll('.so-fisik-input').forEach(el => {
+    const idx = parseInt(el.dataset.idx,10);
+    items.push({
+      idBarang: getV(INV_DATA[idx], ['IDITEM', 'IDBARANG', 'ID Barang', 'ID Item']),
+      namaBarang: getV(INV_DATA[idx], ['NAMABARANG', 'Nama Barang']),
+      stokSistem: parseInt($('SO_SIS_'+idx).textContent)||0,
+      stokFisik: parseInt(el.value)||0,
+      catatan: $('SO_NOTE_'+idx).value||''
+    });
+  });
+  if(!items.length) return toast('Harap tarik data stok sistem terlebih dahulu!', true);
+
+  const berubah = items.filter(i => i.stokFisik !== i.stokSistem);
+  if (!berubah.length) { toast('Tidak ada selisih stok, tidak ada yang perlu disimpan.'); invSetTab('list'); return; }
+
+  try {
+    // writeBatch: semua penyesuaian stok tercatat sekaligus, tidak ada yang "nanggung" kalau di tengah jalan gagal.
+    const batch = window.fdb.writeBatch(window.db);
+    const now = window.fdb.serverTimestamp();
+
+    berubah.forEach(i => {
+      const itemRef = window.fdb.doc(window.db, "master_inventory", i.idBarang);
+      batch.update(itemRef, { STOKSAATINI: i.stokFisik.toString(), UpdatedAt: now });
+
+      const logRef = window.fdb.doc(window.fdb.collection(window.db, "stock_opname_log"));
+      batch.set(logRef, {
+        IDBarang: i.idBarang, NamaBarang: i.namaBarang,
+        StokSistem: i.stokSistem, StokFisik: i.stokFisik, Selisih: i.stokFisik - i.stokSistem,
+        Catatan: i.catatan, OlehUser: CU.Nama, Tanggal: now
+      });
+    });
+
+    await batch.commit();
+    toast(`Stok opname tersimpan (${berubah.length} item disesuaikan).`);
+    invSetTab('list');
+    loadInv();
+  } catch(err) {
+    toast('Gagal menyimpan stock opname: ' + err.message, true);
+  }
+}
 
 function openExportModal() { 
     // Otomatis mengambil daftar Form yang sudah dibuat HRD
@@ -4276,33 +4492,31 @@ window.kirimRaportMassal = async function() {
 // ====================================================================
 window.loadForms = async function() {
     try {
-        const res = await api({action: 'get_forms', user: CU});
-        
-        if(res.success && res.data) {
-            FORMS = res.data;
-            AVAILABLE_FORMS = res.data.filter(f => {
-                const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
-                const myRole = (CU.Role || '').toUpperCase();
-                
-                if(allowed === 'ALL' || allowed === '') return true;
-                
-                let ok = false;
-                allowed.split(',').forEach(r => { 
-                    if(myRole.includes(r.trim()) || myRole === r.trim()) ok = true; 
-                });
-                return ok;
-            });
+        const snap = await window.fdb.getDocs(window.fdb.collection(window.db, "form_config"));
+        const data = [];
+        snap.forEach(d => data.push({ ...d.data(), FormID: d.data().FormID || d.id }));
+
+        FORMS = data;
+        AVAILABLE_FORMS = data.filter(f => {
+            const allowed = (f.AllowedRoles || 'ALL').toUpperCase();
+            const myRole = (CU.Role || '').toUpperCase();
             
-            // Panggil penggambar UI Karyawan & HRD
-            if(typeof window.renderFormCards === 'function') window.renderFormCards(AVAILABLE_FORMS);
-            if(typeof loadFBList === 'function') loadFBList();
-        } else {
-            console.error('Gagal tarik form:', res.message);
-            // Fallback: Jika data gagal ditarik, gambar grid kosong agar user tidak stuck
-            if(typeof window.renderFormCards === 'function') window.renderFormCards([]);
-        }
+            if(allowed === 'ALL' || allowed === '') return true;
+            
+            let ok = false;
+            allowed.split(',').forEach(r => { 
+                if(myRole.includes(r.trim()) || myRole === r.trim()) ok = true; 
+            });
+            return ok;
+        });
+        
+        // Panggil penggambar UI Karyawan & HRD
+        if(typeof window.renderFormCards === 'function') window.renderFormCards(AVAILABLE_FORMS);
+        if(typeof loadFBList === 'function') loadFBList();
     } catch(e) {
         console.error('Error loadForms:', e);
+        toast('Gagal memuat konfigurasi form: ' + e.message, true);
+        if(typeof window.renderFormCards === 'function') window.renderFormCards([]);
     }
 };
 
@@ -4326,75 +4540,7 @@ window.renderFormCards = function(list) {
     </div>
     `;
   }).join('');
-};
-
-// =========================================================================
-// MESIN PENGIRIM EMAIL OTOMATIS (MEMINJAM JALUR BROADCAST)
-// =========================================================================
-async function kirimNotifEmail(reqData, jenisNotif, catatanAkhir = "") {
-    try {
-        const snapKary = await window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan"));
-        const snapUser = await window.fdb.getDocs(window.fdb.collection(window.db, "user"));
-        
-        let allKary = []; snapKary.forEach(d => allKary.push(d.data()));
-        let allUser = []; snapUser.forEach(d => allUser.push(d.data()));
-        
-        let targetNames = []; let subjek = ""; let isi = "";
-        
-        if (jenisNotif === "SUBMIT_AWAL" || jenisNotif === "NEXT_APPROVER") {
-            let targetRole = reqData.PosisiFlow; 
-            if (!targetRole || targetRole === 'SELESAI') return; // Tidak ada approver berikutnya
-            
-            if (targetRole.includes('ATASAN')) {
-                let pemohon = allKary.find(k => (k.Nama_Karyawan || k.Nama || '').toUpperCase() === (reqData.NamaPemohon||'').toUpperCase());
-                if (pemohon && pemohon.Atasan) targetNames.push(pemohon.Atasan);
-            } else {
-                let targetUser = allUser.filter(u => (u.Role || '').toUpperCase().includes(targetRole.toUpperCase()));
-                targetUser.forEach(tu => {
-                    let k = allKary.find(x => x.NIK === tu.NIK || x.NIK_Karyawan === tu.NIK);
-                    if(k) targetNames.push(k.Nama_Karyawan || k.Nama);
-                });
-            }
-            
-            subjek = `[Otorisasi Dibutuhkan] Pengajuan ${reqData.NamaForm} - ${reqData.NamaPemohon}`;
-            isi = `Halo,<br><br>Terdapat pengajuan <b>${reqData.NamaForm}</b> baru dari <b>${reqData.NamaPemohon}</b> yang membutuhkan persetujuan Anda (Sebagai: ${targetRole}).<br><br><b>Detail Singkat:</b><br>ID Transaksi: ${reqData.ID}<br>Tgl Submit: ${reqData.Tanggal.split('T')[0]}<br><br>Silakan login ke Portal HRIS untuk meninjau dan memberikan persetujuan.<br><br>Sistem HRIS Terintegrasi`;
-        } 
-        else if (jenisNotif === "FINAL_APPROVED" || jenisNotif === "REJECTED") {
-            targetNames.push(reqData.NamaPemohon); // Email kembali ke pemohon
-            
-            // Tambahkan Tembusan (NotifyRoles / Finance / HRD) jika Form disetujui penuh
-            if (jenisNotif === "FINAL_APPROVED") {
-                let cfg = FORMS.find(f => f.FormID === reqData.Forn_ID);
-                if (cfg && cfg.NotifyRoles) {
-                    let roles = cfg.NotifyRoles.split(',').map(r => r.trim().toUpperCase());
-                    roles.forEach(r => {
-                        let tu = allUser.filter(u => {
-                            let uRoles = (u.Role || '').toUpperCase();
-                            return r.split(' ').every(part => uRoles.includes(part)); 
-                        });
-                        tu.forEach(u => {
-                            let k = allKary.find(x => x.NIK === u.NIK || x.NIK_Karyawan === u.NIK);
-                            if(k) targetNames.push(k.Nama_Karyawan || k.Nama);
-                        });
-                    });
-                }
-            }
-            
-            let sts = jenisNotif === "FINAL_APPROVED" ? "DISETUJUI SEPENUHNYA (APPROVED)" : "DITOLAK (REJECTED)";
-            let warna = jenisNotif === "FINAL_APPROVED" ? "color: green;" : "color: red;";
-            
-            subjek = `[Status Final: ${jenisNotif === "FINAL_APPROVED" ? "Approved" : "Rejected"}] Pengajuan ${reqData.NamaForm}`;
-            isi = `Halo <b>${reqData.NamaPemohon}</b>,<br><br>Pengajuan <b>${reqData.NamaForm}</b> Anda (ID: ${reqData.ID}) telah mencapai status akhir: <b style="${warna}">${sts}</b>.<br><br><b>Catatan / Komentar Terakhir:</b><br><i>${catatanAkhir || 'Tidak ada catatan khusus'}</i><br><br>Silakan login ke Portal HRIS untuk melihat rekam jejak lengkapnya.<br><br>Sistem HRIS Terintegrasi`;
-        }
-        
-        targetNames = [...new Set(targetNames)].filter(n => n && n.trim() !== '');
-        
-        if (targetNames.length > 0) {
-            // Kita eksekusi API Broadcast secara background tanpa bikin layar loading
-            api({ action: 'send_broadcast', user: CU, tipeTarget: 'NIK', valueTarget: targetNames.join(','), judul: subjek, isi: isi }).catch(e => console.error(e));
-        }
-    } catch(e) { console.error("Gagal menyusun email notif:", e); }
-}  
+};  
 </script>
 
 <!-- ==================================================================== -->
@@ -4494,79 +4640,74 @@ async function jalankanMigrasi() {
 </script>
 
 <div style="position: fixed; bottom: 80px; left: 20px; z-index: 9999;">
-    <button onclick="sinkronkanCutiFirebaseV2(this)" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-emerald-700 animate-bounce">
-        ♻️ AUTO-HITUNG SEMUA CUTI
+    <button onclick="sinkronkanCutiFirebase(this)" class="bg-emerald-600 text-white font-black px-6 py-3 rounded-full shadow-2xl hover:bg-emerald-700 animate-bounce">
+        ♻️ AUTO-HITUNG SALDO CUTI
     </button>
 </div>
 
 <script>
-async function sinkronkanCutiFirebaseV2(btn) {
-    if(!confirm("Hitung ulang SEMUA jatah cuti (Tahunan, Akumulasi, Khusus) berdasarkan data Excel?")) return;
+async function sinkronkanCutiFirebase(btn) {
+    if(!confirm("Alat ini akan menghitung ulang sisa cuti semua karyawan berdasarkan Jatah Tahunan dan Riwayat masa lalu. Lanjutkan?")) return;
     
     try {
         btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Menghitung..."; 
         btn.disabled = true;
         
+        // 1. Ambil data semua Karyawan & semua Riwayat Cuti dari Firebase
         const karySnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_karyawan"));
         const cutiSnap = await window.fdb.getDocs(window.fdb.collection(window.db, "master_cuti"));
         
         let cutiList = [];
         cutiSnap.forEach(d => cutiList.push(d.data()));
+        
         let suksesCount = 0;
         
+        // 2. Looping (Putar) untuk menghitung setiap karyawan
         for (let docKary of karySnap.docs) {
             let k = docKary.data();
-            // Hapus semua spasi dan jadikan huruf kecil untuk pencocokan mutlak
-            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").toString().toLowerCase().replace(/\s+/g, '');
+            let namaKar = (k.Nama_Karyawan || k['Nama Karyawan'] || k.Nama || "").toUpperCase();
             if(!namaKar) continue;
             
-            let jTahunan = parseFloat(k.JatahTahunan || k['Jatah Tahunan'] || k['JATAH TAHUNAN']) || 0;
-            if (jTahunan === 0 && (!k.JatahTahunan && !k['Jatah Tahunan'])) jTahunan = 12; 
+            // Ambil Jatah Tahunan Awal (Jika kosong, anggap 12 hari)
+            let jatahAwal = parseFloat(k.JatahTahunan || k['Jatah Tahunan']) || 12; 
             
-            let jAkumulasi = parseFloat(k.SisaAkumulasi || k['Sisa Akumulasi'] || k['Jatah Akumulasi']) || 0;
-            let jKhusus = parseFloat(k.SisaKhusus || k['Sisa Khusus'] || k['Jatah Khusus']) || 0;
-            
-            let potongTahunan = 0, potongAkumulasi = 0, potongKhusus = 0;
-            
+            // 3. Cari riwayat cuti karyawan ini & jumlahkan potongannya
+            let totalPotong = 0;
             cutiList.forEach(c => {
-                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").toString().toLowerCase().replace(/\s+/g, '');
-                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || "").toString().toUpperCase();
-                let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c['Jumlah Ambil'] || c.Jumlah_Ambil) || 0;
+                let namaC = (c.Nama_Karyawan || c['Nama Karyawan'] || c.Nama || "").toUpperCase();
+                let tipeC = (c['Type Cuti'] || c.Jenis_Cuti || c.Jenis || c.JenisCuti || "").toUpperCase();
                 
-                // PENCOCOKAN EKSTREM: jika nama di Riwayat Cuti ada di dalam Nama Karyawan (atau sebaliknya)
-                if (namaC !== '' && (namaC.includes(namaKar) || namaKar.includes(namaC)) && angkaPotong > 0) {
-                    if (tipeC.includes('AKUMULASI')) {
-                        potongAkumulasi += angkaPotong;
-                    } else if (tipeC.includes('KHUSUS') || tipeC.includes('LAHIRAN') || tipeC.includes('MENIKAH') || tipeC.includes('DUKA')) {
-                        potongKhusus += angkaPotong;
-                    } else if (tipeC.includes('C -') || tipeC.includes('TAHUNAN') || tipeC.includes('1/2')) {
-                        potongTahunan += angkaPotong;
+                if (namaC === namaKar) {
+                    // Hanya hitung potongan untuk Cuti Tahunan (C - ...)
+                    if(tipeC.includes('C -') || tipeC.includes('TAHUNAN') || tipeC.includes('1/2')) {
+                        let angkaPotong = parseFloat(c['Potong Jatah'] || c.Potong_Jatah || c.Potongan || c.Count || c.Jumlah_Ambil) || 0;
+                        totalPotong += angkaPotong;
                     }
                 }
             });
             
-            let sisaTahunan = jTahunan - potongTahunan;
-            let sisaAkumulasi = jAkumulasi - potongAkumulasi;
-            let sisaKhusus = jKhusus - potongKhusus;
+            // 4. Lakukan Matematika: SISA CUTI = JATAH AWAL - TOTAL DIAMBIL
+            let sisaBaru = jatahAwal - totalPotong;
             
+            // 5. Simpan Saldo Sisa Cuti yang baru ke Firebase!
             await window.fdb.setDoc(window.fdb.doc(window.db, "master_karyawan", docKary.id), {
                 ...k,
-                JatahTahunan: jTahunan.toString(), "Jatah Tahunan": jTahunan.toString(),
-                SisaCuti: sisaTahunan.toString(), "Sisa Cuti": sisaTahunan.toString(),
-                SisaAkumulasi: sisaAkumulasi.toString(), "Sisa Akumulasi": sisaAkumulasi.toString(),
-                SisaKhusus: sisaKhusus.toString(), "Sisa Khusus": sisaKhusus.toString()
+                SisaCuti: sisaBaru.toString(),
+                "Sisa Cuti": sisaBaru.toString(),
+                JatahTahunan: jatahAwal.toString(),
+                "Jatah Tahunan": jatahAwal.toString()
             });
             
             suksesCount++;
         }
         
-        alert(`🎉 BERHASIL! ${suksesCount} profil telah dihitung ulang menggunakan Radar Ekstrem!`);
-        btn.innerHTML = "♻️ AUTO-HITUNG SEMUA CUTI"; 
+        alert(`🎉 LUAARRR BIASA! ${suksesCount} karyawan berhasil dihitung ulang saldo cutinya!`);
+        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
         btn.disabled = false;
         
     } catch(e) {
         alert("Terjadi Kesalahan: " + e.message);
-        btn.innerHTML = "♻️ AUTO-HITUNG SEMUA CUTI"; 
+        btn.innerHTML = "♻️ AUTO-HITUNG SALDO CUTI"; 
         btn.disabled = false;
     }
 }
