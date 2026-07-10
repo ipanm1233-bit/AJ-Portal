@@ -1870,7 +1870,11 @@ on('FMLOGIN', 'submit', async e => {
       // 5. SIMPAN KE BROWSER & BUKA APLIKASI
       localStorage.setItem('hris_u', JSON.stringify(CU)); 
       hideL(); 
-      toast('Login Firebase Berhasil!'); 
+      if (!CU.NIK) {
+          toast('Login berhasil, TAPI akun ini belum punya NIK di database (field "NIK" kosong di koleksi user). Fitur "Buat Pengajuan" tidak akan bisa dipakai sampai HR melengkapinya.', true);
+      } else {
+          toast('Login Firebase Berhasil!'); 
+      }
       bootApp(); 
 
   } catch (err) {
@@ -2504,6 +2508,12 @@ on('DYNFORM','submit',async e=>{
   
   const b=$('BTNSUBMIT'); 
   b.disabled=true; b.innerHTML='<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan ke Firebase...'; 
+
+  // Validasi wajib sebelum menyentuh Firestore: akun tanpa NIK akan selalu gagal disimpan (Firestore menolak field undefined).
+  if (!CU.NIK) {
+      b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan';
+      return toast('Akun Anda belum terhubung ke data NIK karyawan. Hubungi HR untuk melengkapi field NIK pada akun Anda sebelum mengajukan form.', true);
+  }
   
   try {
       const txID = 'TRX-' + new Date().toISOString().replace(/[^0-9]/g, "").substring(0,14);
@@ -2527,9 +2537,9 @@ on('DYNFORM','submit',async e=>{
           CreatedAt: window.fdb.serverTimestamp()
       };
       
-      // Tulis data ke Firebase
+      // Tulis data ke Firebase (disaring dulu, jaga-jaga ada field lain yang undefined)
       const colRef = window.fdb.collection(window.db, "data_pengajuan");
-      await window.fdb.addDoc(colRef, payloadIdm);
+      await window.fdb.addDoc(colRef, sanitizeRow(payloadIdm));
       
       b.disabled=false; b.innerHTML='<i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan'; 
       toast('Berhasil disimpan ke Cloud Firebase!'); 
